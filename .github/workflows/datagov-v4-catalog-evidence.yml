@@ -1,0 +1,34 @@
+name: Data.gov v4 Catalog Evidence QA
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/government/datagov_v4_catalog.py'
+      - 'scripts/government/test_datagov_v4_catalog.py'
+      - 'docs/research/OPEN-SOURCE-24-REUSE-DATAGOV-V4-2026-11-16.md'
+      - '.github/workflows/datagov-v4-catalog-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/government/datagov_v4_catalog.py'
+      - 'scripts/government/test_datagov_v4_catalog.py'
+      - '.github/workflows/datagov-v4-catalog-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    name: Bounded catalog offline contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Checkout immutable PR source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+      - name: Python syntax gate
+        run: python3 -m py_compile scripts/government/datagov_v4_catalog.py scripts/government/test_datagov_v4_catalog.py
+      - name: Replay-only contract suite (no API key and no network calls)
+        run: python3 -m unittest discover -s scripts/government -p 'test_datagov_v4_catalog.py' -v
