@@ -4,12 +4,16 @@ on:
     branches: [main]
     paths:
       - 'data/fabrics/geological/**'
+      - 'tsm-console/public/data/igws-scholarworks-priority-v1.json'
+      - 'tsm-console/public/geology-sources.html'
       - 'scripts/geospatial/igws_scholarworks_catalog.py'
       - 'tests/geospatial/test_igws_scholarworks_catalog.py'
       - '.github/workflows/igws-scholarworks-evidence.yml'
   pull_request:
     paths:
       - 'data/fabrics/geological/**'
+      - 'tsm-console/public/data/igws-scholarworks-priority-v1.json'
+      - 'tsm-console/public/geology-sources.html'
       - 'scripts/geospatial/igws_scholarworks_catalog.py'
       - 'tests/geospatial/test_igws_scholarworks_catalog.py'
       - '.github/workflows/igws-scholarworks-evidence.yml'
