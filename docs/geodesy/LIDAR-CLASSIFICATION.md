@@ -64,12 +64,14 @@ Lidar QL requirements, USGS LBS Table 4 (2025 rev. A) and the USGS QL page.
 Terminology: LBS 2024 rev. A renamed `RMSEz` to `RMSEv` under ASPRS
 Positional Accuracy Standards Ed. 2; values unchanged.
 
-| Level | RMSEv non-veg | NVA 95% | VVA | Max NPS | Min NPD | DEM cell |
-|---|---|---|---|---|---|---|
-| QL0 | ≤ 0.050 m | 0.098 m | 0.15 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
-| QL1 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
-| QL2 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.71 m | ≥ 2 pts/m² | 1 m |
-| QL3 | ≤ 0.200 m | 0.392 m | 0.60 m | ≤ 1.41 m | ≥ 0.5 pts/m² | 2 m |
+| Level | RMSEv nonvegetated, official 2025 Table 4 | Maximum ANPS | Minimum ANPD | DEM minimum cell size |
+|---|---|---|---|---|
+| QL0 | ≤ 0.050 m | ≤ 0.35 m | ≥ 8 pulses/m² | 0.5 m |
+| QL1 | ≤ 0.100 m | ≤ 0.35 m | ≥ 8 pulses/m² | 0.5 m |
+| QL2 | ≤ 0.100 m | ≤ 0.71 m | ≥ 2 pulses/m² | 1 m |
+| QL3 | ≤ 0.200 m | ≤ 1.41 m | ≥ 0.5 pulses/m² | 2 m |
+
+**2025 Table 4 does not specify a 95%-confidence NVA column or a universal VVA = 3 × RMSEv threshold.** Earlier TSM values obtained by multiplying RMSEv by 1.96 or 3 were historical statistical approximations, not published 2025 LBS requirements; they have been removed from the present quality-level API. Report vegetation-class errors and uncertainty separately from *measured* checkpoints under the applicable edition. [Official USGS Table 4](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables).
 
 QL0 and QL1 share pulse density and differ only in accuracy. QL4 (imagery)
 and QL5 (IfSAR) are not lidar levels. These are **dataset QA metrics**, not
