@@ -1,0 +1,37 @@
+name: IGWS ScholarWorks geological source evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/igws_scholarworks_catalog.py'
+      - 'tests/geospatial/test_igws_scholarworks_catalog.py'
+      - '.github/workflows/igws-scholarworks-evidence.yml'
+  pull_request:
+    paths:
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/igws_scholarworks_catalog.py'
+      - 'tests/geospatial/test_igws_scholarworks_catalog.py'
+      - '.github/workflows/igws-scholarworks-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable PR code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Pin Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Run bibliographic and license guard tests offline
+        run: python -m unittest discover -s tests/geospatial -p test_igws_scholarworks_catalog.py -v
+      - name: Validate frozen historical source catalog (no network or PDF downloads)
+        run: python scripts/geospatial/igws_scholarworks_catalog.py
+      - name: Compile Python
+        run: python -m compileall -q scripts/geospatial/igws_scholarworks_catalog.py
