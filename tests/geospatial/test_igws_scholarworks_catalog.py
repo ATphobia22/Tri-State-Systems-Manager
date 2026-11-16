@@ -28,6 +28,18 @@ class ScholarWorksCatalogTests(unittest.TestCase):
         self.assertEqual(summary["licensedPdfFilesDownloaded"], 0)
         self.assertFalse(summary["surveyOrRegulatoryApprovalEstablished"])
 
+    def test_public_catalog_mirrors_reviewed_source_bytes(self):
+        MODULE.verify_public_mirror(MODULE.CATALOG, MODULE.PUBLIC_CATALOG)
+
+    def test_reject_outdated_public_mirror(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / "source.json"
+            published = Path(folder) / "public.json"
+            source.write_bytes(b"{\"source\":1}")
+            published.write_bytes(b"{\"source\":2}")
+            with self.assertRaisesRegex(ValueError, "Static public IGWS catalog drift"):
+                MODULE.verify_public_mirror(source, published)
+
     def test_untrusted_uri_cannot_substitute_for_an_iu_source(self):
         item = copy.deepcopy(self.catalog)
         item["records"][0]["sourcePdfUrl"] = "https://phishing.example/download"
