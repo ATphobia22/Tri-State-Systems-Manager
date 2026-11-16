@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/government/source_contract_impact.py'
+      - 'data/acquisitions/tsm-data-plane-integration-v1.json'
       - 'tests/government/test_source_contract_impact.py'
       - 'docs/research/MICROSOFT-ECOSYSTEM-COMPOSITION-2026-11-16.md'
       - '.github/workflows/tsm-source-contract-impact.yml'
@@ -27,6 +28,7 @@ jobs:
           python scripts/government/source_contract_impact.py \
             --before data/schemas/tsm-indiana-data-catalog-v1.json \
             --after data/schemas/tsm-indiana-data-catalog-v1.json \
+            --plane-map data/acquisitions/tsm-data-plane-integration-v1.json \
             --output dist/research/source-contract-advisory.json
       - name: Upload source comparison evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
