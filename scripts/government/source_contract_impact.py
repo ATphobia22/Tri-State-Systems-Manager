@@ -39,6 +39,32 @@ SOURCE_FIELDS = {"name", "agency", "source_version", "status",
                  "acquired_at", "published_at", "retrieved_at", "checksum_sha256"}
 
 
+
+MAX_INPUT_BYTES = 16 * 1024 * 1024
+
+
+def _read_strict_document(path: Path) -> tuple[Any, bytes]:
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_INPUT_BYTES:
+        raise ValueError("Input must be a bounded regular non-symlink JSON file")
+    data = path.read_bytes()
+    if len(data) > MAX_INPUT_BYTES:
+        raise ValueError("Input JSON exceeds size limit")
+
+    def unique_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate JSON property: " + key)
+            result[key] = value
+        return result
+
+    def reject_nonfinite(value: str) -> Any:
+        raise ValueError("Nonfinite JSON value not permitted: " + value)
+
+    return json.loads(data, object_pairs_hook=unique_pairs,
+                      parse_constant=reject_nonfinite), data
+
+
 def _field(row: dict[str, Any], alternatives: tuple[str, ...]) -> Any:
     for path in alternatives:
         value: Any = row
@@ -226,16 +252,18 @@ def main(argv: list[str] | None = None) -> int:
                         help="Optional existing TSM data-plane integration manifest")
     args = parser.parse_args(argv)
     try:
-        old_bytes = args.before.read_bytes()
-        new_bytes = args.after.read_bytes()
-        old_document = json.loads(old_bytes)
-        new_document = json.loads(new_bytes)
+        inputs = [args.before, args.after]
+        if args.plane_map is not None:
+            inputs.append(args.plane_map)
+        if args.output.resolve() in {path.resolve() for path in inputs}:
+            raise ValueError("Output must not overwrite an input")
+        old_document, old_bytes = _read_strict_document(args.before)
+        new_document, new_bytes = _read_strict_document(args.after)
         result = compare(old_document, new_document,
                          old_sha256=hashlib.sha256(old_bytes).hexdigest(),
                          new_sha256=hashlib.sha256(new_bytes).hexdigest())
         if args.plane_map is not None:
-            plane_bytes = args.plane_map.read_bytes()
-            plane_document = json.loads(plane_bytes)
+            plane_document, plane_bytes = _read_strict_document(args.plane_map)
             old_sources, _ = _index(old_document)
             new_sources, _ = _index(new_document)
             result["plane_impact"] = map_plane_impacts(
@@ -245,9 +273,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Source contract analysis input error: {exc}", file=sys.stderr)
         return 2
     result["generated_utc"] = datetime.now(timezone.utc).isoformat()
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n",
-                           encoding="utf-8")
+    try:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        # Exclusive creation prevents silent loss of prior evidence or catalogs.
+        with args.output.open("x", encoding="utf-8") as stream:
+            stream.write(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        print(f"Source contract analysis output error: {exc}", file=sys.stderr)
+        return 2
     print(f"TSM_SOURCE_CONTRACT_IMPACT={args.output}")
     print(f"TSM_SOURCE_CONTRACT_CHANGED={result['change_count']}")
     print("ADVISORY_ONLY: data/schema metadata comparisons do not prove ingestion.")
