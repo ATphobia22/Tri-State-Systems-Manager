@@ -1,0 +1,35 @@
+name: Federal Register Evidence Adapter QA
+
+on:
+  pull_request:
+    paths:
+      - "scripts/regulatory/federal_register_ingest.py"
+      - "scripts/regulatory/test_federal_register_ingest.py"
+      - "docs/regulatory/FEDERAL-REGISTER-API-INTEGRATION.md"
+      - ".github/workflows/federal-register-evidence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/regulatory/federal_register_ingest.py"
+      - "scripts/regulatory/test_federal_register_ingest.py"
+      - ".github/workflows/federal-register-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12"
+      - name: Syntax gate
+        run: python3 -m py_compile scripts/regulatory/federal_register_ingest.py scripts/regulatory/test_federal_register_ingest.py
+      - name: Offline synthetic evidence tests (no network)
+        run: python3 -m unittest discover -s scripts/regulatory -p "test_federal_register_ingest.py" -v
