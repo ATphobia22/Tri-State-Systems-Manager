@@ -83,7 +83,7 @@ class ScholarWorksCatalogTests(unittest.TestCase):
                 "dc.date.issued": [{"value": str(record["publicationYear"])}],
                 "dc.identifier.uri": [{"value": record["handleUri"]}],
                 "dc.rights": [{"value": "This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 2.5 License"}],
-                "dc.rights.uri": [{"value": "http://creativecommons.org/licenses/by-nc-sa/2.5/"}],
+                "dc.rights.uri": [{"value": record["sourceRightsUri"]}],
             }
         }
         return json.dumps(data, ensure_ascii=False).encode("utf-8")
@@ -105,6 +105,12 @@ class ScholarWorksCatalogTests(unittest.TestCase):
             document["metadata"][field][0]["value"] = value
             with self.assertRaisesRegex(ValueError, expected):
                 MODULE.verify_dspace_item(self.record, json.dumps(document).encode())
+
+    def test_changed_rights_uri_requires_review(self):
+        data = json.loads(self.make_api_bytes())
+        data["metadata"]["dc.rights.uri"][0]["value"] = "https://creativecommons.org/licenses/by/4.0/"
+        with self.assertRaisesRegex(ValueError, "rights URI changed"):
+            MODULE.verify_dspace_item(self.record, json.dumps(data).encode())
 
     def test_record_missing_rights_and_withdrawn_record_rejected(self):
         data = json.loads(self.make_api_bytes())
