@@ -152,11 +152,78 @@ def compare(
     }
 
 
+
+def map_plane_impacts(
+    report: dict[str, Any],
+    plane_document: dict[str, Any],
+    compared_source_ids: set[str],
+) -> dict[str, Any]:
+    """Advisory crosswalk against TSM's declared data-plane source dependencies.
+
+    The plane manifest describes intended consumption, not proven lineage.
+    An identifier mismatch must remain unresolved, never fuzzy-matched.
+    """
+    planes = plane_document.get("planes") if isinstance(plane_document, dict) else None
+    if not isinstance(planes, list) or len(planes) > 128:
+        raise ValueError("Expected a bounded data-plane manifest containing planes")
+    changed = {row["source_id"] for row in report["changes"]}
+    required = {row["source_id"] for row in report["changes"]
+                if row["severity"] == "REVIEW_REQUIRED"}
+    impacted: list[dict[str, Any]] = []
+    unresolved: list[dict[str, str]] = []
+    covered: set[str] = set()
+    seen_planes: set[str] = set()
+    for i, plane in enumerate(planes):
+        if not isinstance(plane, dict):
+            raise ValueError(f"plane[{i}] is not an object")
+        pid = plane.get("id")
+        ids = plane.get("sourceIds")
+        if not isinstance(pid, str) or not pid.strip() or pid in seen_planes:
+            raise ValueError(f"plane[{i}] has an invalid or duplicate id")
+        seen_planes.add(pid)
+        if (not isinstance(ids, list) or len(ids) > 4096
+                or any(not isinstance(s, str) or not s.strip() for s in ids)
+                or len(ids) != len(set(ids))):
+            raise ValueError(f"plane[{i}] has invalid or duplicate sourceIds")
+        checks = plane.get("validation", [])
+        if not isinstance(checks, list) or any(not isinstance(x, str) for x in checks):
+            raise ValueError(f"plane[{i}] has invalid validation checks")
+        for sid in sorted(set(ids) - compared_source_ids):
+            unresolved.append({"plane_id": pid, "unresolved_source_id": sid})
+        hits = sorted(set(ids) & changed)
+        covered.update(hits)
+        if hits:
+            impacted.append({
+                "plane_id": pid,
+                "changed_source_ids": hits,
+                "review_state": ("REVIEW_REQUIRED" if set(hits) & required
+                                 else "REVIEW_RECOMMENDED"),
+                "declared_validation_checks": checks,
+                "relationship_evidence": "DECLARED_ONLY",
+                "geometry_or_runtime_impact_verified": False,
+            })
+    unmapped = sorted(changed - covered)
+    return {
+        "schema": "tsm.government.plane-change-crosswalk.v1",
+        "relationship_evidence": "DECLARED_ONLY",
+        "mapping_state": ("INCOMPLETE_REFERENCES" if unresolved
+                          else "PARTIAL_CHANGED_SOURCE_COVERAGE" if unmapped
+                          else "DECLARED_REFERENCES_MAPPED"),
+        "impacted_planes": impacted,
+        "unresolved_plane_source_ids": unresolved,
+        "unmapped_changed_source_ids": unmapped,
+        "release_blocking": False,
+        "regulatory_certification": "NOT_EVIDENCED",
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--before", required=True, type=Path)
     parser.add_argument("--after", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--plane-map", type=Path,
+                        help="Optional existing TSM data-plane integration manifest")
     args = parser.parse_args(argv)
     try:
         old_bytes = args.before.read_bytes()
@@ -166,6 +233,14 @@ def main(argv: list[str] | None = None) -> int:
         result = compare(old_document, new_document,
                          old_sha256=hashlib.sha256(old_bytes).hexdigest(),
                          new_sha256=hashlib.sha256(new_bytes).hexdigest())
+        if args.plane_map is not None:
+            plane_bytes = args.plane_map.read_bytes()
+            plane_document = json.loads(plane_bytes)
+            old_sources, _ = _index(old_document)
+            new_sources, _ = _index(new_document)
+            result["plane_impact"] = map_plane_impacts(
+                result, plane_document, set(old_sources) | set(new_sources))
+            result["plane_map_sha256"] = hashlib.sha256(plane_bytes).hexdigest()
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"Source contract analysis input error: {exc}", file=sys.stderr)
         return 2
