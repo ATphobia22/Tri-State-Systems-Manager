@@ -24,6 +24,12 @@ on:
       - 'docs/geospatial/OPENFEMA-INTEGRATION.md'
       - '.github/workflows/openfema-evidence.yml'
   workflow_dispatch:
+    inputs:
+      acquire_posey_declarations:
+        description: 'Explicitly fetch live FEMA administrative history and archive JSON/SHA receipt'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -54,3 +60,25 @@ jobs:
         run: node scripts/ci/validate-openfema.mjs
       - name: Confirm historical IGWS geological evidence remains separate
         run: python scripts/geospatial/igws_scholarworks_catalog.py
+
+  posey-live-acquisition:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.acquire_posey_declarations }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Fetch bounded FEMA source and create immutable digest receipt
+        run: |
+          mkdir -p "$RUNNER_TEMP/openfema"
+          python scripts/government/openfema_posey_snapshot.py --out "$RUNNER_TEMP/openfema/posey-declarations-${{ github.run_id }}.json"
+          (cd "$RUNNER_TEMP/openfema" && sha256sum -c "posey-declarations-${{ github.run_id }}.json.sha256")
+      - name: Archive FEMA-derived source snapshot and receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-openfema-posey-${{ github.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/openfema/
+          if-no-files-found: error
+          retention-days: 30
