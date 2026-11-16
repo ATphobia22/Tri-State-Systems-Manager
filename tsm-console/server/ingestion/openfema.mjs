@@ -48,7 +48,7 @@ export function normalizeOpenFemaResponse(payload, entity) {
   assertEntity(entity);
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('OpenFEMA response must be an object');
   const metadata = payload.metadata ?? payload.responseMetadata ?? null;
-  const records = payload[entity] ?? payload.data ?? payload.records;
+  const records = payload[entity];
   if (!Array.isArray(records)) throw new TypeError('OpenFEMA ' + entity + ' response collection missing or invalid');
   if (records.some((record) => !record || typeof record !== 'object' || Array.isArray(record))) {
     throw new TypeError('OpenFEMA ' + entity + ' response contains an invalid record');
