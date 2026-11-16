@@ -150,6 +150,8 @@ def check_manifest(manifest: dict, root: Path, references: dict) -> dict:
     require(source["horizontalCrs"] == "UNKNOWN" or EPSG.fullmatch(source["horizontalCrs"]),
             "source.horizontalCrs must be EPSG or UNKNOWN")
     require(source["units"] in ("m", "ftUS", "ft", "UNKNOWN"), "source.units must declare m/ftUS/ft/UNKNOWN")
+    if source["horizontalCrs"] in {"EPSG:2966", "EPSG:3435"}:
+        require(source["units"] == "ftUS", "EPSG:2966/3435 require US survey feet (ftUS), not metres or ambiguous feet")
     require(manifest.get("interpretive") in (True, False), "interpretive must be explicitly true/false")
     require(manifest.get("jurisdiction") in ("IN", "IL", "KY", "FEDERAL", "MULTI_STATE"), "jurisdiction required")
     require(manifest.get("automatedApproval") is False, "automatedApproval must be false")
