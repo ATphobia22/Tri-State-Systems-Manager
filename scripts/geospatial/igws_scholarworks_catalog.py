@@ -189,14 +189,15 @@ def verify_dspace_item(record: dict, raw: bytes) -> dict:
            "DSpace publication year changed")
     handles = metadata_values(metadata, "dc.identifier.uri")
     demand(record["handleUri"] in handles, "DSpace persistent identifier changed")
-    rights = metadata_values(metadata, "dc.rights") + metadata_values(metadata, "dc.rights.uri")
-    demand(rights, "No DSpace rights metadata: human clearance required")
-    demand(any("creativecommons.org" in s or "creative commons" in s.lower() for s in rights),
-           "Unrecognized rights metadata: manual review required")
-    # Do not turn an unresolved license discrepancy into permission to bundle PDFs.
+    # Compare an exact curator-reviewed URI (never a partial URL substring).
+    # Preserve the original URI scheme, including historical http references.
     rights_uris = metadata_values(metadata, "dc.rights.uri")
-    demand(record["sourceRightsUri"] in rights_uris,
+    demand(rights_uris == [record["sourceRightsUri"]],
            "DSpace rights URI changed: manual clearance is required")
+    rights_notices = metadata_values(metadata, "dc.rights")
+    if record["rightsMetadataStatus"] == "CONFLICTING_RIGHTS_METADATA":
+        demand(any("NonCommercial" in notice for notice in rights_notices),
+               "Expected noncommercial notice missing: manual clearance required")
     return {
         "id": record["id"],
         "source": record["metadataApi"],
