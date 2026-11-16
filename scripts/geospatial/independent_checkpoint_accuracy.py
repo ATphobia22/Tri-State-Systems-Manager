@@ -97,7 +97,10 @@ def documented_file(manifest_path: Path, metadata: dict, path_key: str, hash_key
         return False
     if not isinstance(rel, str) or not rel or not isinstance(expected, str) or not SHA.fullmatch(expected):
         raise ValueError(f"Both {path_key} and its valid {hash_key} are required")
-    path = bound_file((manifest_path.parent / rel).resolve(strict=True))
+    path = manifest_path.parent / rel
+    if path.is_symlink():
+        raise ValueError(f"Symlinked evidence path: {path_key}")
+    path = bound_file(path.resolve(strict=True))
     if file_sha256(path) != expected:
         raise ValueError(f"Evidence digest mismatch: {path_key}")
     return True
@@ -125,6 +128,12 @@ def evidence(manifest_path: Path | None, checkpoints_path: Path, mode: str) -> d
         raise ValueError("Only projected, aligned coordinates in metres are accepted")
     if not EPSG.fullmatch(str(p.get("horizontalCrs", ""))):
         raise ValueError("Explicit projected EPSG horizontal CRS required")
+    # These well-known geographic or native-ftUS codes cannot represent the
+    # metric projected X/Y columns without a separately documented conversion.
+    if p["horizontalCrs"] in {"EPSG:4326", "EPSG:4269", "EPSG:4979", "EPSG:2966"}:
+        raise ValueError("Use a metre-based calculation CRS (e.g. EPSG:26916); validate upstream coordinate operations")
+    if p.get("sameCoordinateFrameDeclared") is True and not p.get("coordinateOperationEvidence"):
+        raise ValueError("Declared common coordinate frame needs coordinateOperationEvidence reference")
     if mode != "horizontal" and p.get("verticalDatum") in (None, "", "UNKNOWN", "NOT_APPLICABLE"):
         raise ValueError("Vertical datum must be explicitly stated for elevation comparisons")
     expected = p.get("checkpointCsvSha256")
@@ -141,7 +150,8 @@ def evidence(manifest_path: Path | None, checkpoints_path: Path, mode: str) -> d
                 raise ValueError(f"{name} must be positive measured survey RMSE in metres")
             if not survey_verified:
                 raise ValueError(f"{name} requires a local hash-verified survey report")
-    if h2 is not None and mode == "vertical" or v2 is not None and mode == "horizontal":
+    if ((h2 is not None and mode == "vertical") or
+            (v2 is not None and mode == "horizontal")):
         raise ValueError("Survey uncertainty axis does not match assessment mode")
     return {
         "provenance": "INPUT_PATHS_AND_HASHES_CHECKED_NOT_INDEPENDENTLY_AUTHENTICATED",
@@ -232,7 +242,8 @@ def calculate(rows: list[dict], mode: str, provenance: dict) -> dict:
         "standards": {
             "ASPRS_2024_ED2_V2": {
                 "reference": SOURCES["ASPRS_2024"], "minimumCheckpoints": 30,
-                "minimumCountCriterionMet": n >= 30, "surveyErrorIncluded": valid_adjustment,
+                "minimumCountCriterionMet": n >= 30,
+                "surveyErrorIncluded": rh is not None or rv is not None,
                 "formalComplianceClaim": False,
             },
             "FGDC_NSSDA_1998": legacy,
