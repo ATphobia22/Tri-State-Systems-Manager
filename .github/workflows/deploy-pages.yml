@@ -36,6 +36,8 @@ env:
 jobs:
   build:
     name: Verify and build production console
+    outputs:
+      cesium_receipt_sha256: ${{ steps.cesium_receipt.outputs.digest }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     env:
@@ -284,6 +286,28 @@ jobs:
           }
           console.log('PASS: Pages entry stylesheets exist; MapLibre + Atlas CSS eagerly loaded');
           NODE
+      - name: Generate downloadable Cesium source-to-publication receipt
+        id: cesium_receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/release/cesium_published_receipt.py create \
+            --dist tsm-console/dist \
+            --base-url "https://atphobia22.github.io/Tri-State-Systems-Manager/" \
+            --git-sha "${{ github.sha }}" \
+            --run-id "${{ github.run_id }}"
+          python3 scripts/release/cesium_published_receipt.py verify-local \
+            --dist tsm-console/dist --expected-git-sha "${{ github.sha }}"
+          digest="$(cut -d' ' -f1 tsm-console/dist/cesium-release-receipt.json.sha256)"
+          echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
+      - name: Upload separately downloadable Cesium release receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-cesium-release-receipt-${{ github.sha }}
+          path: |
+            tsm-console/dist/cesium-release-receipt.json
+            tsm-console/dist/cesium-release-receipt.json.sha256
+          if-no-files-found: error
       - name: Upload production artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -316,6 +340,8 @@ jobs:
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
+      - name: Checkout release receipt verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
@@ -349,3 +375,23 @@ jobs:
           assert "height_m" in features[0].get("properties", {})
           print(f"Published buildings-3d.json valid: {len(features)} features with height_m")
           PY
+      - name: Compare actual public Cesium bytes with immutable build receipt
+        shell: bash
+        env:
+          PUBLISHED_SITE: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_RECEIPT_SHA: ${{ needs.build.outputs.cesium_receipt_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "${EXPECTED_RECEIPT_SHA}"
+          python3 scripts/release/cesium_published_receipt.py verify-published \
+            --base-url "${PUBLISHED_SITE%/}/" \
+            --expected-receipt-sha "${EXPECTED_RECEIPT_SHA}" \
+            --expected-git-sha "${{ github.sha }}" \
+            --output /tmp/tsm-cesium-published-verification.json
+      - name: Upload independent public Cesium publication verification
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-cesium-published-verification-${{ github.sha }}
+          path: /tmp/tsm-cesium-published-verification.json
+          if-no-files-found: ignore
