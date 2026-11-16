@@ -28,6 +28,8 @@ import {
 test("verified class codes: ground is 2, ignored ground is 20, noise is 7 and 18", () => {
   assert.equal(LIDAR_CLASS.GROUND, 2);
   assert.equal(LIDAR_CLASS.IGNORED_GROUND, 20);
+  assert.equal(LIDAR_CLASS.SNOW, 21);
+  assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
   assert.equal(LIDAR_CLASS.LOW_NOISE, 7);
   assert.equal(LIDAR_CLASS.HIGH_NOISE, 18);
   assert.equal(LIDAR_CLASS.WATER, 9);
@@ -50,6 +52,8 @@ test("class definitions carry both ASPRS and LBS wording where they differ", () 
   const two = lidarClassDefinition(2);
   assert.equal(two?.asprsLabel, "Ground");
   assert.equal(two?.lbsLabel, "Bare earth");
+  assert.equal(lidarClassDefinition(21)?.lbsLabel, "Snow (if present and identifiable)");
+  assert.match(lidarClassDefinition(22)?.lbsLabel ?? "", /Temporal exclusion/i);
 });
 
 test("unknown class codes return null, never a guessed definition", () => {
@@ -61,6 +65,8 @@ test("unknown class codes return null, never a guessed definition", () => {
 test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isGroundClass(2), true);
   assert.equal(isGroundClass(20), false);
+  assert.equal(isGroundClass(21), false);
+  assert.equal(isGroundClass(22), false);
   assert.equal(isVegetationClass(3), true);
   assert.equal(isVegetationClass(4), true);
   assert.equal(isVegetationClass(5), true);
