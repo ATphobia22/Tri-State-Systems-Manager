@@ -33,7 +33,7 @@
  *   node fetch-idnr-wells.mjs [--bbox xmin,ymin,xmax,ymax] [--out <path>] [--page-size <n>]
  *
  * Defaults:
- *   --bbox      -88.15,37.75,-87.85,38.05   (Posey County, EPSG:4326)
+ *   --bbox      optional WGS84 envelope within the Posey County source records
  *   --out       data/indiana-dnr/water-wells/idnr-water-wells-posey-v1.geojson
  *   --page-size 1000
  */
@@ -41,11 +41,12 @@
 import { get } from 'node:https';
 import { URL, URLSearchParams } from 'node:url';
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 
 const SERVICE_BASE = 'https://gisdata.in.gov/server/rest/services/Hosted/WaterWells_DNR_Water_IN_1/FeatureServer/0';
-const DEFAULT_BBOX = '-88.15,37.75,-87.85,38.05';
+const WHERE = "strcounty='POSEY'";
+const FIELDS = 'objectid,dblrefno,loc_type,strcounty,strrng1,strtwn1,dblsec1,dbldepth,dblstatic,dblbedrockd,dblbedrocke,dblaquelv,dtmcompdate';
 const DEFAULT_PAGE_SIZE = 1000;
 
 // ---------------------------------------------------------------------------
@@ -67,7 +68,7 @@ export function classifyLocationQuality(attrs = {}) {
   const v = raw.toLowerCase();
 
   if (!v) return 'unknown';
-  if (v.includes('field located')) return 'field-located';
+  if (v === 'field located') return 'field-located';
   if (v.includes('geocod')) return 'geocoded';
   if (v.includes('plss') || v.includes('section') || v.includes('township') || v.includes('range')) {
     return 'plss-estimated';
@@ -79,8 +80,8 @@ export function classifyLocationQuality(attrs = {}) {
 export function findUnmappedLocTypes(features) {
   const seen = new Set();
   for (const f of features) {
-    const raw = (f?.attributes?.loc_type ?? '').toString().trim();
-    if (raw && classifyLocationQuality(f.attributes) === 'unknown') seen.add(raw);
+    const raw = ((f?.attributes ?? f?.properties)?.loc_type ?? '').toString().trim();
+    if (raw && classifyLocationQuality(f.attributes ?? f.properties) === 'unknown') seen.add(raw);
   }
   return [...seen];
 }
@@ -127,15 +128,14 @@ function sha256Hex(buf) {
 // ---------------------------------------------------------------------------
 
 export function buildQueryUrl({ bbox, pageSize, offset }) {
-  const [xmin, ymin, xmax, ymax] = bbox.split(',').map((s) => s.trim());
+  const envelope = bbox?.split(',').map((s) => s.trim()).join(',');
   const params = new URLSearchParams({
-    where: '1=1',
-    geometry: `${xmin},${ymin},${xmax},${ymax}`,
-    geometryType: 'esriGeometryEnvelope',
-    inSR: '4326',
+    where: WHERE,
+    ...(envelope && { geometry: envelope, geometryType: 'esriGeometryEnvelope', inSR: '4326',
+      spatialRel: 'esriSpatialRelIntersects' }),
     outSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    outFields: '*',
+    outFields: FIELDS,
+    orderByFields: 'objectid ASC',
     returnGeometry: 'true',
     f: 'geojson',
     resultRecordCount: String(pageSize),
@@ -144,14 +144,15 @@ export function buildQueryUrl({ bbox, pageSize, offset }) {
   return `${SERVICE_BASE}/query?${params.toString()}`;
 }
 
-export async function fetchAllFeatures({ bbox, pageSize }) {
+export async function fetchAllFeatures({ bbox, pageSize, request = httpGetJson }) {
   const features = [];
   const statuses = [];
+  const ids = new Set();
   let offset = 0;
 
   for (;;) {
     const url = buildQueryUrl({ bbox, pageSize, offset });
-    const { status, data } = await httpGetJson(url);
+    const { status, data } = await request(url);
     statuses.push(status);
 
     if (data.error) {
@@ -162,7 +163,14 @@ export async function fetchAllFeatures({ bbox, pageSize }) {
     }
 
     const page = data.features;
-    features.push(...page);
+    for (const feature of page) {
+      const id = feature.properties?.objectid;
+      if (!Number.isSafeInteger(id) || ids.has(id) || feature.properties?.strcounty?.toUpperCase()?.trim() !== 'POSEY') {
+        throw new Error('Unexpected Posey county well identity or duplicate source record');
+      }
+      ids.add(id);
+      features.push(feature);
+    }
 
     if (page.length < pageSize) {
       // Short page: all records fetched. A true exceededTransferLimit on a
@@ -191,7 +199,7 @@ export async function fetchAllFeatures({ bbox, pageSize }) {
 // Outputs
 // ---------------------------------------------------------------------------
 
-function buildGeoJson(features) {
+export function buildGeoJson(features) {
   return {
     type: 'FeatureCollection',
     name: 'idnr-water-wells-posey-v1',
@@ -206,7 +214,7 @@ function buildGeoJson(features) {
         type: 'Feature',
         geometry: coords ? { type: 'Point', coordinates: coords } : null,
         properties: {
-          ...attrs,
+          ...Object.fromEntries(FIELDS.split(',').filter((key) => Object.hasOwn(attrs, key)).map((key) => [key, attrs[key]])),
           location_quality: classifyLocationQuality(attrs),
         },
       };
@@ -214,44 +222,14 @@ function buildGeoJson(features) {
   };
 }
 
-const PROVENANCE_BODY = `# Provenance — Indiana DNR Water Wells (Posey County)
-
-- **Authority:** Indiana Department of Natural Resources (DNR), Division of Water
-- **Source service:** Indiana DNR Water Wells FeatureServer (ArcGIS REST)
-- **dataClass:** reference/evidence (well logs)
-- **Acquisition method:** tools/acquisition/indiana/fetch-idnr-wells.mjs
-  (ArcGIS REST \`query\`, envelope + resultOffset paging, resilient)
-
-## Location-quality warning (read before displaying this data)
-
-Each record carries a \`location_quality\` property derived from the service's
-own \`loc_type\` field:
-
-| location_quality | meaning |
-|---|---|
-| field-located | GPS/survey field-located well head |
-| geocoded | office-geocoded from address or other source |
-| plss-estimated | estimated from PLSS section/township/range |
-| unknown | no usable location-method information |
-
-**Estimated and PLSS-derived locations are NOT survey-grade geometry.**
-They must be labeled as estimated wherever displayed, and must never be
-presented as surveyed well-head positions, used as control for engineering
-decisions, or silently promoted to authoritative coordinates.
-
-## Standing rules
-
-- Authority class: reference/evidence — well logs inform, they do not certify.
-- Provenance, vintage, CRS (EPSG:4326), and SHA-256 are recorded in the
-  validation receipt next to the GeoJSON.
-- Missing data is recorded as missing — never zero-filled or invented.
-`;
-
 function parseArgs(argv) {
-  const args = { bbox: DEFAULT_BBOX, out: null, pageSize: DEFAULT_PAGE_SIZE };
+  const args = { bbox: null, out: null, pageSize: DEFAULT_PAGE_SIZE };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--bbox') args.bbox = argv[++i];
+    if (a === '--bbox') {
+      args.bbox = argv[++i];
+      if (!args.bbox) throw new Error('--bbox requires an envelope');
+    }
     else if (a === '--out') args.out = argv[++i];
     else if (a === '--page-size') args.pageSize = Number(argv[++i]);
     else if (a === '--help' || a === '-h') {
@@ -261,12 +239,14 @@ function parseArgs(argv) {
       throw new Error(`Unknown argument: ${a}`);
     }
   }
-  const parts = args.bbox.split(',').map((s) => s.trim());
-  if (parts.length !== 4 || parts.some((p) => !Number.isFinite(Number(p)))) {
+  const parts = args.bbox?.split(',').map((s) => s.trim());
+  const [west, south, east, north] = parts?.map(Number) ?? [];
+  if (parts && (parts.length !== 4 || parts.some((p) => !p || !Number.isFinite(Number(p)))
+      || !(-180 <= west && west < east && east <= 180 && -90 <= south && south < north && north <= 90))) {
     throw new Error(`--bbox must be "xmin,ymin,xmax,ymax" in EPSG:4326, got: ${args.bbox}`);
   }
-  if (!Number.isInteger(args.pageSize) || args.pageSize < 1 || args.pageSize > 4000) {
-    throw new Error(`--page-size must be an integer 1..4000, got: ${args.pageSize}`);
+  if (!Number.isInteger(args.pageSize) || args.pageSize < 1 || args.pageSize > 1000) {
+    throw new Error(`--page-size must be an integer 1..1000, got: ${args.pageSize}`);
   }
   return args;
 }
@@ -281,6 +261,16 @@ async function main() {
   const sourceUrl = buildQueryUrl({ bbox: args.bbox, pageSize: args.pageSize, offset: 0 });
   const startedAt = new Date().toISOString();
   const { features, statuses } = await fetchAllFeatures({ bbox: args.bbox, pageSize: args.pageSize });
+  const countUrl = new URL(sourceUrl);
+  countUrl.searchParams.set('returnCountOnly', 'true');
+  countUrl.searchParams.set('f', 'json');
+  for (const key of ['resultRecordCount', 'resultOffset', 'orderByFields', 'returnGeometry', 'outFields']) {
+    countUrl.searchParams.delete(key);
+  }
+  const { data: countResult } = await httpGetJson(countUrl);
+  if (!Number.isSafeInteger(countResult.count) || countResult.count !== features.length) {
+    throw new Error(`Source count differs from acquired records (${countResult.count} vs ${features.length})`);
+  }
   const fetchedAt = new Date().toISOString();
 
   const unmapped = findUnmappedLocTypes(features);
@@ -299,7 +289,7 @@ async function main() {
     script: 'tools/acquisition/indiana/fetch-idnr-wells.mjs',
     source_url: sourceUrl,
     service: SERVICE_BASE,
-    query: { where: '1=1', bbox_epsg4326: args.bbox, inSR: 4326, outSR: 4326, outFields: '*', page_size: args.pageSize },
+    query: { where: WHERE, bbox_epsg4326: args.bbox, outSR: 4326, outFields: FIELDS, page_size: args.pageSize },
     http_statuses: statuses,
     http_ok: statuses.every((s) => s >= 200 && s < 300),
     acquired_started_at: startedAt,
@@ -313,12 +303,11 @@ async function main() {
     unmapped_loc_type_values: unmapped,
     warning: 'Estimated/PLSS-derived locations are NOT survey-grade geometry and must be labeled as such wherever displayed.',
   };
-  writeFileSync(join(outDir, 'idnr-water-wells-posey-v1.receipt.json'), JSON.stringify(receipt, null, 2) + '\n', 'utf8');
-  writeFileSync(join(outDir, 'PROVENANCE.md'), PROVENANCE_BODY, 'utf8');
+  const receiptPath = outPath.replace(/\.geojson$/i, '') + '.receipt.json';
+  writeFileSync(receiptPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
 
   console.log(`Wrote ${outPath} (${features.length} features, sha256 ${digest.slice(0, 16)}…)`);
-  console.log(`Receipt: ${join(outDir, 'idnr-water-wells-posey-v1.receipt.json')}`);
-  console.log(`Provenance: ${join(outDir, 'PROVENANCE.md')}`);
+  console.log(`Receipt: ${receiptPath}`);
 }
 
 // Run main() only when executed directly (not when imported for tests).
