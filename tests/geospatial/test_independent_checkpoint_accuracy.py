@@ -151,6 +151,50 @@ class AccuracyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "finite"):
                 accuracy.load_checkpoints(path, "vertical")
 
+    def test_survey_report_alone_cannot_promote_without_product_and_operation_hashes(self):
+        rows = [{"checkpoint_id": "SYNTHETIC", "product_z_m": 2.0,
+                 "reference_z_m": 1.0}]
+        p = {"surveyReportHashVerified": True,
+             "surveyRMSE_V2_m": 0.03,
+             "sameCoordinateFrameDeclared": True,
+             "checkpointIndependenceDeclared": True,
+             "representativeCoverageDeclared": True}
+        result = accuracy.calculate(rows, "vertical", p)
+        self.assertEqual(result["metrics"]["rmseV1_fit_m"], 1.0)
+        self.assertIsNone(result["metrics"]["rmseV_final_with_declared_survey_error_m"])
+        self.assertFalse(result["standards"]["ASPRS_2024_ED2_V2"]["surveyErrorIncluded"])
+
+    def test_foot_based_crs_rejected_for_metre_columns(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / "checks.csv"
+            write_csv(path, n=30)
+            manifest = root / "p.json"
+            manifest.write_text(json.dumps({
+                "schema": "tsm-independent-checkpoint-input-v1",
+                "horizontalCrs": "EPSG:2966", "verticalDatum": "NAVD88",
+                "coordinatesUnits": "m",
+                "checkpointCsvSha256": accuracy.file_sha256(path),
+            }))
+            with self.assertRaisesRegex(ValueError, "metre-based"):
+                accuracy.evidence(manifest, path, "vertical")
+
+    def test_undocumented_coordinate_operation_refused(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / "checks.csv"
+            write_csv(path, n=30)
+            manifest = root / "p.json"
+            manifest.write_text(json.dumps({
+                "schema": "tsm-independent-checkpoint-input-v1",
+                "horizontalCrs": "EPSG:26916", "verticalDatum": "NAVD88",
+                "coordinatesUnits": "m",
+                "checkpointCsvSha256": accuracy.file_sha256(path),
+                "sameCoordinateFrameDeclared": True,
+            }))
+            with self.assertRaisesRegex(ValueError, "hash-pinned"):
+                accuracy.evidence(manifest, path, "vertical")
+
     def test_legacy_anisotropy_prevents_invalid_95_estimate(self):
         rows = [{"checkpoint_id": str(i), "product_x_m": 2., "reference_x_m": 0.,
                  "product_y_m": .01, "reference_y_m": 0.} for i in range(30)]
