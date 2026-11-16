@@ -160,3 +160,27 @@ comparison and cannot establish LOMA eligibility or be filed with FEMA as an
 application. Casework requires effective FEMA map evidence, site-specific flood
 elevation evidence, and certified ground elevations from an authorized
 professional where applicable.
+
+### Posey County parcel review queue
+
+Run from the repository root to intersect parcel polygons directly with the
+same pinned BAFL extract, including parcels without a building footprint.
+
+```sh
+python -m tools.geospatial_exchange.posey_loma_parcels \
+  --summary /tmp/posey_parcel_review_receipt.json \
+  --queue-csv /tmp/posey_parcel_review_queue.csv
+```
+
+The queue retains every source parcel geometry and its one-based snapshot
+feature ordinal. The receipt pins the two input hashes. A state parcel ID can
+have several geometry records, so use the ordinal with the snapshot hash when
+tracing a row. Positive area overlap excludes boundary-only contact. No
+overlap refers only to usable geometry in the pinned BAFL extract.
+
+This queue initializes the review of each parcel. It leaves effective FEMA map
+evidence unverified and certified site evidence unavailable. Confirm the current
+FIRM and applicable revisions before evaluating parcel or structure status.
+Whole-lot cases use certified lowest lot elevation. Structure cases use
+certified lowest adjacent grade. Compare the applicable elevation with the
+site-specific base flood elevation in the same vertical datum and units.
