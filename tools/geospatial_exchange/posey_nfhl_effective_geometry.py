@@ -14,10 +14,12 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 BASE = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+ALTERNATE_BASE = "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
 DFIRM = "18129C"
 LAYERS = {"firm_panels": 3, "flood_hazard_zones": 28}
 REQUIRED_FIELDS = {
@@ -49,7 +51,20 @@ def encoded(value: dict) -> bytes:
 
 def get_json(url: str, params: dict) -> dict:
     insist(url.startswith(BASE + "/"), "Unexpected FEMA endpoint")
-    address = url + "?" + urlencode(params)
+    suffix = url[len(BASE):] + "?" + urlencode(params)
+    for base in (BASE, ALTERNATE_BASE, BASE):
+        try:
+            return read_json(base + suffix)
+        except HTTPError as exc:
+            if exc.code != 429 and not 500 <= exc.code <= 599:
+                raise
+            last_error = exc
+        except (URLError, TimeoutError, ConnectionError) as exc:
+            last_error = exc
+    raise EvidenceError("FEMA transport unavailable on both official routes") from last_error
+
+
+def read_json(address: str) -> dict:
     req = Request(address, headers={
         "Accept": "application/json", "User-Agent": "TSM-Posey-NFHL-evidence/1.0"
     })

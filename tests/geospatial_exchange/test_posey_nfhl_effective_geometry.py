@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
+from urllib.error import URLError
 
 from shapely.geometry import box, mapping
 
@@ -149,6 +151,19 @@ class FEMAEffectiveGeometryTests(unittest.TestCase):
                 subset[0]["properties"]["DFIRM_ID"] = "18163C"
             return {"type": "FeatureCollection", "features": subset}
         return fetch
+
+    def test_fema_connection_reset_retries_only_official_endpoint(self):
+        with patch.object(nfhl, "read_json", side_effect=[URLError("reset"), {"count": 35}]) as read:
+            self.assertEqual(nfhl.get_json(nfhl.BASE + "/3/query", {"f": "json"}), {"count": 35})
+        self.assertEqual([c.args[0] for c in read.call_args_list], [
+            nfhl.BASE + "/3/query?f=json", nfhl.ALTERNATE_BASE + "/3/query?f=json",
+        ])
+
+    def test_fema_content_validation_error_is_not_retried(self):
+        with patch.object(nfhl, "read_json", side_effect=nfhl.EvidenceError("invalid JSON")) as read:
+            with self.assertRaisesRegex(nfhl.EvidenceError, "invalid JSON"):
+                nfhl.get_json(nfhl.BASE + "/3", {"f": "json"})
+        read.assert_called_once()
 
     def test_bounded_offline_acquisition_and_replayed_hashes(self):
         with TemporaryDirectory() as folder:
