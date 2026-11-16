@@ -19,3 +19,19 @@ so panel identifiers drift over time. The anchor's case paperwork references
 FIRM panel **18129C0265C** while the live NFHL serves **18129C0300C** — panel
 drift is expected, not an error. Record the dataset vintage whenever flood
 determinations are compared across sources.
+
+## Federal Register document-publication evidence (new, optional)
+
+The read-only headless source adapter is documented in
+[docs/regulatory/FEDERAL-REGISTER-API-INTEGRATION.md](../../docs/regulatory/FEDERAL-REGISTER-API-INTEGRATION.md).
+It writes locally archived published-document API JSON and SHA-256 receipts using
+`scripts/regulatory/federal_register_ingest.py`. No records or agency determinations
+are vendored by default: a Federal Register search result is only a **candidate
+regulatory-publication reference**, not proof of applicable effective flood
+mapping, an open grant opportunity, or an approval. Generate the local snapshot
+on an explicitly network-enabled ingestion machine, then transfer the complete
+manifest and hashed sidecar files into an offline data bundle after review.
+
+This is intentionally **separate** from the terrain/geospatial registry: FR
+publication records have no inherent horizontal CRS, vertical datum, geometry,
+or land-parcel coverage. Do not assign them a geospatial authority class.
