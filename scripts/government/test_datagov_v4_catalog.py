@@ -168,6 +168,34 @@ class CatalogTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 catalog.ingest(**kwargs)
 
+    def test_simulated_live_mode_keeps_private_key_out_of_artifacts(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            secret = "operator-secret-do-not-publish"
+            with patch.object(catalog, "fetch_live", return_value=page([record()])) as fetched:
+                dest = catalog.ingest(query="Wabash", output_dir=root, live=True,
+                                      api_key=secret)
+            self.assertEqual(fetched.call_count, 1)
+            self.assertEqual(fetched.call_args.args[1], secret)
+            manifest = json.loads((dest / "manifest.json").read_text())
+            self.assertTrue(manifest["used_live_api"])
+            self.assertIsNotNone(manifest["source_retrieved_at_utc"])
+            self.assertIsNone(manifest["page_receipts"][0]["fixture_reconstructed_query_url"])
+            for source_file in dest.iterdir():
+                self.assertNotIn(secret, source_file.read_text())
+
+    def test_offline_receipts_do_not_fabricate_retrieval_time(self):
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            fixture = root / "source.json"
+            fixture.write_bytes(page([record()]))
+            dest = catalog.ingest(query="Wabash", output_dir=root / "output",
+                                  fixture_paths=[fixture])
+            manifest = json.loads((dest / "manifest.json").read_text())
+            self.assertIsNone(manifest["source_retrieved_at_utc"])
+            self.assertFalse(manifest["fixture_origin_verified"])
+            self.assertIsNone(manifest["page_receipts"][0]["live_request_url"])
+
     def test_redirects_are_never_followed(self):
         from urllib.request import Request
         with self.assertRaisesRegex(catalog.CatalogError, "REDIRECT_DISALLOWED"):
