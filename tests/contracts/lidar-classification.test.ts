@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   LIDAR_CLASS,
+  isBareEarthDemSourceClass,
   lidarClassDefinition,
   isGroundClass,
   isVegetationClass,
@@ -79,7 +80,7 @@ test("QL table: QL0 5 cm, QL1/QL2 10 cm, QL3 20 cm non-vegetated RMSEv", () => {
   assert.equal(rmseVNonVegetatedM("QL3"), 0.2);
 });
 
-test("QL definitions carry pulse density, spacing, NVA and VVA", () => {
+test("QL definitions carry pulse density, spacing and deprecated historical accuracy fields", () => {
   const ql2 = qualityLevelDefinition("QL2");
   assert.equal(ql2?.minNominalPulseDensityPerSqM, 2);
   assert.equal(ql2?.maxNominalPulseSpacingM, 0.71);
@@ -256,4 +257,22 @@ test("flatten constraints keep lakes and rivers only, and reject an uphill river
 test("enforce constraints keep culvert cuts, rivers and lakes — not bridges", () => {
   const out = buildHydroEnforceConstraints([lake, downhill, bridge, culvert]);
   assert.deepEqual(out.map((b) => b.id), ["l1", "r1", "c1"]);
+});
+
+// USGS Lidar Base Specification 2025 revision A, Table 5 + revision history.
+test("snow 21 and temporal exclusion 22 use USGS 2025 LBS labels", () => {
+  assert.equal(LIDAR_CLASS.SNOW, 21);
+  assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
+  assert.match(lidarClassDefinition(21)?.lbsLabel ?? "", /Snow/);
+  assert.match(lidarClassDefinition(22)?.lbsLabel ?? "", /Temporal exclusion/);
+});
+
+test("bare-earth DEM source class includes class-21 snow only with explicit approval", () => {
+  assert.equal(isBareEarthDemSourceClass(2), true);
+  assert.equal(isBareEarthDemSourceClass(21), false);
+  assert.equal(isBareEarthDemSourceClass(21, true), true);
+  for (const x of [0, 1, 7, 9, 18, 20, 22, 99]) {
+    assert.equal(isBareEarthDemSourceClass(x, true), false);
+  }
+  assert.equal(isGroundClass(21), false);
 });

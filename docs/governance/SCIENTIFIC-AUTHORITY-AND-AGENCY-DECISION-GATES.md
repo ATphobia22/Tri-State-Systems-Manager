@@ -55,3 +55,9 @@ The connected Google Drive file titled **Tri-State Systems Manager Audit** (2026
 ## Engineering acceptance objective
 
 Publish a verifiable dossier per AOI and scenario: source manifests; raw data and exact versions; COGO/least-squares covariance and residuals; benchmark datasets; solver logs and mass balances; geodetic controls and checkpoint uncertainty; reviewer qualifications; a case-specific decision record; and reproducible executable environment. Show `NOT_EVIDENCED` for every missing artifact rather than inferring success.
+
+## Additional evidence policy crosswalk (2026-11-16)
+
+- [USGS FSP SM 502.7 (2026)](https://www.usgs.gov/survey-manual/5027-fundamental-science-practices-metadata-usgs-scientific-data) and [SM 502.8 (2026)](https://www.usgs.gov/survey-manual/5028-fundamental-science-practices-review-approval-and-release-usgs-scientific-data) describe required scientific metadata/review/approval **for USGS**. TSM uses their principles only as voluntary research-QA guidance; TSM has no USGS approval.
+- [USGS GeMS 2020](https://ngmdb.usgs.gov/Info/standards/GeMS/) schema and [FGDC geologic symbolization](https://www.fgdc.gov/standards/projects/geo-symbol/) govern different facets of geological-map interoperability. Passing a metadata parser or displaying cartographic symbols does not validate the source geologic database.
+- The source-cited [Gray/IGWS historical catalog](../../data/fabrics/geological/gray-historical-publications-2026-11-16.json) retains original map scales, historical acquisition period and explicit non-cleared map reuse terms. No automatic inference of ground conditions, geological engineering review, or state licensure is permitted.

@@ -31,7 +31,7 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 |---|---|
 | 0 | Created, never classified |
 | 1 | Unassigned / Processed, but unclassified |
-| 2 | Ground / Bare earth — the only class a bare-earth DEM is built from |
+| 2 | Ground / Bare earth — normal DEM ground class; class 21 snow requires explicit 2025-rev-A policy |
 | 3 | Low Vegetation |
 | 4 | Medium Vegetation |
 | 5 | High Vegetation |
@@ -41,6 +41,8 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 | 17 | Bridge Deck |
 | 18 | High Noise |
 | 20 | Ignored Ground (typically breakline proximity) |
+| 21 | Identifiable snow (perennial snowpack; 2025 rev. A) |
+| 22 | Temporal exclusion (typically nonfavored intertidal observations) |
 
 In LAS 1.4, codes 8 and 12 are reserved (use class flags instead);
 LAS 1.1–1.3 support only 0–31. Code implemented in TypeScript:
@@ -56,14 +58,14 @@ Lidar QL requirements, USGS LBS Table 4 (2025 rev. A) and the USGS QL page.
 Terminology: LBS 2024 rev. A renamed `RMSEz` to `RMSEv` under ASPRS
 Positional Accuracy Standards Ed. 2; values unchanged.
 
-| Level | RMSEv non-veg | NVA 95% | VVA | Max NPS | Min NPD | DEM cell |
+| Level | RMSEv non-veg | Legacy NVA 95% estimate (not 2025 gate) | Legacy VVA heuristic (not measured) | Max NPS | Min NPD | DEM cell |
 |---|---|---|---|---|---|---|
 | QL0 | ≤ 0.050 m | 0.098 m | 0.15 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
 | QL1 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
 | QL2 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.71 m | ≥ 2 pts/m² | 1 m |
 | QL3 | ≤ 0.200 m | 0.392 m | 0.60 m | ≤ 1.41 m | ≥ 0.5 pts/m² | 2 m |
 
-QL0 and QL1 share pulse density and differ only in accuracy. QL4 (imagery)
+The NVA 95% and VVA columns above are retained **only as historical derived approximations** for compatibility; they are NOT criteria in current LBS 2025 rev. A Table 4, cannot replace measured VVA, and cannot be used as evidence of compliance under ASPRS Edition 2. QL0 and QL1 share pulse density and differ only in accuracy. QL4 (imagery)
 and QL5 (IfSAR) are not lidar levels. These are **dataset QA metrics**, not
 per-point filters: a QL2 collection (Posey County 2020) was specified to
 10 cm non-vegetated RMSEv at ≥ 2 pulses/m² — that certifies no single point
@@ -252,3 +254,12 @@ Deliberately NOT implemented (recorded gaps, not oversights):
   client in `packages/*`.
 - No tests for `extract_lidar_heights.py` (requires laspy, not installed on
   this VM); no PDAL execution here (PDAL is not installed on this VM).
+
+## USGS 2025 Revision A classification and dataset-vintage caution (2026-11-16)
+
+- The USGS current Lidar Base Specification (LBS) Table 5 includes class 21 (**Snow**, when identifiable) and class 22 (**Temporal exclusion**, normally nonfavored intertidal points), in addition to existing class 20 **Ignored ground**.
+- The 2025 revision requires identifiable perennial snow to be class 21 and included in a bare-earth DEM. TSM preserves class-2 ground predicates separately, and its new bare-earth DEM source predicate includes class 21 **only with an explicit opt-in**. Neither class 20 nor class 22 can enter that ground source predicate.
+- This updated rule is **not retroactive proof** that any 2017–2020 Posey lidar acquisition met a later specification. The edition applicable to each acquired dataset must come from that project's mapping report.
+- USGS 2025 rev. A also requires the Lidar Mapping Report to identify LBS edition; MSHR NoData to align with DEM NoData; a consistent GTRasterType GeoKey; and revised breakline and interswath evidence. Those *source-asset* validations remain **NOT EVIDENCED** until actual raster metadata, mapping report, and project deliverables are examined. A class lookup alone cannot make a lidar dataset compliant.
+
+Sources: [USGS current LBS](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online), [USGS LBS Table 5](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables), [revision history](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-revision-history).

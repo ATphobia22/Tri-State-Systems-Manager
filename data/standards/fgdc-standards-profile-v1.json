@@ -1,7 +1,7 @@
 {
   "schema": "tsm-fgdc-standards-profile",
   "version": "1.0.0",
-  "reviewedOn": "2026-11-15",
+  "reviewedOn": "2026-11-16",
   "catalogUrl": "https://www.fgdc.gov/resources/download-geospatial-standards",
   "policy": {
     "networkRequiredForValidation": false,
@@ -218,6 +218,50 @@
       "use": [
         "building tileset hierarchy and implicit availability",
         "bounding volumes and glTF payload structure"
+      ]
+    },
+    {
+      "id": "USGS-3DEP-LBS-2025-REV-A",
+      "title": "USGS 3DEP Lidar Base Specification",
+      "version": "2025 rev. A (2025-06-10)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online",
+      "use": [
+        "lidar project edition tracing",
+        "classification and mapping-report release QA"
+      ]
+    },
+    {
+      "id": "USGS-GeMS-2020",
+      "title": "USGS Geologic Map Schema (GeMS)",
+      "version": "2020 (Techniques and Methods 11-B10)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://ngmdb.usgs.gov/Info/standards/GeMS/",
+      "use": [
+        "geological feature schema provenance",
+        "GeMS validation separate from cartographic symbology"
+      ]
+    },
+    {
+      "id": "USGS-FSP-SM-5027-2026",
+      "title": "USGS Fundamental Science Practices: Metadata for USGS Scientific Data",
+      "version": "2026-06-01",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.usgs.gov/survey-manual/5027-fundamental-science-practices-metadata-usgs-scientific-data",
+      "use": [
+        "source metadata review procedures reference only",
+        "does not confer USGS approval on TSM"
+      ]
+    },
+    {
+      "id": "USGS-FSP-SM-5028-2026",
+      "title": "USGS Fundamental Science Practices: Review, Approval, and Release of USGS Scientific Data",
+      "version": "2026-06-01",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.usgs.gov/survey-manual/5028-fundamental-science-practices-review-approval-and-release-usgs-scientific-data",
+      "use": [
+        "review trail and authoritative release provenance",
+        "does not confer USGS approval on TSM"
       ]
     }
   ]

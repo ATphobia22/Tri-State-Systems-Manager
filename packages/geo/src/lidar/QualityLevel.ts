@@ -18,6 +18,9 @@
  * deliberately not in this model. QL0 and QL1 share pulse density
  * (>= 8 pts/m^2, ANPS <= 0.35 m) and differ only in accuracy.
  *
+ * The nva95M and vvaM fields below are **legacy-derived display heuristics**,
+ * retained only for API compatibility; neither is a current LBS 2025 or
+ * ASPRS Edition 2 QA acceptance result or a substitute for measured VVA.
  * These are dataset QA metrics, not per-point filters: a QL2 collection
  * (Posey County 2020) means the collection was specified to 10 cm
  * non-vegetated RMSEv at >= 2 pulses/m^2 — it does not certify any single
@@ -29,9 +32,9 @@ export interface QualityLevelDefinition {
   level: LidarQualityLevel;
   /** Non-vegetated absolute vertical accuracy, RMSEv, in metres. */
   rmseVNonVegetatedM: number;
-  /** Non-vegetated vertical accuracy at 95% confidence, in metres (RMSEv x 1.96). */
+  /** @deprecated Historical NSSDA-style 1.96×RMSEv estimate; not a current USGS LBS 2025/ASPRS Ed.2 acceptance metric. */
   nva95M: number;
-  /** Vegetated vertical accuracy, in metres (RMSEv x 3). */
+  /** @deprecated Historical RMSEv×3 heuristic, NOT a measured vegetated vertical accuracy or current LBS pass criterion. */
   vvaM: number;
   /** Aggregate nominal pulse spacing, maximum, in metres. */
   maxNominalPulseSpacingM: number;

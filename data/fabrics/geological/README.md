@@ -69,3 +69,7 @@ the surface. This is general published context, NOT a site determination.
 - Kentucky KGS: public research products of the University of Kentucky.
 - USGS NGMDB: public domain (U.S. federal).
 - NRCS SSURGO: public domain (U.S. federal).
+
+## Historical Indiana geology reference index (2026-11-16)
+
+The [six source-cited Henry H. Gray records](gray-historical-publications-2026-11-16.json) add MM48 (1987 bedrock), MM49 (1989 Quaternary), B61 (1837–1838 survey reissued in 1987), B20 (1960 Huron), RGM01 (1961 Indianapolis) and RGM03 (1970 Vincennes) without downloading, republishing or automatically georeferencing the original map images. The [research and reproducibility record](../../../docs/geology/HENRY-H-GRAY-REVIEW-2026-11-16.md) describes scale, reported rights issues and release boundaries. The offline [authority gate](../../../scripts/geospatial/historical_geology_gate.py) blocks bibliographic metadata from being represented as geotechnical field observations or a professional determination.

@@ -30,6 +30,8 @@ export const LIDAR_CLASS = {
   BRIDGE_DECK: 17,
   HIGH_NOISE: 18,
   IGNORED_GROUND: 20,
+  SNOW: 21,
+  TEMPORAL_EXCLUSION: 22,
 } as const;
 
 export interface LidarClassDefinition {
@@ -54,6 +56,8 @@ export const LIDAR_CLASS_DEFINITIONS: ReadonlyMap<number, LidarClassDefinition> 
   [17, { code: 17, asprsLabel: "Bridge Deck", lbsLabel: "Bridge deck" }],
   [18, { code: 18, asprsLabel: "High Noise", lbsLabel: "High noise" }],
   [20, { code: 20, asprsLabel: "Ignored Ground", lbsLabel: "Ignored ground (typically breakline proximity)" }],
+  [21, { code: 21, asprsLabel: "Snow", lbsLabel: "Snow (if present and identifiable)" }],
+  [22, { code: 22, asprsLabel: "Temporal Exclusion", lbsLabel: "Temporal exclusion (typically nonfavored intertidal data)" }],
 ]);
 
 /** Definition for a code, or null when the code is not in the verified set. */
@@ -61,7 +65,7 @@ export function lidarClassDefinition(code: number): LidarClassDefinition | null 
   return LIDAR_CLASS_DEFINITIONS.get(code) ?? null;
 }
 
-/** True for ASPRS class 2 (bare earth / ground) — the only class a bare-earth DEM is built from. */
+/** True for ASPRS class 2 ground; class 21 snow is distinct and conditional for 2025-rev-A DEMs. */
 export function isGroundClass(code: number): boolean {
   return code === LIDAR_CLASS.GROUND;
 }
@@ -78,4 +82,14 @@ export function isVegetationClass(code: number): boolean {
 /** True for ASPRS classes 7 and 18 (low / high noise). */
 export function isNoiseClass(code: number): boolean {
   return code === LIDAR_CLASS.LOW_NOISE || code === LIDAR_CLASS.HIGH_NOISE;
+}
+
+/** Bare-earth DEM source classification. 2025 rev. A allows class-21 perennial snow
+ * only when identifiable and explicitly authorised by the source dataset policy.
+ * Never reinterpret class 22 (temporal exclusion) or class 20 as valid ground.
+ * Historical collections must retain their original source specification.
+ * Source: https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-revision-history
+ */
+export function isBareEarthDemSourceClass(code: number, includeIdentifiablePerennialSnow = false): boolean {
+  return code === LIDAR_CLASS.GROUND || (includeIdentifiablePerennialSnow && code === LIDAR_CLASS.SNOW);
 }

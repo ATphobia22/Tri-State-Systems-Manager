@@ -1,0 +1,45 @@
+name: Historical geological references and USGS LBS metadata gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/historical_geology_gate.py'
+      - 'scripts/geospatial/lbs_raster_pair_gate.py'
+      - 'tests/geospatial/test_historical_geology_gate.py'
+      - 'tests/geospatial/test_lbs_raster_pair_gate.py'
+      - 'data/standards/**'
+      - '.github/workflows/historical-geological-evidence.yml'
+  pull_request:
+    paths:
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/historical_geology_gate.py'
+      - 'scripts/geospatial/lbs_raster_pair_gate.py'
+      - 'tests/geospatial/test_historical_geology_gate.py'
+      - 'tests/geospatial/test_lbs_raster_pair_gate.py'
+      - 'data/standards/**'
+      - '.github/workflows/historical-geological-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bibliographic-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - name: Python 3.12
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # pinned
+        with:
+          python-version: '3.12'
+      - name: Compile no-network validators
+        run: python -m py_compile scripts/geospatial/historical_geology_gate.py scripts/geospatial/lbs_raster_pair_gate.py
+      - name: Validate real IGWS/USGS bibliography metadata
+        run: python scripts/geospatial/historical_geology_gate.py
+      - name: Test literature-only rights and scientific authority boundaries
+        run: python -m unittest discover -s tests/geospatial -p 'test_historical_geology_gate.py' -v
+      - name: Test USGS LBS 2025 NoData and geospatial metadata logic with synthetic GDAL fixtures
+        run: python -m unittest discover -s tests/geospatial -p 'test_lbs_raster_pair_gate.py' -v
+      - name: Cross-check FGDC standards registry and CSDGM source parser
+        run: python scripts/geospatial/fgdc_metadata_gate.py
