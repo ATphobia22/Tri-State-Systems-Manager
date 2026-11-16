@@ -13,6 +13,9 @@ on:
       - 'docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md'
       - 'tests/contracts/open-source-adoption-register.test.mjs'
       - '.github/workflows/open-source-adoption-register-validation.yml'
+      - 'scripts/government/datagov_v4_catalog.py'
+      - 'scripts/government/test_datagov_v4_catalog.py'
+      - 'docs/research/OPEN-SOURCE-24-REUSE-DATAGOV-V4-2026-11-16.md'
   pull_request:
     paths:
       - 'integrations/open-source-candidate-register.json'
@@ -24,6 +27,9 @@ on:
       - 'docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md'
       - 'tests/contracts/open-source-adoption-register.test.mjs'
       - '.github/workflows/open-source-adoption-register-validation.yml'
+      - 'scripts/government/datagov_v4_catalog.py'
+      - 'scripts/government/test_datagov_v4_catalog.py'
+      - 'docs/research/OPEN-SOURCE-24-REUSE-DATAGOV-V4-2026-11-16.md'
   workflow_dispatch:
 
 permissions:
@@ -41,3 +47,7 @@ jobs:
         run: node --test tests/contracts/open-source-adoption-register.test.mjs tests/contracts/geobim-oss-candidates.test.mjs
       - name: Validate offline IFC source integrity intake
         run: python3 -m unittest scripts/geospatial/test_verify_geobim_ifc_intake.py -v
+      - name: Validate Data.gov v4 offline source-evidence adapter
+        run: |
+          python3 -m py_compile scripts/government/datagov_v4_catalog.py scripts/government/test_datagov_v4_catalog.py
+          python3 -m unittest discover -s scripts/government -p 'test_datagov_v4_catalog.py' -v
