@@ -241,7 +241,10 @@ def run(args: argparse.Namespace) -> dict:
             if not has_next:
                 break
     else:
-        raw = args.fixture.read_bytes()
+        with args.fixture.open("rb") as fixture_file:
+            raw = fixture_file.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise ValueError("Offline fixture exceeds the 4 MiB safety limit")
         raw_pages = [(f"local-fixture:{args.fixture.name}", raw)]
     manifest, stored = create_snapshot(raw_pages, args.term, since, until,
                                        "LIVE" if args.live else "FIXTURE")
