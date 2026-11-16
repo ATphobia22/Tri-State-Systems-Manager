@@ -8,6 +8,7 @@ on:
       - 'scripts/geospatial/pdal_pipelines.py'
       - 'scripts/geospatial/test_pdal_pipelines.py'
       - 'tests/geospatial/test_geoscience_authority_gate.py'
+      - 'packages/geo/src/lidar/QualityLevel.ts'
       - 'packages/geo/src/lidar/LidarClasses.ts'
       - 'packages/geo/src/lidar/PointClassification.ts'
       - 'tests/contracts/lidar-classification.test.ts'
