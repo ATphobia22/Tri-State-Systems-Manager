@@ -29,7 +29,7 @@ import {
 test("verified class codes: ground is 2, ignored ground is 20, noise is 7 and 18", () => {
   assert.equal(LIDAR_CLASS.GROUND, 2);
   assert.equal(LIDAR_CLASS.IGNORED_GROUND, 20);
-  assert.equal(LIDAR_CLASS.PERENNIAL_SNOW, 21);
+  assert.equal(LIDAR_CLASS.SNOW, 21);
   assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
   assert.equal(LIDAR_CLASS.LOW_NOISE, 7);
   assert.equal(LIDAR_CLASS.HIGH_NOISE, 18);
