@@ -63,9 +63,7 @@ $outputFile = Join-Path $OutputDirectory $expectedName
 if (Test-Path -LiteralPath $outputFile) {
     throw 'Refusing to overwrite an existing online setup. Use an empty output directory.'
 }
-& $isccPath "--output-dir=$OutputDirectory" "--define=TSMVersion=$version" \
-    "--define=TSMReleaseTag=$ReleaseTag" "--define=TSMOfflineSha256=$OfflineInstallerSha256" \
-    '--no-ide-signtools' $scriptPath
+& $isccPath "--output-dir=$OutputDirectory" "--define=TSMVersion=$version" "--define=TSMReleaseTag=$ReleaseTag" "--define=TSMOfflineSha256=$OfflineInstallerSha256" '--no-ide-signtools' $scriptPath
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup online bootstrapper compile failed: $LASTEXITCODE" }
 if (-not (Test-Path -LiteralPath $outputFile -PathType Leaf)) {
     throw 'The expected online installer executable was not produced.'
