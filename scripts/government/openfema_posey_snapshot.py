@@ -34,8 +34,8 @@ def make_snapshot(query=fema.query_dataset) -> dict:
     if result.get("status") != "OBSERVED" or result.get("complete") is not True:
         raise ValueError("Refusing partial/unavailable OpenFEMA input")
     rows = result.get("records")
-    if not isinstance(rows, list):
-        raise ValueError("OpenFEMA did not return records")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("Refusing missing or empty Posey history without manual source review")
     for i, rec in enumerate(rows):
         if not isinstance(rec, dict) or rec.get("state") != "IN" or (
             str(rec.get("fipsCountyCode", "")).zfill(3) != "129"
