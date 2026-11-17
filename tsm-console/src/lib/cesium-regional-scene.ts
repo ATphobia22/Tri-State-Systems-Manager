@@ -5,6 +5,7 @@ import {
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
   ScreenSpaceEventType, UrlTemplateImageryProvider, Rectangle, SingleTileImageryProvider,
+  TextureMagnificationFilter, TextureMinificationFilter,
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
@@ -504,7 +505,11 @@ export function mountCesiumRegionalScene(
         onScreeningError?.('Screening extent unavailable.');
       });
       if (stopped || generation !== screeningGeneration) return;
-      screening = widget.imageryLayers.addImageryProvider(provider);
+      // Connected-cell evidence must retain crisp boundaries without alpha interpolation.
+      screening = widget.imageryLayers.addImageryProvider(provider, {
+        minificationFilter: TextureMinificationFilter.NEAREST,
+        magnificationFilter: TextureMagnificationFilter.NEAREST,
+      });
       scene.requestRender();
     },
     setTime(date: string, hour: number, replay: Replay[]) {
