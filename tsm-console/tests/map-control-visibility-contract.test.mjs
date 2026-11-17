@@ -32,6 +32,17 @@ test('Cinematic engineering renders the real MapLibre world, not a decorative sc
   assert.match(engine, /aria-controls="tsm-cinematic-engineering-tools"/);
   assert.match(engine, /Cesium cinematic shots/);
 });
+test('Engineering cinema offers actual Cesium terrain/buildings with preserved MapLibre fallback', () => {
+  const engine = read('src/routes/CinematicEngineeringExperienceView.tsx');
+  const cesium = read('src/routes/CesiumRegionalTwinView.tsx');
+  assert.match(engine, /<CesiumRegionalTwinView autoFlyover=\{playing\}/);
+  assert.match(engine, /data-testid="engineering-renderer-toggle"/);
+  assert.match(engine, /new URLSearchParams\(window.location.search\).get\('renderer'\) === 'cesium'/);
+  assert.match(cesium, /data-testid="cesium-buildings-quick-toggle"/);
+  assert.match(cesium, /data-testid="cesium-flyover-toolbar"/);
+  assert.match(cesium, /if \(ready && !error\) syncExternalFlyover\(autoFlyover\)/);
+});
+
 test('Cinematic scene HUD defaults map-first and wires real camera tour', () => {
   const cinematic = read('src/routes/CinematicView.tsx');
   const hud = read('src/components/CinematicTwinHud.tsx');
