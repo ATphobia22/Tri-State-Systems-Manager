@@ -22,6 +22,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
   const path = useMemo(() => buildEngineeringCinemaPath(), []);
   const [playing, setPlaying] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [hudOpen, setHudOpen] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setPlaying(false), []);
   const [tAnim, setTAnim] = useState(0);
   const [preset, setPreset] = useState(CINEMATIC_PRESETS[0].id);
@@ -53,6 +54,10 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
           onClick={() => setToolsOpen((open) => !open)} style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>
           {toolsOpen ? "Hide engineering settings" : "Show engineering settings"}
         </button>
+        <button type="button" aria-pressed={hudOpen} aria-controls="tsm-cinema-model-overlay"
+          onClick={() => setHudOpen((shown) => !shown)} style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>
+          {hudOpen ? "Hide model labels" : "Show model labels"}
+        </button>
         <button type="button" disabled={prefersReducedMotion()} onClick={() => setPlaying((playing) => !playing)}
           style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>{playing ? "Pause map flyover" : "Play map flyover"}</button>
         <Link to="/cesium" style={{ color: "#a5e9ff", padding: 10 }}>Cesium cinematic shots &amp; 3D tiles</Link>
@@ -62,7 +67,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
         <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
           onTourReducedMotion={stopTourForReducedMotion} />
         {/* The engineering model timeline is displayed OVER the actual map; it is not the rendered camera pose. */}
-        <div
+        {hudOpen && <div id="tsm-cinema-model-overlay"
           style={{
             position: "absolute",
             inset: 0,
@@ -113,7 +118,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
           >
             PRESENTATION + MODEL_SIMULATION — not FIRM / not LOMA
           </div>
-        </div>
+        </div>}
       </section>
 
       <aside id="tsm-cinematic-engineering-tools" aria-label="Cinematic engineering settings" hidden={!toolsOpen}
