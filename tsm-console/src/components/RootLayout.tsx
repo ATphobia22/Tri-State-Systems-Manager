@@ -29,7 +29,8 @@ const SHELL_CSS = `
   padding: 0.6rem 1rem; border-radius: 0 0 8px 0; text-decoration: none;
 }
 .tsm-skip-link:focus { left: 0; }
-.tsm-hamburger { display: none; }
+.tsm-hamburger { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.4rem 0.6rem; border-radius: 8px; cursor: pointer; background: #eff6ff; color: #17324d; border: 1px solid #cbd5e1; }
+@media (min-width: 768px) { .tsm-sidebar.collapsed { display: none !important; } }
 .tsm-backdrop { display: none; }
 @media (max-width: 767px) {
   .tsm-hamburger {
@@ -63,7 +64,8 @@ export default function RootLayout() {
     ? 'Live hydrologic telemetry unavailable. No continuity is fabricated; verify authoritative sources directly.'
     : `${sourceLabel} observed stage is ${provisional ? 'PROVISIONAL' : 'current'}; raw stage remains GAGE_DATUM. Human authority remains final.`;
   const [menuOpen, setMenuOpen] = useState(false);
-  const closeMenu = (): void => setMenuOpen(false);
+  const [desktopNavOpen, setDesktopNavOpen] = useState(false);
+  const closeMenu = (): void => { setMenuOpen(false); setDesktopNavOpen(false); };
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', background: t.color.surface.base, color: t.color.text.body }}>
@@ -76,10 +78,10 @@ export default function RootLayout() {
             <button
               type="button"
               className="tsm-hamburger"
-              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={menuOpen}
+              aria-label={(menuOpen || desktopNavOpen) ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={menuOpen || desktopNavOpen}
               aria-controls="tsm-sidebar"
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => { setMenuOpen((open) => !open); setDesktopNavOpen((open) => !open); }}
             >
               ☰
             </button>
@@ -94,9 +96,9 @@ export default function RootLayout() {
       <TourOnboardingHint />
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {menuOpen && <button type="button" className="tsm-backdrop" aria-label="Close navigation menu" onClick={closeMenu} />}
-        <aside id="tsm-sidebar" className={`tsm-sidebar${menuOpen ? ' open' : ''}`} style={{ width: 280, background: t.color.surface.deep, borderRight: `1px solid ${t.color.surface.card}`, padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <aside id="tsm-sidebar" className={`tsm-sidebar${menuOpen ? ' open' : ''}${desktopNavOpen ? '' : ' collapsed'}`} style={{ width: 280, background: t.color.surface.deep, borderRight: `1px solid ${t.color.surface.card}`, padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({ display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem', borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', color: isActive ? t.color.accent.brand : t.color.text.secondary, background: isActive ? t.color.accent.brandSoft : 'transparent', border: isActive ? `1px solid ${t.color.accent.brandHairline}` : '1px solid transparent' })}>{item.label}</NavLink>)}</nav>
-          <div style={{ marginTop: 4 }}><EngineeringSimSettings /></div>
+          <details style={{ marginTop: 4 }}><summary style={{ cursor: 'pointer', padding: '0.75rem', minHeight: 44, fontWeight: 600 }}>Engineering settings</summary><EngineeringSimSettings /></details>
           <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: `1px solid ${t.color.surface.card}` }}>
             <div style={{ color: t.color.status.success, marginBottom: 4 }}>● Trust Fabric Active</div>
             <div>Technology informs.</div>
