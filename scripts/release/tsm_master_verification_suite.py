@@ -21,6 +21,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+try:
+    from .shipping_acceptance_evidence import assess_shipping_acceptance
+except ImportError:  # Direct script invocation
+    from shipping_acceptance_evidence import assess_shipping_acceptance
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
@@ -181,11 +186,8 @@ def _assess_production_hlod_shipping(
         TARGET_TILESET.exists() and glb_count > 0 and not staging_only
     )
 
-    shipping_certified = bool(
-        shipping_exe.exists()
-        and airgap_log is not None
-        and airgap_log.exists()
-    )
+    acceptance = assess_shipping_acceptance(shipping_exe, airgap_log)
+    shipping_certified = acceptance["certified"]
 
     return {
         "authority": authority,
@@ -195,7 +197,8 @@ def _assess_production_hlod_shipping(
         "hlod_production_certified": hlod_certified,
         "ue58_shipping_airgap_certified": shipping_certified,
         "shipping_exe_present": shipping_exe.exists(),
-        "airgap_log_present": bool(airgap_log and airgap_log.exists()),
+        "airgap_log_present": acceptance["airgap_log_present"],
+        "shipping_evidence_reason": acceptance["reason"],
     }
 
 
@@ -229,15 +232,18 @@ def verify_production_hlod_and_shipping(
             shipping_exe,
         )
     else:
-        logger.info("  [PASS] Shipping executable present: %s", shipping_exe)
+        logger.info("  [INFO] Candidate Shipping executable present (not validated by presence): %s", shipping_exe)
 
     if not status["airgap_log_present"]:
         logger.info(
             "  [INFO] Air-gap acceptance log not supplied — "
-            "run Test-TSMShippingRuntime.ps1 and pass --airgap-log."
+            "provide an independently reviewed offline-smoke JSON receipt via --airgap-log."
         )
     else:
-        logger.info("  [PASS] Air-gap log present.")
+        logger.info("  [INFO] Candidate offline receipt present; validating PE, launch evidence and hashes.")
+
+    if not status["ue58_shipping_airgap_certified"]:
+        logger.warning("  [PENDING] Shipping acceptance: %s", status["shipping_evidence_reason"])
 
     logger.info(
         "  [STATUS] hlod_production_certified=%s  ue58_shipping_airgap_certified=%s",
@@ -254,7 +260,7 @@ def verify_production_hlod_and_shipping(
         if not status["ue58_shipping_airgap_certified"]:
             raise VerificationError(
                 "--require-production: UE5.8 Shipping air-gap not certified "
-                "(need exe + air-gap log)."
+                "(need genuine Win64 Shipping PE and independently reviewed offline JSON evidence with hashes)."
             )
         logger.info("  [PASS] Production HLOD and Shipping evidence complete.")
     else:
