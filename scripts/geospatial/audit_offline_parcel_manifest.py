@@ -18,6 +18,27 @@ def inspect_projected_polygon(geometry: dict) -> str | None:
     from shapely.validation import explain_validity
 
     try:
+        # Reject malformed source rings *before* Shapely normalizes/auto-closes them.
+        kind = geometry.get("type")
+        if kind not in ("Polygon", "MultiPolygon"):
+            return f"unsupported source geometry type {kind!r}"
+        groups = [geometry.get("coordinates")] if kind == "Polygon" else geometry.get("coordinates")
+        if not isinstance(groups, (list, tuple)) or not groups:
+            return "missing polygon coordinate groups"
+        for polygon_rings in groups:
+            if not isinstance(polygon_rings, (list, tuple)) or not polygon_rings:
+                return "missing exterior ring"
+            for ring in polygon_rings:
+                if not isinstance(ring, (list, tuple)) or len(ring) < 4:
+                    return "polygon ring has fewer than four coordinates"
+                for position in ring:
+                    if (not isinstance(position, (list, tuple)) or len(position) != 2
+                            or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in position)):
+                        return "polygon ring must contain finite horizontal x/y pairs"
+                if ring[0] != ring[-1]:
+                    return "source polygon ring is not explicitly closed (Shapely auto-closure forbidden)"
+                if len({(point[0], point[1]) for point in ring}) < 3:
+                    return "polygon ring has fewer than three distinct vertices"
         polygon = shape(geometry)
         if polygon.geom_type not in ("Polygon", "MultiPolygon"):
             return f"unexpected Shapely geometry type {polygon.geom_type}"
