@@ -34,6 +34,10 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
     cy.get('[data-testid="cesium-tools-toggle"]').should('have.attr', 'aria-expanded', 'false').click();
     cy.get('.tsm-cesium-controls').should('be.visible');
+    cy.contains('.tsm-cesium-accordion > summary', 'Regional county coverage').click();
+    cy.contains('Indiana: Posey, Vanderburgh, Gibson, Warrick');
+    cy.contains('Illinois: White, Gallatin');
+    cy.contains('Kentucky: Henderson, Union');
     cy.get('#cesium-building-detail').should('not.be.visible');
     cy.contains('.tsm-cesium-accordion > summary', 'Map layers').click();
     cy.get('#cesium-building-detail').select('sharp').should('have.value', 'sharp');

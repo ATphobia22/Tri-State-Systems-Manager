@@ -255,6 +255,7 @@ export default function CesiumRegionalTwinView() {
           <Link to="/atlas">Atlas</Link>
           <Link to="/cinematic-engineering">Engineering</Link>
           <Link to="/flood-sim">Flood workbench</Link>
+          <Link to="/photorealistic-3d">Photorealistic 3D (opt-in)</Link>
           <button type="button" className="tsm-cesium-tools-toggle" data-testid="cesium-tools-toggle"
             aria-controls="tsm-cesium-tools" aria-expanded={toolsOpen}
             onClick={() => setToolsOpen((open) => !open)}>
@@ -365,7 +366,7 @@ export default function CesiumRegionalTwinView() {
             <select id="cesium-imagery-source" value={imageryPreset} disabled={!ready} onChange={(event) => {
               const choice = event.target.value as IonImageryPreset;
               setIonMessage('');
-              void scene.current?.setImageryPreset(choice).then(() => setImageryPreset(choice)).catch(() => {
+              void scene.current?.setImageryPreset(choice).then((applied) => { if (applied) setImageryPreset(choice); }).catch(() => {
                 setIonMessage('Requested ion imagery is unavailable; USGS aerial retained.');
                 setImageryPreset('usgs');
                 void scene.current?.setImageryPreset('usgs');
@@ -430,6 +431,18 @@ export default function CesiumRegionalTwinView() {
             <label htmlFor="cesium-light">Scene time (CDT) <output>{String(hour).padStart(2, '0')}:00</output></label>
             <input id="cesium-light" type="range" min={0} max={23} value={hour} onChange={(event) => setHour(Number(event.target.value))} />
           </section>
+          </details>
+          <details className="tsm-cesium-accordion">
+            <summary>Regional county coverage &amp; evidence</summary>
+            <section>
+              <p><strong>Eight-county exact-boundary target</strong></p>
+              <p>Indiana: Posey, Vanderburgh, Gibson, Warrick</p>
+              <p>Illinois: White, Gallatin</p>
+              <p>Kentucky: Henderson, Union</p>
+              <small>Regional TIGER/Line road archive also includes Wabash County, Illinois. These county names identify mapped scope, not proof of complete parcel, roof, elevation, imagery, or flood-layer coverage.</small>
+              <small>Posey local mesh is a source-derived LoD1 preview; Illinois and Kentucky building-level materials and LoD2–4 have not been independently verified in the deployed viewer.</small>
+              <p><a href="https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/data/regional/eight-county-exact-spatial-validation-v1.json" target="_blank" rel="noreferrer">Read county-boundary validation contract</a></p>
+            </section>
           </details>
         </aside>
       </div>

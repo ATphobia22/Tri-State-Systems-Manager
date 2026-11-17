@@ -373,16 +373,23 @@ export function mountCesiumRegionalScene(
     },
     async setTerrainSource(source: 'local' | 'world') {
       if (source === 'world' && !ionToken) throw new Error('Cesium ion token not configured');
+      const previous = terrainSource;
       terrainSource = source;
-      if (source === 'world' && !worldTerrain) {
-        worldTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
-        if (stopped) return;
+      try {
+        if (source === 'world' && !worldTerrain) {
+          worldTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
+          if (stopped || terrainSource !== source) return;
+        }
+        if (visibility.terrain) {
+          widget.terrainProvider = (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid;
+        }
+        if (source === 'world') update('terrain', 'ready', 'Cesium World Terrain · online contextual elevation');
+        else if (terrain) update('terrain', 'ready', 'USGS 3DEP · local source-derived terrain');
+        scene.requestRender();
+      } catch (error) {
+        terrainSource = previous;
+        throw error;
       }
-      if (visibility.terrain) {
-        widget.terrainProvider = (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid;
-      }
-      update('terrain', 'ready', source === 'world' ? 'Cesium World Terrain · online contextual elevation' : 'USGS 3DEP · local derived heightmap tiles');
-      scene.requestRender();
     },
     setImagery(show: boolean) {
       imageryShown = show;
@@ -397,17 +404,18 @@ export function mountCesiumRegionalScene(
         ionImagery = undefined;
         aerial.show = imageryShown;
         scene.requestRender();
-        return;
+        return true;
       }
       if (!ionToken) throw new Error('Cesium ion token not configured');
       const provider = await IonImageryProvider.fromAssetId(ION_IMAGERY_ASSETS[preset]);
-      if (stopped || generation !== imageryRequest) return;
+      if (stopped || generation !== imageryRequest) return false;
       const nextLayer = widget.imageryLayers.addImageryProvider(provider);
       nextLayer.show = imageryShown;
       if (ionImagery) widget.imageryLayers.remove(ionImagery, true);
       ionImagery = nextLayer;
       aerial.show = false;
       scene.requestRender();
+      return true;
     },
     resize() { if (!stopped) { widget.resize(); scene.requestRender(); } },
     async setScreening(level: number | null): Promise<void> {
