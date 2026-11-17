@@ -5,7 +5,7 @@ on:
     paths:
       - 'scripts/geospatial/geotruth_inspector.py'
       - 'scripts/public_interest/evidence_packet_export.py'
-      - 'scripts/government/contract_foundry.py'\n      - 'scripts/innovation/civic_evidence_bundle.py'
+      - 'scripts/government/contract_foundry.py'
       - 'tests/innovation/**'
       - 'docs/innovation/GEOTRUTH-PASSPORT-CONTRACT-FOUNDRY.md'
       - '.github/workflows/tsm-civic-innovation-triad.yml'
@@ -41,12 +41,10 @@ jobs:
             --published tsm-console/public/3d-tiles/buildings-3d.json \
             --pinned-delta data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json \
             --output dist/innovation/geotruth-posey-qa.json
-      - name: Link GeoTruth and agency contract outputs as an evidence bundle
+      - name: Validate generated advisory JSON outputs
         run: |
-          python scripts/innovation/civic_evidence_bundle.py \
-            --geotruth dist/innovation/geotruth-posey-qa.json \
-            --contracts dist/innovation/government-contracts.json \
-            --output dist/innovation/civic-evidence-bundle.json
+          python -m json.tool dist/innovation/geotruth-posey-qa.json >/dev/null
+          python -m json.tool dist/innovation/government-contracts.json >/dev/null
       - name: Publish informational code and catalog QA results
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
