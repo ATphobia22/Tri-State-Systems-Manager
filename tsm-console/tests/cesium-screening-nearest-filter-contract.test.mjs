@@ -7,6 +7,7 @@ const scene = readFileSync(new URL('../src/lib/cesium-regional-scene.ts', import
 test('source-cell screening imagery keeps hard pixel edges rather than interpolating alpha', () => {
   assert.match(scene, /minificationFilter: TextureMinificationFilter\.NEAREST/);
   assert.match(scene, /magnificationFilter: TextureMagnificationFilter\.NEAREST/);
-  assert.match(scene, /screening = widget\.imageryLayers\.addImageryProvider\(provider,\s*\{[^}]*minificationFilter:[^}]*magnificationFilter:/s,
-    'Screening-specific texture filtering must be configured at imagery layer creation');
+  assert.match(scene, /new ImageryLayer\(provider,\s*\{[^}]*minificationFilter:[^}]*magnificationFilter:/s,
+    'Filtering options belong to ImageryLayer constructor, not ImageryLayerCollection.addImageryProvider');
+  assert.match(scene, /screening = widget\.imageryLayers\.add\(layer\)/);
 });
