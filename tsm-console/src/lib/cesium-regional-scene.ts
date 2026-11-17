@@ -1,5 +1,5 @@
 import {
-  ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
+  ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, Cesium3DTileStyle, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
   Color, ColorGeometryInstanceAttribute, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
   Ion, IonImageryProvider, type ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
@@ -8,6 +8,7 @@ import {
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
+import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
 import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
@@ -167,6 +168,7 @@ export function mountCesiumRegionalScene(
   let ionImagery: ImageryLayer | undefined;
   let imageryShown = true;
   let detailLevel: BuildingPreviewDetail = 'balanced';
+  let osmStyleMode: OsmBuildingStyle = 'native';
   let cityStarted = false;
   let screening: GeoJsonDataSource | undefined;
   let screeningRequest: AbortController | undefined;
@@ -257,6 +259,8 @@ export function mountCesiumRegionalScene(
       });
       if (stopped) { tileset.destroy(); return; }
       osmBuildings = scene.primitives.add(tileset) as Cesium3DTileset;
+      const initialRules = osmBuildingStyleRules(osmStyleMode);
+      osmBuildings.style = initialRules ? new Cesium3DTileStyle(initialRules) : undefined;
       osmBuildings.show = visibility.osmContext;
       update('osmContext', 'ready', 'Cesium OSM Buildings · online context, not reviewed Posey LoD2');
       scene.requestRender();
@@ -315,8 +319,14 @@ export function mountCesiumRegionalScene(
   holder.setInputAction(({ position }: { position: Parameters<typeof scene.pick>[0] }) => {
     const hit = scene.pick(position);
     if (hit instanceof Cesium3DTileFeature) {
-      const id = hit.getProperty('OBJECTID') ?? hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
-      onPick({ title: 'Posey LiDAR building mesh', detail: id == null ? 'Derived LoD1 preview' : `OBJECTID ${String(id)} · Derived LoD1 preview` });
+      if (hit.tileset === osmBuildings) {
+        onPick(inspectOsmBuilding(hit));
+      } else if (hit.tileset === buildings) {
+        const id = hit.getProperty('OBJECTID') ?? hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
+        onPick({ title: 'Posey LiDAR building mesh', detail: id == null ? 'Derived LoD1 preview' : `OBJECTID ${String(id)} · Derived LoD1 preview` });
+      } else {
+        onPick({ title: '3D Tiles feature', detail: 'Source and confidence not yet established' });
+      }
     } else {
       onPick(hit?.id?.title ? hit.id as PickedFeature : null);
     }
@@ -372,6 +382,14 @@ export function mountCesiumRegionalScene(
       detailLevel = detail;
       if (buildings) buildings.maximumScreenSpaceError = BUILDING_SCREEN_SPACE_ERROR[detail];
       if (osmBuildings) osmBuildings.maximumScreenSpaceError = BUILDING_SCREEN_SPACE_ERROR[detail];
+      scene.requestRender();
+    },
+    setOsmBuildingStyle(mode: OsmBuildingStyle) {
+      osmStyleMode = mode;
+      if (osmBuildings) {
+        const rules = osmBuildingStyleRules(mode);
+        osmBuildings.style = rules ? new Cesium3DTileStyle(rules) : undefined;
+      }
       scene.requestRender();
     },
     async setTerrainSource(source: 'local' | 'world') {

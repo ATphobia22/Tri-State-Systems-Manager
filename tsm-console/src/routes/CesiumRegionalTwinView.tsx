@@ -7,6 +7,7 @@ import {
   type LayerState, type PickedFeature, type Replay, type SceneLayer, type ScreeningFrame,
 } from '../lib/cesium-regional-scene';
 import { type IonImageryPreset, type BuildingPreviewDetail } from '../lib/cesium-ion-assets';
+import type { OsmBuildingStyle } from '../lib/cesium-osm-building-style';
 import './CesiumRegionalTwinView.css';
 
 const ION_ENABLED = Boolean((import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim());
@@ -43,6 +44,7 @@ export default function CesiumRegionalTwinView() {
   const [imageryPreset, setImageryPreset] = useState<IonImageryPreset>('usgs');
   const [terrainSource, setTerrainSource] = useState<'local' | 'world'>('local');
   const [buildingDetail, setBuildingDetail] = useState<BuildingPreviewDetail>('balanced');
+  const [osmStyle, setOsmStyle] = useState<OsmBuildingStyle>('native');
   const [ionMessage, setIonMessage] = useState('');
   const [imageryError, setImageryError] = useState(false);
   const [picked, setPicked] = useState<PickedFeature | null>(null);
@@ -65,6 +67,7 @@ export default function CesiumRegionalTwinView() {
     for (const { id, initial } of LAYERS) next.setLayer(id, visible[id] ?? initial);
     next.setImagery(aerial);
     next.setBuildingDetail(buildingDetail);
+    next.setOsmBuildingStyle(osmStyle);
     void next.setImageryPreset(imageryPreset).catch(() => setIonMessage('Ion imagery unavailable; choose USGS imagery.'));
     void next.setTerrainSource(terrainSource).catch(() => setIonMessage('Ion terrain unavailable; choose local USGS terrain.'));
   });
@@ -351,6 +354,21 @@ export default function CesiumRegionalTwinView() {
               <option value="sharp">Sharper tiles</option>
             </select>
             <small>Refines source tile selection only. Does not invent roof geometry, façades, or PBR materials.</small>
+            <label htmlFor="cesium-osm-style">Cesium OSM building metadata style</label>
+            <select id="cesium-osm-style" data-testid="cesium-osm-style" value={osmStyle}
+              disabled={!ready || !ION_ENABLED || !visible.osmContext}
+              onChange={(event) => {
+                const mode = event.target.value as OsmBuildingStyle;
+                setOsmStyle(mode);
+                scene.current?.setOsmBuildingStyle(mode);
+              }}>
+              <option value="native">Original OSM visual appearance</option>
+              <option value="wall-material">Wall material tag · colored</option>
+              <option value="building-use">Building use tag · colored</option>
+              <option value="roof-shape">Roof shape tag · colored</option>
+              <option value="height-evidence">Tagged vs estimated height · colored</option>
+            </select>
+            <small>These modes color entire available meshes by OSM attributes; they do not add roof polygons, material textures, or verified heights. Untagged properties display neutrally. Click a building to inspect source metadata.</small>
             <label htmlFor="cesium-terrain-source">Terrain source</label>
             <select id="cesium-terrain-source" value={terrainSource} disabled={!ready} onChange={(event) => {
               const source = event.target.value as 'local' | 'world';

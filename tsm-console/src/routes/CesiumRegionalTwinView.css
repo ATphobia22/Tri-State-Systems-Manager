@@ -92,3 +92,8 @@
   .tsm-cesium-controls { border-left: 0; border-top: 1px solid var(--cesium-line); max-height: 50dvh; overflow: auto; }
   .tsm-cesium-heading { padding: 0.8rem 1rem; }
 }
+
+/* Keep picked OSM attribute notes compact over the interactive map. */
+.tsm-cesium-place { max-width: min(31rem, calc(100% - 1.7rem)); }
+.tsm-cesium-place p { max-height: 24dvh; overflow: hidden; line-height: 1.45; overflow-wrap: anywhere; }
+.tsm-cesium-place small { font-size: 0.78rem; }
