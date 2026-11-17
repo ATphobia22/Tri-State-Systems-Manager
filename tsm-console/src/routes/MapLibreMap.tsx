@@ -8,7 +8,7 @@ import { assessClearanceSupport, type JurisdictionId } from '../lib/jurisdiction
 export default function MapLibreMap() {
   const data = useLoaderData() as MapTwinLoaderData;
   const [jurisdiction, setJurisdiction] = useState<JurisdictionId>('INDIANA');
-  const [stageOverride, setStageOverride] = useState<number>(data.stage.value_ft ?? 0);
+  const [stageOverride, setStageOverride] = useState<number>(data.stage.value_ft ?? 365);
   const usingLive = data.stage.value_ft != null && data.stage.source !== 'UNAVAILABLE';
   const displayStage = usingLive ? (data.stage.value_ft ?? 0) : stageOverride;
   const bfeFt = data.site.elevations.bfe_ft;
@@ -16,12 +16,12 @@ export default function MapLibreMap() {
   const assessment = useMemo(() => bfeFt == null || lagFt == null ? null : assessClearanceSupport({ jurisdiction, waterStageFt: displayStage, bfeFt, lagFt }), [jurisdiction, displayStage, bfeFt, lagFt]);
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 56px)', minHeight: 0, background: t.color.surface.deep }}>
+    <main style={{ display: 'flex', flexDirection: 'column', height: 'min(80dvh, 1050px)', minHeight: 'min(520px, 72dvh)', background: '#f8fafc' }}>
       <div style={{ flex: 1, minHeight: 0 }}><RealWorldTwinMap data={data} /></div>
-      <details aria-label="Hydraulic visualization controls" style={{ padding: '0.5rem 1rem', background: '#f8fafc', borderTop: '1px solid #cbd5e1', color: '#17324d', fontSize: t.font.size.base }}><summary style={{ cursor: 'pointer', minHeight: 36, fontWeight: 700 }}>Hydraulic controls and jurisdiction assessment</summary><section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, padding: '0.75rem 0' }}>
-        <label>Visualization stage<input aria-label="Visualization stage" type="range" min={365} max={390} step={0.05} value={stageOverride} onChange={(event) => setStageOverride(Number(event.target.value))} disabled={usingLive || bfeFt == null || lagFt == null} style={{ display: 'block', width: '100%' }} /></label>
+      <details aria-label="Hydraulic visualization controls" style={{ padding: '0.5rem 1rem', background: '#ffffff', borderTop: '1px solid #cbd5e1', color: '#17324d', fontSize: t.font.size.base }}><summary style={{ cursor: 'pointer', minHeight: 36, fontWeight: 700 }}>Hydraulic comparison controls (screening only)</summary><section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, padding: '0.75rem 0' }}>
+        <label>Comparison stage (not applied to map)<input aria-label="Visualization stage" type="range" min={365} max={390} step={0.05} value={stageOverride} onChange={(event) => setStageOverride(Number(event.target.value))} disabled={usingLive || bfeFt == null || lagFt == null} style={{ display: 'block', width: '100%' }} /></label>
         <div>Jurisdiction {(['INDIANA', 'ILLINOIS', 'KENTUCKY'] as JurisdictionId[]).map((value) => <button key={value} type="button" onClick={() => setJurisdiction(value)} style={{ marginRight: 4 }}>{value.slice(0, 3)}</button>)}</div>
-        <div>{assessment ? `${assessment.code}: ${assessment.finding}` : 'Engineering comparison unavailable: verified BFE/LAG evidence required'} · {usingLive ? `live ${displayStage.toFixed(2)} ft` : 'simulation slider'} · FEMA NFHL and Indiana BAFM remain separate authority planes.</div>
+        <div>{assessment ? `${assessment.code}: ${assessment.finding}` : 'Engineering comparison unavailable: verified BFE/LAG evidence required'} · {usingLive ? `live ${displayStage.toFixed(2)} ft` : 'simulation slider'} · The comparison slider does not change map water levels. FEMA NFHL and Indiana BAFM remain separate authority planes.</div>
       </section></details>
     </main>
   );
