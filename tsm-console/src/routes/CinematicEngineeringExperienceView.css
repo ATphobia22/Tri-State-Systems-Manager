@@ -1,0 +1,13 @@
+.tsm-cinema-engineering { background: #071421; color: #e2e8f0; min-height: 100%; font-family: system-ui,sans-serif; }
+.tsm-cinema-engineering-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; padding: .55rem .8rem; background: #0c192a; border-bottom: 1px solid #334155; }
+.tsm-cinema-engineering-toolbar strong { margin-right: auto; }
+.tsm-cinema-engineering-toolbar a, .tsm-cinema-engineering-toolbar button { font: inherit; font-weight: 700; font-size: .82rem; color: #e0f2fe; background: #1a3348; border: 1px solid #577b96; border-radius: 8px; padding: .6rem .7rem; min-height: 44px; text-decoration: none; cursor: pointer; }
+.tsm-cinema-engineering-workspace { display: grid; grid-template-columns: minmax(0,1fr); }
+.tsm-cinema-engineering-workspace.has-tools { grid-template-columns: minmax(0,1fr) minmax(280px,340px); }
+.tsm-cinema-engineering-map { min-width: 0; min-height: 600px; }
+.tsm-cinema-engineering-panel { background: #111b2d; max-height: 88dvh; overflow-y: auto; }
+.tsm-cinema-engineering-panel[hidden] { display: none !important; }
+@media (max-width: 920px) {
+ .tsm-cinema-engineering-workspace.has-tools { grid-template-columns: minmax(0,1fr); }
+ .tsm-cinema-engineering-panel { max-height: none; }
+}

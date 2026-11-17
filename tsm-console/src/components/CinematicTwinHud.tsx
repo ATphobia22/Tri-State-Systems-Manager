@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import EngineeringSectionCutaway, {
   type EngineeringSectionModel,
 } from './EngineeringSectionCutaway';
@@ -81,7 +82,7 @@ function Chip({
 
 export default function CinematicTwinHud(props: CinematicTwinHudProps) {
   const { layers, onToggleLayer, engineeringMode, onEngineeringModeChange } = props;
-  const [hudCollapsed, setHudCollapsed] = useState(false);
+  const [hudCollapsed, setHudCollapsed] = useState(true);
   const [tab, setTab] = useState<'ENGINEERING' | 'DATA FABRIC' | 'TWIN ENV'>('ENGINEERING');
   const [cutawayOpen, setCutawayOpen] = useState(false);
 
@@ -129,6 +130,7 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
             </div>
             <button
               type="button"
+              aria-expanded={!hudCollapsed}
               onClick={() => setHudCollapsed((c) => !c)}
               style={{
                 background: '#1e293b',
@@ -141,9 +143,10 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 cursor: 'pointer',
               }}
             >
-              {hudCollapsed ? '▼ SHOW UI' : '▲ CINEMATIC'}
+              {hudCollapsed ? 'Show cinematic tools' : 'Hide cinematic tools'}
             </button>
           </div>
+          <div style={{ marginTop: 6 }}><Link to="/cesium" style={{ fontSize: 12, fontWeight: 700, color: '#7dd3fc' }}>Explore Cesium 3D buildings and flyovers</Link></div>
           {!hudCollapsed && (
             <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
               {(Object.keys(LAYER_LABELS) as TwinLayerId[]).map((id) => (

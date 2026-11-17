@@ -23,7 +23,7 @@ const LAYERS: { id: SceneLayer; title: string; initial: boolean }[] = [
 type Scene = ReturnType<typeof mountCesiumRegionalScene>;
 
 
-export default function CesiumRegionalTwinView() {
+export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFlyover?: boolean } = {}) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<Scene | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -195,6 +195,16 @@ export default function CesiumRegionalTwinView() {
     const advance = window.setTimeout(() => setDay(day + 1), 1100);
     return () => window.clearTimeout(advance);
   }, [day, playing]);
+
+  // The engineering cinema can control the existing real Cesium camera tour.
+  // Hydraulic model time is *never* injected as a terrain height or water level.
+  useEffect(() => {
+    if (!ready || error) return;
+    if (autoFlyover && !tour) startTour();
+    else if (!autoFlyover && tour) stopTour();
+    // Trigger on external Play/Pause and scene readiness, not each internal tour step.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFlyover, ready, error]);
 
   function stopTour() {
     window.clearTimeout(timer.current);
