@@ -25,6 +25,9 @@ export default function CesiumRegionalTwinView() {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<Scene | null>(null);
   const timer = useRef<number | undefined>(undefined);
+  const recoveryTimeout = useRef<number | undefined>(undefined);
+  const healthTimeout = useRef<number | undefined>(undefined);
+  const recoveryAttempts = useRef(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [graphicsPaused, setGraphicsPaused] = useState(false);
@@ -88,6 +91,8 @@ export default function CesiumRegionalTwinView() {
 
   useEffect(() => {
     if (!host.current) return;
+    window.clearTimeout(recoveryTimeout.current);
+    window.clearTimeout(healthTimeout.current);
     setStatus({});
     setImageryError(false);
     const pause = () => {
@@ -101,7 +106,20 @@ export default function CesiumRegionalTwinView() {
         host.current,
         (id, layer) => setStatus((current) => ({ ...current, [id]: layer })),
         setPicked,
-        (message) => { pause(); setError(message); },
+        (message) => {
+          pause();
+          // A transient WebGL render failure should not strand visitors on a dead globe.
+          // Cap retries so persistent GPU/driver faults remain visible and actionable.
+          const attempt = ++recoveryAttempts.current;
+          setError(attempt <= 2
+            ? `${message} Retrying the 3D view (${attempt}/2)…`
+            : `${message} Automatic recovery exhausted; restart manually or use Atlas.`);
+          if (attempt <= 2) {
+            recoveryTimeout.current = window.setTimeout(
+              () => setSceneVersion((version) => version + 1), attempt * 1500,
+            );
+          }
+        },
         () => setImageryError(true),
         (state) => {
           if (state === 'restored') {
@@ -116,13 +134,17 @@ export default function CesiumRegionalTwinView() {
       restoreSceneSelections(next);
       setReady(true);
       setError('');
+      setGraphicsPaused(false);
+      // Only a sustained healthy render interval resets the bounded retry budget.
+      healthTimeout.current = window.setTimeout(() => { recoveryAttempts.current = 0; }, 45000);
     } catch {
       setReady(false);
       setError('Cesium could not start. A browser with WebGL 2 is required.');
     }
-    setGraphicsPaused(false);
     return () => {
       window.clearTimeout(timer.current);
+      window.clearTimeout(recoveryTimeout.current);
+      window.clearTimeout(healthTimeout.current);
       scene.current?.destroy();
       scene.current = null;
     };
@@ -290,7 +312,10 @@ export default function CesiumRegionalTwinView() {
           </div>
           {(graphicsPaused || error) && <div className="tsm-cesium-error" role="alert">
             <p>{graphicsPaused ? 'Graphics paused. Waiting for WebGL to recover.' : error}</p>
-            <button type="button" onClick={() => setSceneVersion((version) => version + 1)}>Restart 3D view</button>{' '}
+            <button type="button" onClick={() => {
+              recoveryAttempts.current = 0;
+              setSceneVersion((version) => version + 1);
+            }}>Restart 3D view</button>{' '}
             <Link to="/atlas">Open Atlas</Link>
           </div>}
         </div>
