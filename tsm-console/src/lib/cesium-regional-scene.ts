@@ -510,7 +510,8 @@ export function mountCesiumRegionalScene(
         minificationFilter: TextureMinificationFilter.NEAREST,
         magnificationFilter: TextureMagnificationFilter.NEAREST,
       });
-      screening = widget.imageryLayers.add(layer);
+      widget.imageryLayers.add(layer);
+      screening = layer;
       scene.requestRender();
     },
     setTime(date: string, hour: number, replay: Replay[]) {
