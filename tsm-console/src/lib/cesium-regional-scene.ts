@@ -39,7 +39,7 @@ export type LayerState = { state: 'loading' | 'ready' | 'unavailable'; detail: s
 export type PickedFeature = { title: string; detail: string };
 type LineItems = { features: GeoJSON.Feature[]; metadata: { featureCount: number; countyCount: number } };
 export type ScreeningBounds = readonly [number, number, number, number];
-export type ScreeningFrame = { levelMNavd88: number; connectedCells: number; bounds: ScreeningBounds };
+export type ScreeningFrame = { levelMNavd88: number; connectedCells: number; bounds: ScreeningBounds; rows: number; cols: number };
 
 export async function loadCityScreening(signal: AbortSignal): Promise<ScreeningFrame[]> {
   const response = await fetch(`${VECTORS}screening.json`, { signal });
@@ -52,6 +52,8 @@ export async function loadCityScreening(signal: AbortSignal): Promise<ScreeningF
       !((bounds[0] as number) >= -180 && (bounds[2] as number) <= 180 &&
         (bounds[1] as number) >= -90 && (bounds[3] as number) <= 90 &&
         (bounds[0] as number) < (bounds[2] as number) && (bounds[1] as number) < (bounds[3] as number)) ||
+      !Number.isInteger(data.rows) || !Number.isInteger(data.cols) ||
+      data.rows <= 0 || data.cols <= 0 || data.rows > 4096 || data.cols > 4096 ||
       !Array.isArray(data.frames) ||
       !data.frames.every((frame: ScreeningFrame) => Number.isInteger(frame.levelMNavd88) && Number.isInteger(frame.connectedCells) &&
         frame.connectedCells >= 0 && frame.connectedCells <= data.rows * data.cols)) {
@@ -60,6 +62,7 @@ export async function loadCityScreening(signal: AbortSignal): Promise<ScreeningF
   return data.frames.map((frame: ScreeningFrame) => ({
     levelMNavd88: frame.levelMNavd88, connectedCells: frame.connectedCells,
     bounds: bounds as [number, number, number, number],
+    rows: data.rows, cols: data.cols,
   }));
 }
 
@@ -127,6 +130,7 @@ export function mountCesiumRegionalScene(
   onError: (message: string) => void,
   onImageryError: () => void,
   onContextStatus: (state: 'lost' | 'restored') => void,
+  onScreeningError?: (message: string) => void,
 ) {
   const abort = new AbortController();
   let stopped = false;
@@ -467,7 +471,7 @@ export function mountCesiumRegionalScene(
       return true;
     },
     resize() { if (!stopped) { widget.resize(); scene.requestRender(); } },
-    async setScreening(level: number | null, bounds?: ScreeningBounds): Promise<void> {
+    async setScreening(level: number | null, bounds?: ScreeningBounds, cols?: number, rows?: number): Promise<void> {
       const generation = ++screeningGeneration;
       if (screening) {
         widget.imageryLayers.remove(screening, true);
@@ -475,30 +479,33 @@ export function mountCesiumRegionalScene(
         scene.requestRender();
       }
       if (level === null) return;
-      if (!bounds || !bounds.every(Number.isFinite) || !(bounds[0] < bounds[2] && bounds[1] < bounds[3])) {
-        throw new Error('Screening extent has no verified geographic bounds');
+      if (!bounds || !bounds.every(Number.isFinite) || !(bounds[0] < bounds[2] && bounds[1] < bounds[3]) ||
+          !Number.isInteger(cols) || !Number.isInteger(rows) || !cols || !rows || cols <= 0 || rows <= 0) {
+        throw new Error('Screening extent has no verified geographic bounds and dimensions');
       }
-      // A pre-verified 360 x 264 raster exactly matches the original connected
-      // terrain cells. Large clamped GeoJSON ground primitives previously left
-      // headed viewers stalled while GPU-intensive building tiles loaded.
-      // Polygons remain in the evidence archive for engineering inspection.
-      const rectangle = Rectangle.fromDegrees(...bounds);
-      let timeout: number | undefined;
-      try {
-        const provider = await Promise.race([
-          SingleTileImageryProvider.fromUrl(`${VECTORS}screening/${level}.png`, {
-            rectangle, credit: 'Hypothetical Mount Vernon fixed-level scenario (not regulatory)',
-          }),
-          new Promise<never>((_resolve, reject) => {
-            timeout = window.setTimeout(() => reject(new Error('Screening raster load timed out')), 30_000);
-          }),
-        ]);
+      // Explicit dimensions avoid image-dimension discovery delays in
+      // SingleTileImageryProvider.fromUrl under heavily loaded WebGL contexts.
+      // These dimensions and each pixel's membership are independently
+      // verified against the original source-cell mask by the Python release QA.
+      const provider = new SingleTileImageryProvider({
+        url: `${VECTORS}screening/${level}.png`,
+        rectangle: Rectangle.fromDegrees(...bounds),
+        tileWidth: cols, tileHeight: rows,
+        credit: 'Hypothetical Mount Vernon fixed-level scenario (not regulatory)',
+      });
+      provider.errorEvent.addEventListener((failure) => {
         if (stopped || generation !== screeningGeneration) return;
-        screening = widget.imageryLayers.addImageryProvider(provider);
-        scene.requestRender();
-      } finally {
-        if (timeout !== undefined) window.clearTimeout(timeout);
-      }
+        console.error('Cesium screening imagery failed', failure);
+        if (screening) {
+          widget.imageryLayers.remove(screening, true);
+          screening = undefined;
+          scene.requestRender();
+        }
+        onScreeningError?.('Screening extent unavailable.');
+      });
+      if (stopped || generation !== screeningGeneration) return;
+      screening = widget.imageryLayers.addImageryProvider(provider);
+      scene.requestRender();
     },
     setTime(date: string, hour: number, replay: Replay[]) {
       widget.clock.currentTime = JulianDate.fromIso8601(`${date}T05:00:00Z`);
