@@ -14,6 +14,7 @@ def inspect_projected_polygon(geometry: dict) -> str | None:
     """
     from shapely import make_valid
     from shapely.geometry import shape
+    from shapely.errors import GEOSException
     from shapely.validation import explain_validity
 
     try:
@@ -22,19 +23,23 @@ def inspect_projected_polygon(geometry: dict) -> str | None:
             return f"unexpected Shapely geometry type {polygon.geom_type}"
         if polygon.is_empty or not all(math.isfinite(v) for v in polygon.bounds):
             return "empty or non-finite projected geometry"
-        if not math.isfinite(polygon.area) or polygon.area <= 0:
-            return "zero or non-finite projected area (ftUS squared)"
+        if not math.isfinite(polygon.area):
+            return "non-finite projected area (ftUS squared)"
         if not polygon.is_valid:
             candidate = make_valid(polygon)
-            candidate_area = candidate.area
-            relative_delta = (candidate_area - polygon.area) / polygon.area
+            # Zero-area bow-tie sources cannot have a meaningful fractional delta.
+            delta = ((candidate.area - polygon.area) / polygon.area
+                     if polygon.area > 0 else None)
+            delta_text = f"{delta:.9g}" if delta is not None else "undefined_zero_source_area"
             return (
                 f"invalid source topology: {explain_validity(polygon)}; "
                 f"make_valid is review-only; candidate_type={candidate.geom_type}, "
-                f"candidate_area_delta_fraction={relative_delta:.9g}"
+                f"candidate_area_delta_fraction={delta_text}"
             )
+        if polygon.area <= 0:
+            return "zero projected area (ftUS squared)"
         return None
-    except (ValueError, TypeError, AttributeError, OverflowError, KeyError) as exc:
+    except (ValueError, TypeError, AttributeError, OverflowError, KeyError, GEOSException) as exc:
         return f"unparseable projected geometry: {type(exc).__name__}: {exc}"
 
 
