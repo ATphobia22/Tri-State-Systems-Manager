@@ -12,6 +12,8 @@ describe('Public Cesium 4D view on the project Pages base', () => {
   it('streams terrain and buildings, draws local sources and switches replay and screening', () => {
     const renderErrors: string[] = [];
     cy.on('fail', (error) => {
+      const alert = Cypress.$('.tsm-cesium-error').text().trim();
+      if (alert) error.message += `\nViewer recovery state: ${alert}`;
       if (renderErrors.length) error.message += `\nCesium render diagnostics:\n${renderErrors.join('\n')}`;
       throw error;
     });
@@ -29,6 +31,13 @@ describe('Public Cesium 4D view on the project Pages base', () => {
         }
         report(message, ...details);
       };
+      const warn = win.console.warn.bind(win.console);
+      win.console.warn = (message, ...details) => {
+        if (typeof message === 'string' && message.startsWith('Cesium')) renderErrors.push(message);
+        warn(message, ...details);
+      };
+      win.document.addEventListener('webglcontextlost', () => renderErrors.push('webglcontextlost'), true);
+      win.document.addEventListener('webglcontextrestored', () => renderErrors.push('webglcontextrestored'), true);
     } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
