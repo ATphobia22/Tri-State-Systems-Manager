@@ -9,7 +9,7 @@ import {
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
-import { BUILDING_SCREEN_SPACE_ERROR, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
+import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -257,9 +257,8 @@ export function mountCesiumRegionalScene(
     try {
       // Cesium's dedicated factory applies curated OSM default colors from tags.
       // fromIonAssetId(96188) lacks that documented default-style setup.
-      const tileset = await createOsmBuildingsAsync({
-        maximumScreenSpaceError: BUILDING_SCREEN_SPACE_ERROR[detailLevel],
-      });
+      const tileset = await createOsmBuildingsAsync();
+      tileset.maximumScreenSpaceError = BUILDING_SCREEN_SPACE_ERROR[detailLevel];
       if (stopped) { tileset.destroy(); return; }
       osmOriginalStyle = tileset.style;
       osmBuildings = scene.primitives.add(tileset) as Cesium3DTileset;
