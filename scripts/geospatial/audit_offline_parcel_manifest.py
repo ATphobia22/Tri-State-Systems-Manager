@@ -6,9 +6,43 @@ import json
 import math
 from pathlib import Path
 
-def audit(root: Path, require_parcels=False):
+def inspect_projected_polygon(geometry: dict) -> str | None:
+    """Non-mutating EPSG:2966 planar topology audit; never returns replacement geometry.
+
+    Candidate make_valid output is only diagnostic. The source boundary must remain
+    unchanged pending independent survey/regulatory review.
+    """
+    from shapely import make_valid
+    from shapely.geometry import shape
+    from shapely.validation import explain_validity
+
+    try:
+        polygon = shape(geometry)
+        if polygon.geom_type not in ("Polygon", "MultiPolygon"):
+            return f"unexpected Shapely geometry type {polygon.geom_type}"
+        if polygon.is_empty or not all(math.isfinite(v) for v in polygon.bounds):
+            return "empty or non-finite projected geometry"
+        if not math.isfinite(polygon.area) or polygon.area <= 0:
+            return "zero or non-finite projected area (ftUS squared)"
+        if not polygon.is_valid:
+            candidate = make_valid(polygon)
+            candidate_area = candidate.area
+            relative_delta = (candidate_area - polygon.area) / polygon.area
+            return (
+                f"invalid source topology: {explain_validity(polygon)}; "
+                f"make_valid is review-only; candidate_type={candidate.geom_type}, "
+                f"candidate_area_delta_fraction={relative_delta:.9g}"
+            )
+        return None
+    except (ValueError, TypeError, AttributeError, OverflowError, KeyError) as exc:
+        return f"unparseable projected geometry: {type(exc).__name__}: {exc}"
+
+
+def audit(root: Path, require_parcels=False, check_geometry=False):
     findings = []
     checked = 0
+    topology_checked = 0
+    topology_invalid = 0
     for manifest_path in sorted(root.rglob("layer-manifest.json")):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         target = manifest.get("target_crs")
@@ -47,6 +81,12 @@ def audit(root: Path, require_parcels=False):
                 geometry = feature.get("geometry") or {}
                 if geometry.get("type") not in ("Polygon", "MultiPolygon"):
                     findings.append(f"{path}: unsupported parcel geometry")
+                if check_geometry:
+                    topology_checked += 1
+                    issue = inspect_projected_polygon(geometry)
+                    if issue:
+                        topology_invalid += 1
+                        findings.append(f"{path}: objectid {oid!r}: {issue}")
             count += len(features)
             checked += 1
         if count != manifest.get("total_features"):
@@ -55,14 +95,15 @@ def audit(root: Path, require_parcels=False):
             findings.append(f"{manifest_path}: no features")
     if require_parcels and checked == 0:
         findings.append("No offline parcel layer manifest found")
-    return {"status": "PASS" if not findings else "FAIL", "checked_batches": checked, "findings": findings}
+    return {"status": "PASS" if not findings else "FAIL", "checked_batches": checked, "geometry_quality": "CHECKED" if check_geometry and checked else "NOT_RUN", "geometry_checked": topology_checked, "geometry_invalid": topology_invalid, "findings": findings}
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--require-parcels", action="store_true")
+    parser.add_argument("--check-geometry", action="store_true", help="Check projected parcel topology; never auto-repair official geometry")
     args = parser.parse_args()
-    result = audit(args.root, args.require_parcels)
+    result = audit(args.root, args.require_parcels, args.check_geometry)
     print(json.dumps(result, indent=2))
     raise SystemExit(0 if result["status"] == "PASS" else 1)
 
