@@ -18,6 +18,9 @@ export const CESIUM_VIEWS = [
   { id: 'henderson', name: 'Henderson, KY', lon: -87.594, lat: 37.841, range: 6500, heading: 353 },
   { id: 'shawneetown', name: 'Shawneetown, IL', lon: -88.187, lat: 37.716, range: 7300, heading: 12 },
   { id: 'overview', name: 'Tri-State overview', lon: -87.79, lat: 37.99, range: 82000, heading: 352 },
+  // Navigational camera anchors, not exact county boundaries or surveyed monuments.
+  { id: 'white-il', name: 'Carmi, IL · White County', lon: -88.172, lat: 38.086, range: 6900, heading: 20 },
+  { id: 'union-ky', name: 'Morganfield, KY · Union County', lon: -87.917, lat: 37.684, range: 6900, heading: 25 },
 ] as const;
 
 export const REPLAY_DATES = Array.from({ length: 30 }, (_, i) => `2025-04-${String(i + 1).padStart(2, '0')}`);

@@ -65,6 +65,10 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.screenshot('mount-vernon-cesium-and-screening');
     cy.get('#cesium-place').select('Henderson, KY');
     cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
+    cy.get('#cesium-place').select('Carmi, IL · White County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
+    cy.get('#cesium-place').select('Morganfield, KY · Union County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
 
     cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
     cy.get('#cesium-film-shot').select('03-new-harmony');

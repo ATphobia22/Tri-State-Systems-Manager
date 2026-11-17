@@ -46,6 +46,8 @@ The authoritative `data/regional/eight-county-exact-spatial-validation-v1.json` 
 
 The `scripts/geospatial/build_cesium_regional_scene.py` road-building routine also includes **Wabash County, Illinois (17185)** in a wider, nine-county TIGER roads file. This does not expand the exact eight-county engineering validation contract, and should not be mistaken for uniform all-layer coverage.
 
+New optional *navigation-only* camera anchors for White County (Carmi, IL; approximate 38.086°N, 88.172°W) and Union County (Morganfield, KY; approximate 37.684°N, 87.917°W) improve manual inspection of both sides of the river. Coordinate approximations are community reference locations, not a statement that the surrounding building meshes have been acquired or validated.
+
 The current local Cesium runtime advertises **20,517 LoD1 Posey meshes plus 2,565 footprint-only IDs** as a preview. A separate Posey inventory targets **23,082** authoritative identities. **No deployed region-wide LoD2/LoD3/LoD4 fully material-textured building mesh for all eight counties is confirmed by these code changes.** The new 'Sharper tiles' control reduces the Cesium screen-space-error threshold but cannot synthesize missing geometry, PBR textures, or photogrammetry.
 
 Regional county names, routes and road inventories should be differentiated from verified parcel, DEM, roof, imagery and flood feature inventories. The released eight-county contract requires exact polygon intersects/within checks and metadata/hash evidence for each layer.
