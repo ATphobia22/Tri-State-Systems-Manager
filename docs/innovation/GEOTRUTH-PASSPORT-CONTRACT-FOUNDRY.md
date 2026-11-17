@@ -68,17 +68,38 @@ This compiles normalized source IDs, agency, endpoint, service/layer ID, CRS, ve
 
 The optional drift section reuses the existing field comparison. The plane impact map uses **exact source ID matching**, reports unmapped and unresolved IDs explicitly, and labels affected plane relationships `DECLARED_ONLY`; an absent/renamed source is not silently matched to a nearby-looking one. It flags potential joins to review, not actual geometry corruption or verified runtime faults.
 
-## 4. Test and CI contract
+## 4. Shared Civic Evidence Bundle — the connecting contract
+
+`scripts/innovation/civic_evidence_bundle.py` ties GeoTruth and Foundry reports together with **their actual file SHA-256 hashes** and (optionally) verifies the Passport's original JSON, its export receipt, and both generated Office documents against their recorded SHA-256 values. Each module retains its own authority and missing-evidence labels.
 
 ```sh
-python -m unittest discover -s tests/innovation -p test_triad_products.py -v
+python scripts/innovation/civic_evidence_bundle.py \
+  --geotruth dist/innovation/geotruth-posey-qa.json \
+  --contracts dist/innovation/government-contracts.json \
+  --output dist/innovation/civic-evidence-bundle.json
+
+# Include an actual verified local passport package:
+python scripts/innovation/civic_evidence_bundle.py \
+  --geotruth dist/innovation/geotruth-posey-qa.json \
+  --contracts dist/innovation/government-contracts.json \
+  --passport dist/innovation/parcel-evidence.json \
+  --passport-receipt dist/innovation/parcel-evidence.receipt.json \
+  --output dist/innovation/civic-evidence-bundle-with-passport.json
+```
+
+**No supplied parcel?** The bundle represents the Passport as `NOT_EVIDENCED` and requests a review instead of generating fake parcel claims. It is deliberately a **local evidence export manifest** for future native/MapLibre read-only UI wiring, not a scientific approval or externally signed attestation.
+
+## 5. Test and CI contract
+
+```sh
+python -m unittest discover -s tests/innovation -p 'test_*.py' -v
 python -m unittest discover -s scripts/public_interest -p test_evidence_kit.py -v
 python -m unittest discover -s tests/government -p test_source_contract_impact.py -v
 ```
 
 `.github/workflows/tsm-civic-innovation-triad.yml` runs these suites on Python 3.12, produces the foundry contracts from TSM's 26-source existing catalog, and checks the current Posey published screening GeoJSON against the archived pin. The outputs are GitHub Actions advisory artifacts; **no release status is inferred from passing Python source tests**.
 
-## 5. Existing TSM integration points
+## 6. Existing TSM integration points
 
 | Product | Existing TSM contract reused | Output and next integration |
 | --- | --- | --- |
