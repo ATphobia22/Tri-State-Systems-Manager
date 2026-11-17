@@ -14,9 +14,9 @@ test('memorial is a dedicated accessible destination', () => {
   assert.match(source('routes/TriStateAtlasView.tsx'), /to="\/memorial">In loving memory/);
 });
 test('map-first viewer tools do not block the initial map', () => {
-  assert.match(source('components/TriStateDigitalTwinMap.tsx'), /mapToolsOpen\] = useState\(false\)/);
-  assert.match(source('components/FloodSimulator.tsx'), /controlsOpen\] = useState\(false\)/);
-  assert.match(source('components/CinematicTwinHud.tsx'), /hudCollapsed\] = useState\(true\)/);
+  assert.match(source('components/TriStateDigitalTwinMap.tsx'), /mapToolsOpen, setMapToolsOpen\] = useState\(false\)/);
+  assert.match(source('components/FloodSimulator.tsx'), /controlsOpen, setControlsOpen\] = useState\(false\)/);
+  assert.match(source('components/CinematicTwinHud.tsx'), /hudCollapsed, setHudCollapsed\] = useState\(true\)/);
   assert.match(source('routes/CinematicEngineeringExperienceView.tsx'), /<CesiumRegionalTwinView autoFlyover=\{playing\}/);
   assert.match(source('routes/CesiumRegionalTwinView.tsx'), /cesium-buildings-quick-toggle/);
 });
