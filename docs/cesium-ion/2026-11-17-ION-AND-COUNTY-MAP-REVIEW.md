@@ -69,3 +69,7 @@ Regional county names, routes and road inventories should be differentiated from
 - [Cesium3DTileset](https://cesium.com/learn/cesiumjs/ref-doc/Cesium3DTileset.html)
 - [National Map / 3DEP](https://www.usgs.gov/the-national-map-data-delivery)
 - [Census TIGER/Line](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html)
+
+## Production Pages build reliability (observed on PR #634)
+
+A source-ingest step in the production workflow failed on 2026-11-17 due to a `TimeoutError: The read operation timed out` from `gisdata.in.gov` during the Mount Vernon footprints download (job `133941329627`, step `Stage Indiana GIO Mount Vernon footprints and street centerlines`). The failure occurred **before** the production UI build. This is not evidence of invalid city shapes or of a TypeScript failure. A follow-on commit added up to three bounded retries for transient timeouts, HTTP 408/429, and selected 5xx responses. 403, malformed JSON, overlarge responses, incomplete source ID batches and missing geometry still fail. CI must rerun and prove the staging and final Pages build before treating this as fixed.

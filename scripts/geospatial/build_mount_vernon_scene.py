@@ -12,6 +12,8 @@ import json
 import math
 from datetime import datetime, timezone
 from pathlib import Path
+from time import sleep
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -21,6 +23,9 @@ DEFAULT_BBOX = (-88.03, 37.87, -87.84, 38.01)  # Discovery AOI, NOT a municipal 
 MAX_IDS = 100000
 BATCH = 250
 MAX_RESPONSE_BYTES = 12_000_000
+SOURCE_REQUEST_TIMEOUT_SECONDS = 45
+MAX_SOURCE_ATTEMPTS = 3
+RETRYABLE_HTTP_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 
 
 def digest(raw: bytes) -> str:
@@ -34,9 +39,21 @@ def canonical(value: object) -> bytes:
 def query(url: str, params: dict[str, object], *, max_bytes: int = MAX_RESPONSE_BYTES) -> tuple[dict, str]:
     qs = urlencode(params)
     request = Request(url + "/query?" + qs, headers={"User-Agent": "TSM-Government-Scene/1.0", "Accept": "application/json"})
-    with urlopen(request, timeout=45) as response:
-        # Prevent unbounded anonymous-government-service responses.
-        raw = response.read(max_bytes + 1)
+    # Agency feature services sometimes time out while streaming a valid batch.
+    # Retry transport failures only; never accept incomplete batches or invent values.
+    for attempt in range(MAX_SOURCE_ATTEMPTS):
+        try:
+            with urlopen(request, timeout=SOURCE_REQUEST_TIMEOUT_SECONDS) as response:
+                # Prevent unbounded anonymous-government-service responses.
+                raw = response.read(max_bytes + 1)
+            break
+        except HTTPError as error:
+            if error.code not in RETRYABLE_HTTP_STATUSES or attempt == MAX_SOURCE_ATTEMPTS - 1:
+                raise
+        except (TimeoutError, ConnectionError, URLError):
+            if attempt == MAX_SOURCE_ATTEMPTS - 1:
+                raise
+        sleep(2 ** attempt)
     if len(raw) > max_bytes:
         raise ValueError("ARCGIS_RESPONSE_TOO_LARGE")
     payload = json.loads(raw)
