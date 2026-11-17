@@ -6,7 +6,7 @@ const source = (file) => readFileSync(new URL('../src/' + file, import.meta.url)
 test('public River Watch directly exposes official, on-demand gage readings', () => {
   assert.match(source('routes/RiverWatchView.tsx'), /<PagesUSGSGaugeReader\s*\/>/);
   assert.match(source('routes/RiverWatchView.tsx'), /!pagesMode && <details/);
-  assert.match(source('components/PagesUSGSGaugeReader.tsx'), /api\.waterdata\.usgs\.gov/);
+  assert.ok(source('components/PagesUSGSGaugeReader.tsx').includes("const ENDPOINT = 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items'"));
   assert.match(source('components/PagesUSGSGaugeReader.tsx'), /station gage reference ONLY/);
 });
 test('memorial is a dedicated accessible destination', () => {
