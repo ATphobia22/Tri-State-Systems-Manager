@@ -96,7 +96,7 @@ test('Pages root selects the Atlas without removing the memorial route', () => {
 
 test('Pages publishes a direct Atlas entry on the same base path as the console', () => {
   assert.match(workflow, /for route in atlas cesium memorial river-watch terrain-3d/);
-  assert.match(workflow, /cp dist\/index\.html "\\$\{?[^\n]+\/index\.html"/);
+  assert.ok(workflow.includes('cp dist/index.html "dist/$route/index.html"'));
   assert.match(workflow, /cmp -s dist\/index\.html dist\/atlas\/index\.html/);
   assert.match(workflow, /curl --fail [^\n]+\/atlas\//);
   assert.match(read('../README.md'), /https:\/\/atphobia22\.github\.io\/Tri-State-Systems-Manager\/atlas\//);
