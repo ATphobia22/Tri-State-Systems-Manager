@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import TriStateDigitalTwinMap from "../components/TriStateDigitalTwinMap";
+import CesiumRegionalTwinView from "./CesiumRegionalTwinView";
 import { prefersReducedMotion } from "../lib/reduced-motion";
 import {
   CINEMA_SITE,
@@ -21,6 +22,10 @@ import { CINEMATIC_PRESETS } from "../../../packages/geo/src/native/CinematicPro
 export default function CinematicEngineeringExperienceView(): React.JSX.Element {
   const path = useMemo(() => buildEngineeringCinemaPath(), []);
   const [playing, setPlaying] = useState(false);
+  // The public route defaults to the verified lightweight MapLibre viewer.
+  // ?renderer=cesium opens the actual streamed 3D globe, not a graphic placeholder.
+  const [renderer, setRenderer] = useState<'maplibre' | 'cesium'>(() =>
+    new URLSearchParams(window.location.search).get('renderer') === 'cesium' ? 'cesium' : 'maplibre');
   const [toolsOpen, setToolsOpen] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setPlaying(false), []);
@@ -50,6 +55,11 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
     <div style={{ display: "flex", flexDirection: "column", minHeight: "min(85dvh, 850px)", background: "#070b14", color: "#e2e8f0", fontFamily: "system-ui,sans-serif" }}>
       <header style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "10px 12px", borderBottom: "1px solid #334155" }}>
         <strong style={{ flex: "1 1 180px" }}>Cinematic Engineering · real regional map</strong>
+        <button type="button" data-testid="engineering-renderer-toggle" aria-pressed={renderer === 'cesium'}
+          onClick={() => { setPlaying(false); setRenderer((current) => current === 'cesium' ? 'maplibre' : 'cesium'); }}
+          style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>
+          {renderer === 'cesium' ? 'Use MapLibre 3D map' : 'Use Cesium 3D terrain & buildings'}
+        </button>
         <button type="button" aria-expanded={toolsOpen} aria-controls="tsm-cinematic-engineering-tools"
           onClick={() => setToolsOpen((open) => !open)} style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>
           {toolsOpen ? "Hide engineering settings" : "Show engineering settings"}
@@ -64,8 +74,10 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
       </header>
       <div style={{ display: "flex", flexWrap: "wrap", flex: 1, minHeight: 0 }}>
       <section style={{ position: "relative", flex: "1 1 540px", minWidth: 0, minHeight: "min(75dvh, 790px)", borderRight: "1px solid #1e293b" }}>
-        <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
-          onTourReducedMotion={stopTourForReducedMotion} />
+        {renderer === 'cesium'
+          ? <CesiumRegionalTwinView autoFlyover={playing} />
+          : <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
+              onTourReducedMotion={stopTourForReducedMotion} />}
         {/* The engineering model timeline is displayed OVER the actual map; it is not the rendered camera pose. */}
         {hudOpen && <div id="tsm-cinema-model-overlay"
           style={{
@@ -100,7 +112,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
             <div style={{ color: "#94a3b8" }}>{sample.label}</div>
           </div>
           <div style={{ position: "absolute", left: 16, bottom: 16, fontSize: 11, color: "#94a3b8", maxWidth: 420 }}>
-            Real MapLibre regional viewport. Separate computed sample values are illustrative only. Terrain-RGB and 3D Tiles are source-conditional;
+            Source-derived {renderer === 'cesium' ? 'Cesium 3D' : 'MapLibre'} regional viewport. Separate computed sample values are illustrative only. Terrain-RGB and 3D Tiles are source-conditional;
             Native: UE World Partition + staged TSMData. SIMULATION_DEMO / DERIVED where labeled.
           </div>
           <div
