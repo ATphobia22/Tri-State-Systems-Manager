@@ -89,8 +89,10 @@ class GeoTruthTests(unittest.TestCase):
         out = self.root / "qa.json"
         self.assertEqual(geo.main(["--published", str(self.published), "--pinned-delta",
                                    str(self.pin), "--output", str(out)]), 0)
-        self.assertEqual(geo.main(["--published", str(self.published), "--pinned-delta",
-                                   str(self.pin), "--output", str(out)]), 2)
+        with self.assertRaises(SystemExit) as raised:
+            geo.main(["--published", str(self.published), "--pinned-delta",
+                      str(self.pin), "--output", str(out)])
+        self.assertEqual(raised.exception.code, 2)
 
 
 class PassportExportTests(unittest.TestCase):
