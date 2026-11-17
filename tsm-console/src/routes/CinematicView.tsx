@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import TriStateDigitalTwinMap, { defaultMapPlaneVisibility } from '../components/TriStateDigitalTwinMap';
 import CinematicTwinHud, {
   type TwinLayerId,
@@ -48,6 +48,8 @@ export default function CinematicView(): JSX.Element {
   const [visible, setVisible] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
   const [engineeringMode, setEngineeringMode] = useState<EngineeringMode>('NAVIGATION');
   const [lightPreset, setLightPreset] = useState<'day' | 'golden' | 'night'>('day');
+  const [tourActive, setTourActive] = useState(false);
+  const stopReducedMotionTour = useCallback(() => setTourActive(false), []);
 
   const hudLayers = (Object.keys(HUD_TO_FABRIC) as TwinLayerId[]).reduce(
     (acc, id) => ({ ...acc, [id]: Boolean(visible[HUD_TO_FABRIC[id]]) }),
@@ -63,6 +65,9 @@ export default function CinematicView(): JSX.Element {
     <main style={{ position: 'relative', height: '100dvh', background: '#05080f' }}>
       <TriStateDigitalTwinMap
         hideSidebar
+        regionalAtlas
+        cinematicTour={tourActive}
+        onTourReducedMotion={stopReducedMotionTour}
         visible={visible}
         onVisibleChange={setVisible}
         lightPreset={lightPreset}
@@ -75,6 +80,8 @@ export default function CinematicView(): JSX.Element {
         lightPreset={lightPreset}
         onLightPresetChange={setLightPreset}
         cutawayModel={SITE_CUTAWAY}
+        tourActive={tourActive}
+        onToggleTour={() => setTourActive((active) => !active)}
       />
       {engineeringMode !== 'NAVIGATION' && (
         <div role="status" style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 20, padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(251,191,36,.5)', background: 'rgba(5,8,15,.92)', fontSize: 12, color: '#fbbf24' }}>

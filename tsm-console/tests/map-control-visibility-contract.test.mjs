@@ -23,3 +23,19 @@ test('Cesium buildings are reachable from the viewport, with visible local toggl
  assert.match(cesium, /scene.current\?\.setLayer\('buildings', show\)/);
  assert.match(cesium, /Cesium OSM buildings \(online context\)/);
 });
+
+test('Cinematic engineering renders the real MapLibre world, not a decorative scene', () => {
+  const engine = read('src/routes/CinematicEngineeringExperienceView.tsx');
+  assert.match(engine, /<TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour=\{playing\}/);
+  assert.doesNotMatch(engine, /Streaming viewport placeholder/);
+  assert.match(engine, /hidden=\{!toolsOpen\}/);
+  assert.match(engine, /aria-controls="tsm-cinematic-engineering-tools"/);
+  assert.match(engine, /Cesium cinematic shots/);
+});
+test('Cinematic scene HUD defaults map-first and wires real camera tour', () => {
+  const cinematic = read('src/routes/CinematicView.tsx');
+  const hud = read('src/components/CinematicTwinHud.tsx');
+  assert.match(cinematic, /cinematicTour=\{tourActive\}/);
+  assert.match(hud, /\[hudCollapsed, setHudCollapsed\] = useState\(true\)/);
+  assert.match(hud, /onClick=\{props.onToggleTour\}/);
+});
