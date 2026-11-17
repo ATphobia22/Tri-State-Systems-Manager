@@ -55,6 +55,8 @@ describe('Public 4D map incident regressions', () => {
     cy.visit('/cinematic');
     cy.contains('button', 'Show cinematic tools').should('have.attr', 'aria-expanded', 'false');
     cy.contains('a', 'Explore Cesium 3D buildings and flyovers').should('exist');
+    cy.contains('button', 'Play fly-through').click().should('have.attr', 'aria-pressed', 'true');
+    cy.contains('button', 'Stop fly-through').click().should('have.attr', 'aria-pressed', 'false');
     cy.contains('button', 'Show cinematic tools').click();
     cy.contains('button', 'Hide cinematic tools').should('have.attr', 'aria-expanded', 'true');
     cy.contains('button', 'Hide cinematic tools').click();

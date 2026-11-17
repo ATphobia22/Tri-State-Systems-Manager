@@ -225,7 +225,7 @@ jobs:
           node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
           # Materialize direct-entry HTML for public routes so refresh/bookmarks
           # do not depend exclusively on the GitHub Pages SPA 404 fallback.
-          for route in atlas cesium memorial river-watch terrain-3d flood-sim cinematic cinematic-engineering globe photorealistic-3d digital-twin-v2 twin; do
+          for route in atlas cesium memorial river-watch terrain-3d flood-sim cinematic cinematic-engineering globe photorealistic-3d digital-twin-v2 digital-twin twin map map-plane engineering-section spatial-planes platform; do
             mkdir -p "dist/$route"
             cp dist/index.html "dist/$route/index.html"
           done
@@ -260,7 +260,7 @@ jobs:
           test -s dist/index.html
           test -s dist/404.html
           cmp -s dist/index.html dist/atlas/index.html
-          for route in memorial river-watch terrain-3d flood-sim cinematic cinematic-engineering; do
+          for route in memorial river-watch terrain-3d flood-sim cinematic cinematic-engineering map map-plane; do
             cmp -s dist/index.html "dist/$route/index.html"
           done
           test -s dist/spa-redirect.js
@@ -289,6 +289,9 @@ jobs:
           }
           if (!cssContent.includes('.tsm-atlas')) {
             throw new Error('TriStateAtlasView stylesheet missing from eager entry CSS');
+          }
+          if (!cssContent.includes('.tsm-cesium')) {
+            throw new Error('CesiumRegionalTwinView stylesheet missing from eager entry CSS');
           }
           console.log('PASS: Pages entry stylesheets exist; MapLibre + Atlas CSS eagerly loaded');
           NODE

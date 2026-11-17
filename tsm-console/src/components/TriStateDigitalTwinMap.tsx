@@ -844,7 +844,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   // that readiness prevents pressing Play before map creation from doing nothing.
   useEffect(() => {
     const map = mapRef.current;
-    if (!mapReady || !map || !props.regionalAtlas || !props.cinematicTour) return;
+    if (!mapReady || !map || !props.cinematicTour) return;
     const stop = playCinematicTour(map);
     if (stop === null) {
       props.onTourReducedMotion?.();

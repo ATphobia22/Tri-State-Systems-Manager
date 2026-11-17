@@ -38,6 +38,9 @@ export interface CinematicTwinHudProps {
   lightPreset: 'day' | 'golden' | 'night';
   onLightPresetChange: (p: 'day' | 'golden' | 'night') => void;
   cutawayModel: EngineeringSectionModel;
+  /** Actual MapLibre fly-through controller, separate from scenario computation. */
+  tourActive: boolean;
+  onToggleTour: () => void;
 }
 
 const LAYER_LABELS: Record<TwinLayerId, string> = {
@@ -109,7 +112,7 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
             backdropFilter: 'blur(8px)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
@@ -128,6 +131,12 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 EPSG:2966 · NAVD88 · FIS 18129CV000A Table 9 · BFE 369.1 ft
               </div>
             </div>
+            <button type="button" onClick={props.onToggleTour}
+              aria-pressed={props.tourActive} aria-label={props.tourActive ? 'Stop fly-through' : 'Play fly-through'}
+              style={{ background: '#0f766e', color: '#fff', padding: '9px 11px', minHeight: 44,
+                borderRadius: 8, border: '1px solid #14b8a6', cursor: 'pointer', fontWeight: 750 }}>
+              {props.tourActive ? 'Stop fly-through' : 'Play fly-through'}
+            </button>
             <button
               type="button"
               aria-expanded={!hudCollapsed}
