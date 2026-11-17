@@ -1,10 +1,10 @@
 import {
-  ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, Cesium3DTileStyle, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
-  Color, ColorGeometryInstanceAttribute, createOsmBuildingsAsync, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
+  ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, Cesium3DTileStyle, ClassificationType, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
+  Color, ColorGeometryInstanceAttribute, createOsmBuildingsAsync, Credit, EllipsoidTerrainProvider, GeometryInstance,
   Ion, IonImageryProvider, type ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
-  ScreenSpaceEventType, UrlTemplateImageryProvider, GroundPrimitive,
+  ScreenSpaceEventType, UrlTemplateImageryProvider, Rectangle, SingleTileImageryProvider,
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
@@ -38,17 +38,29 @@ export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city' | 'osmContex
 export type LayerState = { state: 'loading' | 'ready' | 'unavailable'; detail: string };
 export type PickedFeature = { title: string; detail: string };
 type LineItems = { features: GeoJSON.Feature[]; metadata: { featureCount: number; countyCount: number } };
-export type ScreeningFrame = { levelMNavd88: number; connectedCells: number };
+export type ScreeningBounds = readonly [number, number, number, number];
+export type ScreeningFrame = { levelMNavd88: number; connectedCells: number; bounds: ScreeningBounds };
 
 export async function loadCityScreening(signal: AbortSignal): Promise<ScreeningFrame[]> {
   const response = await fetch(`${VECTORS}screening.json`, { signal });
   if (!response.ok) throw new Error('City screening archive unavailable');
   const data = await response.json();
+  const bounds: unknown = data.bounds;
   if (data.classification !== 'SCENARIO' || data.verticalDatum !== 'NAVD88' ||
-      !Array.isArray(data.frames) || !data.frames.every((frame: ScreeningFrame) => Number.isInteger(frame.levelMNavd88))) {
-    throw new Error('Invalid city screening archive');
+      !Array.isArray(bounds) || bounds.length !== 4 ||
+      !bounds.every((coordinate) => typeof coordinate === 'number' && Number.isFinite(coordinate)) ||
+      !((bounds[0] as number) >= -180 && (bounds[2] as number) <= 180 &&
+        (bounds[1] as number) >= -90 && (bounds[3] as number) <= 90 &&
+        (bounds[0] as number) < (bounds[2] as number) && (bounds[1] as number) < (bounds[3] as number)) ||
+      !Array.isArray(data.frames) ||
+      !data.frames.every((frame: ScreeningFrame) => Number.isInteger(frame.levelMNavd88) && Number.isInteger(frame.connectedCells) &&
+        frame.connectedCells >= 0 && frame.connectedCells <= data.rows * data.cols)) {
+    throw new Error('Invalid city screening archive or geographic rectangle');
   }
-  return data.frames;
+  return data.frames.map((frame: ScreeningFrame) => ({
+    levelMNavd88: frame.levelMNavd88, connectedCells: frame.connectedCells,
+    bounds: bounds as [number, number, number, number],
+  }));
 }
 
 function cameraLocation(view: typeof CESIUM_VIEWS[number], headingOffsetDeg = 0, rangeScale = 1) {
@@ -173,8 +185,8 @@ export function mountCesiumRegionalScene(
   let detailLevel: BuildingPreviewDetail = 'balanced';
   let osmStyleMode: OsmBuildingStyle = 'native';
   let cityStarted = false;
-  let screening: GeoJsonDataSource | undefined;
-  let screeningRequest: AbortController | undefined;
+  let screening: ImageryLayer | undefined;
+  let screeningGeneration = 0;
   const update = (layer: SceneLayer, state: LayerState['state'], detail: string) => {
     if (!stopped) onLayer(layer, { state, detail });
   };
@@ -455,38 +467,37 @@ export function mountCesiumRegionalScene(
       return true;
     },
     resize() { if (!stopped) { widget.resize(); scene.requestRender(); } },
-    async setScreening(level: number | null): Promise<void> {
-      screeningRequest?.abort();
+    async setScreening(level: number | null, bounds?: ScreeningBounds): Promise<void> {
+      const generation = ++screeningGeneration;
       if (screening) {
-        widget.dataSources.remove(screening, true);
+        widget.imageryLayers.remove(screening, true);
         screening = undefined;
         scene.requestRender();
       }
       if (level === null) return;
-      if (!GroundPrimitive.isSupported(scene)) throw new Error('Ground overlays unavailable on this device');
-      const request = new AbortController();
-      screeningRequest = request;
+      if (!bounds || !bounds.every(Number.isFinite) || !(bounds[0] < bounds[2] && bounds[1] < bounds[3])) {
+        throw new Error('Screening extent has no verified geographic bounds');
+      }
+      // A pre-verified 360 x 264 raster exactly matches the original connected
+      // terrain cells. Large clamped GeoJSON ground primitives previously left
+      // headed viewers stalled while GPU-intensive building tiles loaded.
+      // Polygons remain in the evidence archive for engineering inspection.
+      const rectangle = Rectangle.fromDegrees(...bounds);
+      let timeout: number | undefined;
       try {
-        const response = await fetch(`${VECTORS}screening/${level}.json`, { signal: request.signal });
-        if (!response.ok) throw new Error('Screening frame unavailable');
-        const polygons = await GeoJsonDataSource.load(await response.json(), {
-          clampToGround: true, fill: Color.fromCssColorString('#23baf2').withAlpha(0.55),
-          stroke: Color.fromCssColorString('#bfeeff'), strokeWidth: 1,
-        });
-        for (const entity of polygons.entities.values) {
-          if (entity.polygon) entity.polygon.classificationType = new ConstantProperty(ClassificationType.TERRAIN);
-        }
-        if (request.signal.aborted || stopped) return;
-        await widget.dataSources.add(polygons);
-        if (stopped) return;
-        if (request.signal.aborted) {
-          widget.dataSources.remove(polygons, true);
-          return;
-        }
-        screening = polygons;
+        const provider = await Promise.race([
+          SingleTileImageryProvider.fromUrl(`${VECTORS}screening/${level}.png`, {
+            rectangle, credit: 'Hypothetical Mount Vernon fixed-level scenario (not regulatory)',
+          }),
+          new Promise<never>((_resolve, reject) => {
+            timeout = window.setTimeout(() => reject(new Error('Screening raster load timed out')), 30_000);
+          }),
+        ]);
+        if (stopped || generation !== screeningGeneration) return;
+        screening = widget.imageryLayers.addImageryProvider(provider);
         scene.requestRender();
-      } catch (error) {
-        if (!request.signal.aborted) throw error;
+      } finally {
+        if (timeout !== undefined) window.clearTimeout(timeout);
       }
     },
     setTime(date: string, hour: number, replay: Replay[]) {
@@ -509,7 +520,7 @@ export function mountCesiumRegionalScene(
     destroy() {
       stopped = true;
       abort.abort();
-      screeningRequest?.abort();
+      screeningGeneration++;
       recovery.dispose();
       holder.destroy();
       widget.destroy();
