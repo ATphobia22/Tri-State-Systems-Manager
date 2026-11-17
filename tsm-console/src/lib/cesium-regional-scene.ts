@@ -1,7 +1,7 @@
 import {
   ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, Cesium3DTileStyle, ClassificationType, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
   Color, ColorGeometryInstanceAttribute, createOsmBuildingsAsync, Credit, EllipsoidTerrainProvider, GeometryInstance,
-  Ion, IonImageryProvider, type ImageryLayer,
+  Ion, IonImageryProvider, ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
   ScreenSpaceEventType, UrlTemplateImageryProvider, Rectangle, SingleTileImageryProvider,
@@ -506,10 +506,11 @@ export function mountCesiumRegionalScene(
       });
       if (stopped || generation !== screeningGeneration) return;
       // Connected-cell evidence must retain crisp boundaries without alpha interpolation.
-      screening = widget.imageryLayers.addImageryProvider(provider, {
+      const layer = new ImageryLayer(provider, {
         minificationFilter: TextureMinificationFilter.NEAREST,
         magnificationFilter: TextureMagnificationFilter.NEAREST,
       });
+      screening = widget.imageryLayers.add(layer);
       scene.requestRender();
     },
     setTime(date: string, hour: number, replay: Replay[]) {
