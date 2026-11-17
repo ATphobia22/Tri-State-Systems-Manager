@@ -26,6 +26,7 @@ export default function CesiumRegionalTwinView() {
   const scene = useRef<Scene | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const recoveryTimeout = useRef<number | undefined>(undefined);
+  const contextLossTimeout = useRef<number | undefined>(undefined);
   const healthTimeout = useRef<number | undefined>(undefined);
   const recoveryAttempts = useRef(0);
   const [ready, setReady] = useState(false);
@@ -92,6 +93,7 @@ export default function CesiumRegionalTwinView() {
   useEffect(() => {
     if (!host.current) return;
     window.clearTimeout(recoveryTimeout.current);
+    window.clearTimeout(contextLossTimeout.current);
     window.clearTimeout(healthTimeout.current);
     setStatus({});
     setImageryError(false);
@@ -100,6 +102,7 @@ export default function CesiumRegionalTwinView() {
       setTour(false);
       setShotPlayStart(null);
       setReady(false);
+      window.clearTimeout(healthTimeout.current);
     };
     try {
       const next = mountCesiumRegionalScene(
@@ -110,6 +113,8 @@ export default function CesiumRegionalTwinView() {
           pause();
           // A transient WebGL render failure should not strand visitors on a dead globe.
           // Cap retries so persistent GPU/driver faults remain visible and actionable.
+          window.clearTimeout(contextLossTimeout.current);
+          window.clearTimeout(recoveryTimeout.current);
           const attempt = ++recoveryAttempts.current;
           setError(attempt <= 2
             ? `${message} Retrying the 3D view (${attempt}/2)…`
@@ -123,10 +128,26 @@ export default function CesiumRegionalTwinView() {
         () => setImageryError(true),
         (state) => {
           if (state === 'restored') {
+            window.clearTimeout(contextLossTimeout.current);
+            console.info('Cesium WebGL context restored; rebuilding scene.');
             setSceneVersion((version) => version + 1);
           } else {
             pause();
+            window.clearTimeout(recoveryTimeout.current);
+            window.clearTimeout(contextLossTimeout.current);
             setGraphicsPaused(true);
+            console.warn('Cesium WebGL context lost; awaiting browser restoration.');
+            // Chromium can abandon a lost GPU context under resource pressure.
+            // Do not leave the globe and its controls permanently disabled.
+            contextLossTimeout.current = window.setTimeout(() => {
+              const attempt = ++recoveryAttempts.current;
+              if (attempt <= 2) {
+                console.warn(`Cesium context did not recover; rebuilding widget (${attempt}/2).`);
+                setSceneVersion((version) => version + 1);
+              } else {
+                setError('WebGL context did not recover. Automatic retries exhausted; restart 3D view or use Atlas.');
+              }
+            }, 8000);
           }
         },
       );
@@ -144,6 +165,7 @@ export default function CesiumRegionalTwinView() {
     return () => {
       window.clearTimeout(timer.current);
       window.clearTimeout(recoveryTimeout.current);
+      window.clearTimeout(contextLossTimeout.current);
       window.clearTimeout(healthTimeout.current);
       scene.current?.destroy();
       scene.current = null;
