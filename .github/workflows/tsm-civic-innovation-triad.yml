@@ -6,6 +6,7 @@ on:
       - 'scripts/geospatial/geotruth_inspector.py'
       - 'scripts/public_interest/evidence_packet_export.py'
       - 'scripts/government/contract_foundry.py'
+      - 'scripts/innovation/civic_evidence_bundle.py'
       - 'tests/innovation/**'
       - 'docs/innovation/GEOTRUTH-PASSPORT-CONTRACT-FOUNDRY.md'
       - '.github/workflows/tsm-civic-innovation-triad.yml'
@@ -45,6 +46,13 @@ jobs:
         run: |
           python -m json.tool dist/innovation/geotruth-posey-qa.json >/dev/null
           python -m json.tool dist/innovation/government-contracts.json >/dev/null
+      - name: Link GeoTruth and source contracts as one advisory evidence bundle
+        run: |
+          python scripts/innovation/civic_evidence_bundle.py \
+            --geotruth dist/innovation/geotruth-posey-qa.json \
+            --contracts dist/innovation/government-contracts.json \
+            --output dist/innovation/civic-evidence-bundle.json
+          python -m json.tool dist/innovation/civic-evidence-bundle.json >/dev/null
       - name: Publish informational code and catalog QA results
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
