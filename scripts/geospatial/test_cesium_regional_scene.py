@@ -18,7 +18,7 @@ class CityScreeningTests(unittest.TestCase):
         with TemporaryDirectory() as temporary:
             image = Path(temporary) / "screening.png"
             write_screening_png(image, mask)
-            self.assertEqual(image.read_bytes()[:8], b"\x5c\x78\x38\x39PNG\x5c\x72\x5c\x6e\x5c\x78\x31\x61\x5c\x6e")
+            self.assertEqual(image.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
             with rasterio.open(image) as dataset:
                 self.assertEqual((dataset.width, dataset.height, dataset.count), (3, 2, 4))
                 bands = dataset.read()
