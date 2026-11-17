@@ -26,7 +26,6 @@ Run from the repository root:
 python3 scripts/evidence/freeze_milestone_a.py --lint
 python3 scripts/evidence/freeze_milestone_a.py --freeze
 python3 scripts/evidence/freeze_milestone_a.py --verify
-sha256sum -c evidence/milestone-a/manifest.milestone-a.sha256.txt  # run inside evidence/milestone-a
 ~~~
 
 The freeze command emits manifest.milestone-a.sha256.txt **only after successful validation** of all 23,082 identity rows and hashes. Never hand-write the checksum. The sidecar hashes the final manifest; that manifest separately binds the frozen inputs. Re-running freeze fails rather than silently overwriting an existing receipt. Verification fails if an input or the manifest changes.
