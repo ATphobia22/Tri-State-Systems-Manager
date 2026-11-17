@@ -98,7 +98,7 @@ export default function RootLayout() {
               type="button"
               className="tsm-hamburger"
               aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
-              aria-expanded={menuOpen || desktopNavOpen}
+              aria-expanded={navOpen}
               aria-controls="tsm-sidebar"
               onClick={() => setNavOpen((open) => !open)}
             >
@@ -107,17 +107,17 @@ export default function RootLayout() {
             <div><div style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.95rem', color: '#205a63' }}>TRI-STATE SYSTEMS MANAGER // RIVER VALLEY ENGINEERING CONSOLE</div><div style={{ fontSize: '0.7rem', color: '#526879', marginTop: 2 }}>{community?.region ?? 'Tri-State River Valley'} · {community?.county ?? 'Posey County'} · Human Authority Final</div></div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace' }}>
-            {community && <div><span style={{ color: t.color.text.secondary }}>Scope </span><span style={{ color: '#205a63', fontWeight: 600 }}>{community.township}</span></div>}
-            <div><span style={{ color: t.color.text.secondary }}>Access </span><span style={{ color: '#205a63' }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
+            {community && <div><span style={{ color: '#526879' }}>Scope </span><span style={{ color: '#205a63', fontWeight: 600 }}>{community.township}</span></div>}
+            <div><span style={{ color: '#526879' }}>Access </span><span style={{ color: '#205a63' }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
           </div>
         </div>
       </header>
       <TourOnboardingHint />
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {navOpen && <button type="button" className="tsm-backdrop" aria-label="Close navigation menu" onClick={closeMenu} />}
-        <aside id="tsm-sidebar" className={`tsm-sidebar${navOpen ? ' open' : ' collapsed'}`} style={{ width: 280, background: '#ffffff', borderRight: '1px solid #dce8e6', padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <aside id="tsm-sidebar" inert={!navOpen} className={`tsm-sidebar${navOpen ? ' open' : ' collapsed'}`} style={{ width: 280, background: '#ffffff', borderRight: '1px solid #dce8e6', padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {navGroups.map((group) => <details key={group.title}  style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+            {navGroups.map((group) => <details key={group.title} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
               <summary style={{ cursor: 'pointer', padding: '0.75rem 0.5rem', minHeight: 44, fontSize: '0.82rem', fontWeight: 700, color: '#17324d' }}>{group.title}</summary>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {nav.filter((item) => (group.routes as readonly string[]).includes(item.to)).map((item) =>
