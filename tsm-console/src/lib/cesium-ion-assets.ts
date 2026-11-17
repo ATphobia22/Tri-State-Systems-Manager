@@ -5,6 +5,8 @@
 
 export const ION_CATALOG = {
   worldTerrain: 1,
+  // User-provided ion asset: metadata, coverage, vertical reference and license not yet verified.
+  terrainCandidate2426648: 2426648,
   osmBuildings: 96188,
   googlePhotorealistic: 2275207,
   bingAerial: 2,
@@ -60,6 +62,7 @@ export const ION_IMAGERY_ASSETS = {
 } as const;
 
 export type IonImageryPreset = 'usgs' | keyof typeof ION_IMAGERY_ASSETS;
+export type TerrainPreviewSource = 'local' | 'world' | 'candidate2426648';
 export type BuildingPreviewDetail = 'performance' | 'balanced' | 'sharp';
 
 /** Runtime tile refinement only; does NOT generate new roof, facade or material geometry. */
