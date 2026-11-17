@@ -1,23 +1,142 @@
 # Tri-State Systems Manager
-### An open 4D Ohio–Wabash River Valley digital twin and engineering workbench
+### Explore the Ohio–Wabash River Valley in 4D
 
-**Free public maps · source-traceable 3D scenes · transparent flood and infrastructure screening · reproducible science · human authority final**
+**A free, public-interest digital twin for Indiana, Illinois and Kentucky.** A digital twin is a computer-based view of a real place. **4D** means we can explore **3D space plus time**: terrain, roads, buildings, rivers and the dates of maps, observations, historical records and hypothetical engineering scenarios.
 
-Tri-State Systems Manager (TSM) combines government-sourced geospatial data, river context, terrain and building visualization, calculation tools, funding research, and evidence-governed engineering scenarios for the **Indiana–Illinois–Kentucky Ohio–Wabash confluence**. **Mount Vernon / Posey County, Indiana** has the most developed local acquisition and scene pipelines. Do not infer that every parcel, county, building, riverbed or timestamp is complete or surveyed.
+Built with local communities in mind, **Tri-State Systems Manager (TSM)** helps people learn about their landscape and helps engineers examine source data, calculations and uncertainty. **Mount Vernon and Posey County, Indiana are the best-developed local focus**, not proof of complete coverage in every county.
+
+**Free to explore · No account for public viewing · Open-source code · Human authority final**
+
+<p align="center">
+  <img src="docs/assets/tsm-open-science-pipeline.svg" width="100%" alt="Diagram of the TSM approach: government data, headless geospatial processing, science and evidence review, then accessible maps and 3D views. Observation, calculation, scenarios and regulatory decisions remain separate." />
+</p>
+<p align="center"><sub>Conceptual system diagram — not a claim that every listed source or scientific model is currently deployed or validated.</sub></p>
+
+<p align="center">
+  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/"><strong>Open public console</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/"><strong>Explore the 4D Atlas</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/cesium/"><strong>View Cesium scene</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/ATphobia22/Tri-State-Systems-Manager/actions"><strong>Inspect build evidence</strong></a>
+</p>
+
+> **Important:** This is a community mapping, research and **engineering-screening** platform. It is **not** an emergency warning system, a licensed survey, a FEMA flood-map determination, a certified hydraulic model, or an automatic government filing tool. Always consult the issuing government source and authorized professionals for decisions that affect safety, property or regulations.
+
+## Start here: choose your path
+
+| I am a… | A useful first step | Where to read more |
+|---|---|---|
+| **Resident, family member or student** | Open the map, find a river or town, show/hide available layers, and look at the source and date labels. | [What 4D means](#1-what-4d-means-and-who-it-serves) · [Map functions](#2-feature-and-function-catalog) |
+| **Local planner or community organization** | Explore flood, infrastructure and environmental *screening* context and look for official sources before planning a project. | [Government source guide](#3-government-source-authority-map) · [Grant research](#5-the-47620--posey-county-grant-matrix) |
+| **Engineer, GIS analyst or surveyor** | Check horizontal CRS, height datum, data vintage, assumptions, formulas, units and model boundaries. | [Math and science](#4-math-and-science-what-the-calculations-actually-mean) · [Datum method](docs/geodesy/DATUMS.md) |
+| **Independent researcher or reviewer** | Pin the exact commit, data hashes, CI run and source IDs; reproduce tests and document unresolved evidence. | [Release proof](#6-public-release-proof-remaining-gaps-and-honest-status) · [Peer-review checklist](docs/release/PEER-REVIEW-READINESS-2026-11-16.md) |
+| **Developer or contributor** | Run the public console locally and inspect the scientific and geospatial modules. | [Quick start](#7-quick-start-and-independent-reproduction) · [Contributing](CONTRIBUTING.md) |
+
+### What can I do with TSM?
+
+| Capability | What it means in everyday language | Evidence status |
+|---|---|---|
+| **2D/3D maps and 4D scenes** | Explore rivers, roads, terrain, mapped buildings, layer controls and selected time contexts. | Source code and browser tests exist; coverage varies by layer. |
+| **Flood and river context** | Compare official flood-map *references* with river-stage context and clearly labeled hypothetical scenarios. | FEMA/USGS adapters and screening code exist; not a flood-warning or regulatory determination. |
+| **Rainfall, runoff and flood screening** | Study how a modeled storm may produce surface runoff and simplified water movement. | Algorithms and tests exist; site calibration and acceptance are separate. |
+| **Buildings, parcels and infrastructure** | Inspect spatial relationships and building representations where actual source data is available. | Partial local data; **22,815** published height-linked Posey features vs **23,082** target in the dated release audit. |
+| **Environmental and wetland research** | Find potential NWI wetlands and other environmental source records for further investigation. | Official [USFWS NWI data source](https://www.fws.gov/program/national-wetlands-inventory/data-download) researched; **not yet a validated, ingested TSM wetland overlay**. |
+| **Engineering evidence** | See what came from an agency, what was calculated, what was simulated and what is missing. | Provenance schemas, manifests, hashes and validation gates exist; source completeness is not assumed. |
+| **Community funding research** | Find possible grant programs and the documentation a qualified sponsor may need. | Planning matrix exists; deadlines and eligibility must be checked against current notices. |
+| **Native and offline development** | Prepare local datasets and test Windows/macOS/Linux/iOS and native 3D pipelines. | Platform code and CI workflows exist; a clean offline UE5.8 Windows Shipping acceptance is **not independently established**. |
+
+### The eight-county exact-boundary work area
+
+TSM's [eight-county configuration](data/regional/eight-county-exact-spatial-validation-v1.json) identifies **eight counties in three states**. It requires source features to match or intersect **actual county polygons** instead of relying on a rough bounding box. **A county in the configuration does not mean all its parcels, roads, buildings, LiDAR or flood layers have been downloaded or verified.**
+
+| State | County | Census GEOID / FIPS | Role |
+|---|---|---|---|
+| **Indiana** | **Posey** | `18129` | Primary Mount Vernon / local demonstration focus |
+| Indiana | Vanderburgh | `18163` | Regional validation area |
+| Indiana | Gibson | `18051` | Regional validation area |
+| Indiana | Warrick | `18173` | Regional validation area |
+| **Illinois** | White | `17193` | Cross-river validation area |
+| Illinois | Gallatin | `17059` | Confluence-area validation |
+| **Kentucky** | Henderson | `21101` | Cross-river validation area |
+| Kentucky | Union | `21225` | Cross-river validation area |
+
+Other nearby communities or river reaches may appear in regional scenes and research catalogs, but they are not silently added to this **eight-county exact-boundary contract**.
+
+## Visual tour of the project
 
 <p align="center">
   <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/">
-    <img src="docs/assets/tsm-source-backed-atlas.svg" width="100%" alt="Georeferenced overview of mapped stations and survey footprints. This illustration is not live stage, a surveyed DEM, or a certified flood simulation." />
+    <img src="docs/assets/tsm-source-backed-atlas.svg" width="100%" alt="Source-derived regional atlas overview showing positions of registered USGS gage markers and available USACE eHydro survey footprints. Not a live stage measurement, surveyed digital elevation model or certified flood simulation." />
   </a>
 </p>
+<p align="center"><sub><strong>Source-derived overview:</strong> plotted station positions and survey footprints from documented data; not a real-time hydrologic reading.</sub></p>
 
-**[Public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[4D Atlas](https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/)** · **[Cesium scene](https://atphobia22.github.io/Tri-State-Systems-Manager/cesium/)** · **[Downloadable publication receipt](https://atphobia22.github.io/Tri-State-Systems-Manager/cesium-release-receipt.json)** · **[Peer-review checklist](docs/release/PEER-REVIEW-READINESS-2026-11-16.md)** · **[CI / releases](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/design-reference/tsm-3d-openworld-mockup.jpg" width="100%" alt="Concept art of an iPhone river-valley 3D twin and engineering toolbox; design reference only, not an implemented or tested screen." /></td>
+    <td width="50%" align="center"><img src="docs/design-reference/levee-cross-section-diagram.jpg" width="100%" alt="Concept illustration of a levee cutaway with soil layers and seepage arrows; all displayed numbers are illustrative, not measured or certified." /></td>
+  </tr>
+  <tr>
+    <td><strong>Mobile 3D concept</strong> — visual direction for a compact map, expandable layers and engineering tools. <em>Not a runtime screenshot.</em></td>
+    <td><strong>Levee science concept</strong> — illustrates engineering ideas. <em>Not a site survey, accepted seepage result or real safety factor.</em></td>
+  </tr>
+</table>
 
-> **Scientific boundary:** A government catalog entry is not an ingested layer; a mapped point is not a current observation; a rendered building is not a surveyed structure; a scenario is not a flood warning; a successful code test is not a PE seal, FEMA decision or independent survey.
+For the latest working interface, **use the actual public console and its source** rather than interpreting these design studies as proof of implementation. The map-first light UI with collapsible navigation was merged in [PR #632](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/632).
 
-**Status snapshot: November 16, 2026.** Release evidence in this README refers to immutable [main commit 41b336cd96383a581ab06787429045d21ac92b0d](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/41b336cd96383a581ab06787429045d21ac92b0d). For subsequent code or deployment, use the [current main history](https://github.com/ATphobia22/Tri-State-Systems-Manager/commits/main) and matching Actions run—not these dated numbers.
+## Software and platforms at a glance
+
+| Platform | Technologies / project location | Availability and proof |
+|---|---|---|
+| **Public web (desktop, tablet, phone)** | [React, TypeScript, Vite, MapLibre, Cesium](tsm-console/) | GitHub Pages console and visual tests; some layers need online agency sources or configured services. |
+| **Geospatial and scientific processing** | [Python and GIS scripts](scripts/geospatial/), [scientific code](tsm-console/src/lib/), [government adapters](packages/government/) | Designed for **headless** ingestion, calculations, provenance and CI; exact dataset validity varies. |
+| **Windows desktop packaging** | [Tauri](tsm-console/src-tauri/) and [desktop workflow](.github/workflows/tsm-desktop.yml) | Cross-platform packaging workflows exist; this is different from the UE5.8 native Shipping release. |
+| **Windows 11 native 3D** | [Unreal Engine 5.8 / C++](tsm-native/) and [native build scripts](scripts/native/) | Source and build automation exist; do **not** infer an independently verified, air-gapped Windows Shipping executable. |
+| **iPhone/iPad research client** | [Swift/SceneKit operator app](apps/ios-operator-cinematic/) | iOS project and tests exist; no App Store availability is claimed. |
+| **macOS and Linux package targets** | [Tauri desktop matrix](.github/workflows/tsm-desktop.yml) | CI packaging targets; installed-device acceptance and distribution are separate. |
+
+### The math and science behind the pictures
+
+| Scientific discipline | Method represented in source | Why it matters |
+|---|---|---|
+| **Hydrology** | USDA NRCS Curve Number rainfall–runoff relation | Estimates a *scenario's* surface runoff, not a measured river flood. |
+| **Hydraulics** | Simplified finite-difference, Manning-based 2D diffusion-wave screening | Experiments with shallow water spreading; not full Saint-Venant/HEC-RAS regulatory validation. |
+| **Surveying and geodesy** | CRS conversion, US survey foot conversion, NAVD88, geoid separation, station-specific gage zero | Prevents comparing elevations from incompatible reference systems. |
+| **Accuracy and uncertainty** | Horizontal/vertical RMSE against supplied independent checkpoints | Quantifies disagreement **only when independent measured data are provided**. |
+| **Terrain and earthwork** | Cell-area × elevation-change cut/fill sums | Estimates hypothetical excavation and fill on compatible elevation grids. |
+| **Risk and economics** | Screening depth–damage curves and supported benefit–cost inputs | Organizes possible impacts without claiming FEMA-approved losses or grant eligibility. |
+
+The formulas, limitations and code links are in [Section 4](#4-math-and-science-what-the-calculations-actually-mean).
+
+### Government data and who has authority
+
+**Primary source families in the repository's code, records or workflows** include [FEMA](https://msc.fema.gov/) (effective flood maps), [USGS](https://waterdata.usgs.gov/) (river observations), [USGS 3DEP](https://www.usgs.gov/3d-elevation-program) (terrain/LiDAR), [Indiana GIO/IndianaMap](https://www.indianamap.org/) (state GIS), [Indiana DNR](https://www.in.gov/dnr/water/) (state floodplain information), [USACE](https://www.nld.usace.army.mil/) (levees/hydrographic resources), [NOAA NWS](https://www.weather.gov/) (weather and river forecasts), [NOAA NGS](https://geodesy.noaa.gov/) (datum/geodesy), [US Census Bureau](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html) (boundary geography), [USDA NRCS](https://websoilsurvey.nrcs.usda.gov/) (soils), and [EPA](https://echo.epa.gov/) (environmental facility context).
+
+**Additional discovery and candidate sources**, including Illinois and Kentucky statewide GIS, Indiana Geological and Water Survey, NASA, USDA NAIP and the **[USFWS National Wetlands Inventory](docs/geospatial/USFWS-NWI-WETLANDS-AND-MAP-UX-2026-11-17.md)**, must **not** be described as ingested or live merely because they are linked or registered. See the [complete agency/source authority table](#3-government-source-authority-map) and [catalog](docs/DATA-SOURCE-CATALOG.md).
+
+### Four words that matter
+
+| Label | Plain-language definition |
+|---|---|
+| **OBSERVED** | A dated measurement or agency record, with its source identified. |
+| **DERIVED** | A result calculated from identified inputs and a stated method. |
+| **SCENARIO** | An illustrative what-if model with assumptions, not a forecast. |
+| **REGULATORY** | An actual decision or action issued by an authorized agency; **TSM never manufactures this status**. |
+
+### Current code versus independently verified release evidence
+
+**Documentation updated November 17, 2026.** This README update is based on [main commit `57e349fc5c375384893d22de68ddb9840f3abb77`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/57e349fc5c375384893d22de68ddb9840f3abb77), which includes the [map-first redesign PR #632](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/632). On that PR, the Parse Gate and headed Chrome UI interactions passed. **Always consult the current [main Actions runs](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) for the newest status.**
+
+The detailed scientific/production receipt below is intentionally **frozen to November 16, 2026** and its immutable release commit. It describes that release's proof, **not** every later push or every deployed file. Missing bathymetry, independently verified checkpoints, complete Posey building heights, regulatory approvals and clean offline UE5.8 Shipping acceptance remain separate evidence gates.
 
 ---
+
+## Technical reference, reproducibility and peer review
+
+These sections preserve implementation paths, scientific equations, source authority, release provenance and reproduction steps. Readers can stop after the guide above; engineers and reviewers can continue into the evidence.
+
 
 ## 1. What 4D means, and who it serves
 
@@ -99,7 +218,7 @@ The [new federal geology, USGS FSP/LBS and IN/IL/KY professional authority cross
 
 ### Other official agency candidates and registered research sources
 
-The discovery and government-adapter registries additionally include **[Illinois State Geological Survey / ILHMP](https://clearinghouse.isgs.illinois.edu/)** (LiDAR, DEM, geology), **[Kentucky KyFromAbove](https://kyfromabove.ky.gov/)** (LiDAR, imagery, DEM), **[Indiana Geological and Water Survey](https://igws.indiana.edu/)**, **[USDA FSA NAIP](https://naip-usdaonline.hub.arcgis.com/)**, **[USFWS NWI](https://www.fws.gov/program/national-wetlands-inventory)**, **[EPA EnviroAtlas](https://www.epa.gov/enviroatlas)**, **[NASA Earthdata](https://www.earthdata.nasa.gov/)** and NASA POWER, **[BLM land records](https://www.blm.gov/services/land-records)**, **[NPS GIS](https://www.nps.gov/subjects/gisandmapping/)**, **[NOAA Coast Survey](https://nauticalcharts.noaa.gov/)**, **[USDOT BTS](https://www.bts.gov/)**, **[HUD USER](https://www.huduser.gov/)**, and **[HRSA](https://data.hrsa.gov/)**. These are **not automatically loaded** into the public scene.
+The discovery and government-adapter registries additionally include **[Illinois State Geological Survey / ILHMP](https://clearinghouse.isgs.illinois.edu/)** (LiDAR, DEM, geology), **[Kentucky KyFromAbove](https://kyfromabove.ky.gov/)** (LiDAR, imagery, DEM), **[Indiana Geological and Water Survey](https://igws.indiana.edu/)**, **[USDA FSA NAIP](https://naip-usdaonline.hub.arcgis.com/)**, **[USFWS NWI](https://www.fws.gov/program/national-wetlands-inventory/data-download)** ([documented discovery and safe ingestion plan](docs/geospatial/USFWS-NWI-WETLANDS-AND-MAP-UX-2026-11-17.md); not yet an ingested wetland overlay), **[EPA EnviroAtlas](https://www.epa.gov/enviroatlas)**, **[NASA Earthdata](https://www.earthdata.nasa.gov/)** and NASA POWER, **[BLM land records](https://www.blm.gov/services/land-records)**, **[NPS GIS](https://www.nps.gov/subjects/gisandmapping/)**, **[NOAA Coast Survey](https://nauticalcharts.noaa.gov/)**, **[USDOT BTS](https://www.bts.gov/)**, **[HUD USER](https://www.huduser.gov/)**, and **[HRSA](https://data.hrsa.gov/)**. These are **not automatically loaded** into the public scene.
 **Historical geologic-map context:** Six official Indiana University/IGWS records—including Henry H. Gray's 1987 statewide bedrock map, 1989 Quaternary map and 1970 Vincennes regional map—are recorded in the [historical geologic bibliography](data/fabrics/geological/gray-historical-publications-2026-11-16.json) with a [source/rights peer-review note](docs/geology/HENRY-H-GRAY-REVIEW-2026-11-16.md). These are **citation-only references**: no original map pixels, georeferenced boundaries, underground conditions or parcel survey data have been acquired from them. USGS 2025 rev. A LiDAR classes 21/22 and conditional class-21 DEM sourcing are now covered in the [classification guide](docs/geodesy/LIDAR-CLASSIFICATION.md). 
 
 
