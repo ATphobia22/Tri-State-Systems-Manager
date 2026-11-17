@@ -40,6 +40,7 @@ export default function BackgroundMusic(): React.JSX.Element {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [trackIndex, setTrackIndex] = useState<number>(() => readStoredIndex());
   const [playing, setPlaying] = useState(false);
+  const [minimized, setMinimized] = useState(true);
 
   const track = TRACKS[trackIndex];
 
@@ -96,6 +97,13 @@ export default function BackgroundMusic(): React.JSX.Element {
       }}
     >
       <audio ref={audioRef} preload="none" aria-hidden="true" />
+      <button type="button" aria-expanded={!minimized}
+        aria-label={minimized ? "Expand background music controls" : "Collapse background music controls"}
+        onClick={() => setMinimized((value) => !value)}
+        style={{ ...btn, fontSize: "0.78rem", fontWeight: 700, minWidth: 52, padding: "0.4rem" }}>
+        {minimized ? "♫ Music" : "× Hide"}
+      </button>
+      {!minimized && <>
       <button type="button" style={btn} aria-label="Previous track" onClick={() => playIndex(trackIndex - 1, playing)}>⏮</button>
       <button type="button" style={btn} aria-label={playing ? 'Pause background music' : 'Play background music'} aria-pressed={playing} onClick={toggle}>
         {playing ? '⏸' : '▶'}
@@ -107,6 +115,7 @@ export default function BackgroundMusic(): React.JSX.Element {
         </div>
         <div style={{ fontSize: '0.6rem', color: t.color.text.secondary, whiteSpace: 'nowrap' }}>Anthony Tucker</div>
       </div>
+      </>}
     </div>
   );
 }
