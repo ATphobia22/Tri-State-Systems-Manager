@@ -186,6 +186,22 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#tsm-flood-controls').should('not.be.visible');
   });
 
+  it('opens the Cesium engineering cinema without discarding the MapLibre fallback', () => {
+    cy.visit('cinematic-engineering/?renderer=cesium');
+    cy.get('[data-testid="engineering-renderer-toggle"]').should('have.attr', 'aria-pressed', 'true');
+    cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
+    cy.get('[data-testid="cesium-buildings-quick-toggle"]', { timeout: 30000 }).should('be.enabled');
+    cy.get('[data-testid="cesium-flyover-toolbar"]').should('be.enabled').click();
+    cy.get('[data-testid="cesium-flyover-toolbar"]').should('contain.text', 'Stop 3D flyover').click();
+    cy.contains('button', 'Show engineering settings').click();
+    cy.get('#tsm-cinematic-engineering-tools').should('be.visible');
+    cy.contains('button', 'Hide engineering settings').click();
+    cy.get('#tsm-cinematic-engineering-tools').should('not.be.visible');
+    cy.get('[data-testid="engineering-renderer-toggle"]').click().should('have.attr', 'aria-pressed', 'false');
+    cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
+    cy.get('.tsm-cesium-viewport').should('not.exist');
+  });
+
   it('renders the real cinematic engineering map with collapsible settings', () => {
     cy.visit('cinematic-engineering/');
     cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
