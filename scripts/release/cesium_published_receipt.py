@@ -35,7 +35,6 @@ REQUIRED = (
     "data/cesium-regional/terrain/sources.json",
     "data/cesium-regional/replay.json",
     "data/cesium-regional/screening.json",
-    "data/cesium-regional/screening/115.png",
     "data/cesium-regional/screening/100.png",
     "data/cesium-regional/screening/105.png",
     "data/cesium-regional/screening/110.png",
@@ -54,11 +53,11 @@ SAMPLES = (
     "data/cesium-regional/terrain/layer.json",
     "data/cesium-regional/replay.json",
     "data/cesium-regional/screening.json",
+    "data/cesium-regional/screening/115.png",
     "data/cesium-regional/posey-buildings/tileset.json",
     "3d-tiles/tileset.json",
     "vendor/cesium/Workers/createVerticesFromHeightmap.js",
 )
-
 
 def digest_bytes(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
