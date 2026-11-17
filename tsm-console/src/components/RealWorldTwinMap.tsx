@@ -289,6 +289,15 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   }, [data]);
 
   useEffect(() => {
+    if (!mapReady || !mapRef.current || !containerRef.current) return;
+    const map = mapRef.current;
+    const observer = new ResizeObserver(() => map.resize());
+    observer.observe(containerRef.current);
+    map.resize();
+    return () => observer.disconnect();
+  }, [mapReady]);
+
+  useEffect(() => {
     if (!mapReady || !indianaFeatureRef.current) return;
     for (const kind of ['parcels', 'roads', 'buildings'] as const) {
       indianaFeatureRef.current.setEnabled(kind, indianaVisibility[kind]);
@@ -497,7 +506,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           overlay
         />
       )}
-      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 540, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.92)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
+      <details aria-label="Map layers, data and engineering tools" style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, width: 'min(480px, calc(100% - 24px))', border: '1px solid #cadbd9', borderRadius: 12, background: '#ffffff', color: '#17324d', fontSize: 12, lineHeight: 1.5, boxShadow: '0 6px 24px rgba(23,50,77,.14)' }}>
+        <summary style={{ padding: '12px 14px', cursor: 'pointer', minHeight: 44, fontWeight: 700, color: '#205a63' }}>Layers, evidence &amp; map tools</summary>
+        <div style={{ maxHeight: 'min(72dvh, 720px)', overflowY: 'auto', padding: 12, borderRadius: '0 0 12px 12px', background: 'rgba(2,6,23,.96)', color: '#e2e8f0' }}>
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery \u00b7 USGS 3DEP hillshade (visualization DERIVED)</div>
         <div>FEMA NFHL: effective / insurance \u00b7 Indiana BAFM: planning / Flood Control Act \u00b7 NOAA/NWS: alerts/radar context only</div>
@@ -659,7 +670,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             No claim of all 23,082 identities, LoD2–4 acceptance, verified vertical datum or complete Posey coverage.
           </div>
         )}
-      </div>
+        </div>
+      </details>
     </section>
   );
 }
