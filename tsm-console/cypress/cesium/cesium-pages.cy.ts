@@ -190,7 +190,15 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.visit('cinematic-engineering/?renderer=cesium');
     cy.get('[data-testid="engineering-renderer-toggle"]').should('have.attr', 'aria-pressed', 'true');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
-    cy.get('[data-testid="cesium-buildings-quick-toggle"]', { timeout: 30000 }).should('be.enabled');
+    cy.get('[data-testid="cesium-buildings-quick-toggle"]', { timeout: 30000 }).should('be.enabled').and('be.checked');
+    cy.get('[data-testid="cesium-buildings-quick-toggle"]').uncheck().should('not.be.checked');
+    cy.get('[data-testid="cesium-buildings-quick-toggle"]').check().should('be.checked');
+    // The engineering Play/Pause must move Cesium's actual camera, not just its model clock.
+    cy.contains('button', 'Play map flyover').should('be.enabled').click();
+    cy.get('[data-testid="cesium-flyover-toolbar"]').should('contain.text', 'Stop 3D flyover');
+    cy.contains('button', 'Pause map flyover').click();
+    cy.get('[data-testid="cesium-flyover-toolbar"]').should('contain.text', 'Play 3D flyover');
+    cy.screenshot('engineering-cinema-cesium-terrain-and-buildings');
     cy.get('[data-testid="cesium-flyover-toolbar"]').should('be.enabled').click();
     cy.get('[data-testid="cesium-flyover-toolbar"]').should('contain.text', 'Stop 3D flyover').click();
     cy.contains('button', 'Show engineering settings').click();
