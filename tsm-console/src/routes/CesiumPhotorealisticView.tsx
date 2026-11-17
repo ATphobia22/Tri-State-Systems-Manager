@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
 
 declare global {
   interface Window { Cesium?: any }
@@ -125,7 +126,7 @@ export default function CesiumPhotorealisticView() {
             and rebuild.</li>
         </ol>
         <p style={{ lineHeight: 1.6 }}>
-          The default <a href="/globe">3D globe</a> (MapLibre, fully offline-capable) is unaffected.
+          The default <Link to="/globe">3D globe</Link> (MapLibre, fully offline-capable) is unaffected.
         </p>
       </div>
     );
