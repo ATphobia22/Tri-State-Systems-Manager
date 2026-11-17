@@ -36,7 +36,8 @@ function makeObservedUnpatchedDevAdvisory() {
   const packages = { '': { devDependencies: { vite: '8.3.8' } } };
   for (const name of HIGH) {
     const path = 'node_modules/' + name;
-    vulnerabilities[name] = { name, severity: 'high', via: VIA[name], nodes: [path] };
+    vulnerabilities[name] = { name, severity: 'high', via: VIA[name].map((source) =>
+      typeof source === 'string' ? source : { ...source }), nodes: [path] };
     packages[path] = { version: VERSIONS[name], dev: true };
   }
   vulnerabilities.picomatch.nodes = [
