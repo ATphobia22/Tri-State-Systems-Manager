@@ -32,6 +32,12 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
+    cy.get('[data-testid="cesium-tools-toggle"]').should('have.attr', 'aria-expanded', 'false').click();
+    cy.get('.tsm-cesium-controls').should('be.visible');
+    cy.get('#cesium-building-detail').should('not.be.visible');
+    cy.contains('.tsm-cesium-accordion > summary', 'Map layers').click();
+    cy.get('#cesium-building-detail').select('sharp').should('have.value', 'sharp');
+    cy.get('#cesium-imagery-source').should('have.value', 'usgs');
     cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).then((hits) => {
       for (const hit of hits) expect(hit.response?.statusCode).to.eq(200);
     });
@@ -44,8 +50,10 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.wait('@city', { requestTimeout: 30000 }).its('response.statusCode').should('eq', 200);
     cy.get('[data-testid="cesium-city-status"]', { timeout: 30000 }).should('have.attr', 'data-state', 'ready');
     cy.contains('.tsm-cesium-reading a', 'Evansville, IN').should('exist');
+    cy.contains('.tsm-cesium-accordion > summary', 'April 2025 river replay').click();
     setRange('#cesium-day', '0');
     cy.contains('output', '2025-04-01');
+    cy.contains('.tsm-cesium-accordion > summary', 'Mount Vernon flood screening').click();
     cy.contains('label', 'Show hypothetical extent').find('input').check();
     cy.wait('@screening').its('response.statusCode').should('eq', 200);
     cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
@@ -54,6 +62,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#cesium-place').select('Henderson, KY');
     cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
 
+    cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
     cy.get('#cesium-film-shot').select('03-new-harmony');
     cy.get('.tsm-cesium-place').should('contain.text', 'New Harmony, IN');
     cy.get('label[for="cesium-day"] output').should('have.text', '2025-04-01');
@@ -82,6 +91,10 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#cesium-film-shot').select('04-flood-comparison');
     cy.get('#cesium-shot-frame').should('not.exist');
     cy.contains('Flood comparison requires a calibrated model and verified water-surface provenance.');
+    cy.get('[data-testid="cesium-tools-toggle"]').click().should('have.attr', 'aria-expanded', 'false');
+    cy.get('.tsm-cesium-controls').should('not.be.visible');
+    cy.get('.tsm-cesium-viewport canvas').should('be.visible');
+    cy.get('[data-testid="cesium-tools-toggle"]').click().should('have.attr', 'aria-expanded', 'true');
   });
   it('supports IN/IL/KY camera selection on a mobile Pages viewport', () => {
     cy.viewport(390, 844);

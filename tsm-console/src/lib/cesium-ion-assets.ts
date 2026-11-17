@@ -11,6 +11,9 @@ export const ION_CATALOG = {
   bingAerialLabels: 3,
   bingRoad: 4,
   sentinel2: 3954,
+  googleSatelliteLabels: 3830183,
+  azureAerial: 3891168,
+  azureRoads: 3891169,
 } as const;
 
 /** Community uploads — created 2026-11-14; COMPLETE only after file upload + tiling */
@@ -47,3 +50,21 @@ export function resolveTerrainAssetId(poseyStatus: IonAssetStatus): number {
 /** Local-vs-cloud resolver; callers must supply verified, SHA-pinned evidence. */
 export { chooseCesiumAsset } from './cesium-asset-evidence-guard';
 export type { VerifiedIonReceipt, LocalAssetReceipt, SceneChoice, TsmIonAssetKey } from './cesium-asset-evidence-guard';
+
+/** Optional *online* basemap presets. Never combine these opaque layers in the same scene. */
+export const ION_IMAGERY_ASSETS = {
+  googleLabels: ION_CATALOG.googleSatelliteLabels,
+  azureAerial: ION_CATALOG.azureAerial,
+  azureRoads: ION_CATALOG.azureRoads,
+  sentinel2: ION_CATALOG.sentinel2,
+} as const;
+
+export type IonImageryPreset = 'usgs' | keyof typeof ION_IMAGERY_ASSETS;
+export type BuildingPreviewDetail = 'performance' | 'balanced' | 'sharp';
+
+/** Runtime tile refinement only; does NOT generate new roof, facade or material geometry. */
+export const BUILDING_SCREEN_SPACE_ERROR: Record<BuildingPreviewDetail, number> = {
+  performance: 24,
+  balanced: 16,
+  sharp: 8,
+};

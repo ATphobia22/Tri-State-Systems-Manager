@@ -1,8 +1,8 @@
 .tsm-cesium {
-  --cesium-bg: #10211f;
-  --cesium-line: #365450;
-  --cesium-text: #f2eddf;
-  --cesium-muted: #bfd0c7;
+  --cesium-bg: #f4f8fb;
+  --cesium-line: #d3e2e8;
+  --cesium-text: #183947;
+  --cesium-muted: #506875;
   background: var(--cesium-bg);
   color: var(--cesium-text);
   font-family: "DM Sans", system-ui, sans-serif;
@@ -18,12 +18,12 @@
 .tsm-cesium-heading h1 { margin: 0; font-size: clamp(1.35rem, 2.5vw, 2.2rem); }
 .tsm-cesium-heading p { margin: 0.2rem 0 0; color: var(--cesium-muted); }
 .tsm-cesium-heading nav { display: flex; flex-wrap: wrap; gap: 0.85rem; }
-.tsm-cesium a { color: #ffda9b; text-underline-offset: 0.22em; }
+.tsm-cesium a { color: #176b91; text-underline-offset: 0.22em; }
 .tsm-cesium-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
-  min-height: 32rem;
-  height: min(78vh, 900px);
+  min-height: 30rem;
+  height: min(82dvh, 980px);
   border-block: 1px solid var(--cesium-line);
 }
 .tsm-cesium-view { min-width: 0; min-height: 0; position: relative; background: #182f2b; overflow: hidden; }
@@ -46,12 +46,12 @@
 .tsm-cesium-controls section { padding: 0.85rem 1rem; border-bottom: 1px solid var(--cesium-line); }
 .tsm-cesium-controls h2 { margin: 0 0 0.45rem; font-size: 1.05rem; }
 .tsm-cesium-controls label { display: flex; align-items: center; gap: 0.45rem; }
-.tsm-cesium-controls output { margin-left: auto; color: #ffda9b; font-variant-numeric: tabular-nums; }
-.tsm-cesium-controls input { accent-color: #f6cc8c; }
+.tsm-cesium-controls output { margin-left: auto; color: #1b7195; font-variant-numeric: tabular-nums; }
+.tsm-cesium-controls input { accent-color: #087eaf; }
 .tsm-cesium-controls select, .tsm-cesium-controls button {
-  background: #203b35;
+  background: #ffffff;
   color: var(--cesium-text);
-  border: 1px solid #74998e;
+  border: 1px solid #9bb7c0;
   border-radius: 0.35rem;
   font: inherit;
   padding: 0.45rem 0.55rem;
@@ -68,8 +68,27 @@
 .tsm-cesium-layer [data-state="unavailable"] { color: #ffd5ab; }
 .tsm-cesium-reading { margin: 0.55rem 0; line-height: 1.3; }
 .tsm-cesium-note { padding: 0.7rem 1.4rem; color: var(--cesium-muted); font-size: 0.88rem; }
+.tsm-cesium-heading nav { align-items: center; }
+.tsm-cesium-tools-toggle {
+  cursor: pointer; min-height: 44px; border-radius: 9px; border: 1px solid #9bb7c0;
+  background: #ffffff; color: #173c50; padding: 0.55rem 0.8rem; font: inherit; font-weight: 700;
+}
+.tsm-cesium-tools-toggle:focus-visible,
+.tsm-cesium-accordion summary:focus-visible { outline: 3px solid #0c95bd; outline-offset: 3px; }
+.tsm-cesium-workspace.is-map-only { grid-template-columns: minmax(0, 1fr); }
+.tsm-cesium-controls[hidden] { display: none !important; }
+.tsm-cesium-controls { background: #f8fbfe; }
+.tsm-cesium-accordion { border-bottom: 1px solid var(--cesium-line); }
+.tsm-cesium-accordion > summary {
+  cursor: pointer; min-height: 44px; padding: 0.8rem 1rem;
+  font-size: 1rem; font-weight: 700; color: #164d66;
+}
+.tsm-cesium-accordion > summary:hover { background: #eaf4f9; }
+.tsm-cesium-controls .tsm-cesium-accordion section { padding-top: 0.25rem; border-bottom: 0; }
+.tsm-cesium-controls .tsm-cesium-layer [data-state="unavailable"] { color: #9e491e; }
 @media (max-width: 720px) {
   .tsm-cesium-workspace { grid-template-columns: 1fr; min-height: 0; height: auto; }
-  .tsm-cesium-view { height: max(21rem, 56vh); }
-  .tsm-cesium-controls { border-left: 0; }
+  .tsm-cesium-view { height: max(25rem, 68dvh); }
+  .tsm-cesium-controls { border-left: 0; border-top: 1px solid var(--cesium-line); max-height: 50dvh; overflow: auto; }
+  .tsm-cesium-heading { padding: 0.8rem 1rem; }
 }

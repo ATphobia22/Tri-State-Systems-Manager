@@ -1,12 +1,14 @@
 import {
   ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
   Color, ColorGeometryInstanceAttribute, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
+  Ion, IonImageryProvider, type ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
   ScreenSpaceEventType, UrlTemplateImageryProvider, GroundPrimitive,
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
+import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -28,7 +30,7 @@ const BASE = import.meta.env.BASE_URL;
 const VECTORS = `${BASE}data/cesium-regional/`;
 const BUILDINGS = `${VECTORS}posey-buildings/`;
 const IMAGERY = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer';
-export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city';
+export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city' | 'osmContext';
 export type LayerState = { state: 'loading' | 'ready' | 'unavailable'; detail: string };
 export type PickedFeature = { title: string; detail: string };
 type LineItems = { features: GeoJSON.Feature[]; metadata: { featureCount: number; countyCount: number } };
@@ -112,6 +114,9 @@ export function mountCesiumRegionalScene(
 ) {
   const abort = new AbortController();
   let stopped = false;
+  const ionToken = (import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim();
+  // Only the online browser scene uses an ion token; native/offline builds keep local snapshots.
+  if (ionToken) Ion.defaultAccessToken = ionToken;
   const widget = new CesiumWidget(element, {
     baseLayer: false, requestRenderMode: true, maximumRenderTimeChange: Infinity,
     // Keep globe depth buffers single-sampled for the streamed layers.
@@ -147,10 +152,18 @@ export function mountCesiumRegionalScene(
   widget.resolutionScale = Math.min(1, 1.5 / (window.devicePixelRatio || 1));
   const labels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
   const graphics = new Map<SceneLayer, GroundPolylinePrimitive[]>();
-  const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false };
+  const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false };
   let terrain: CesiumTerrainProvider | undefined;
+  let worldTerrain: CesiumTerrainProvider | undefined;
+  let terrainSource: 'local' | 'world' = 'local';
   const ellipsoid = new EllipsoidTerrainProvider();
   let buildings: Cesium3DTileset | undefined;
+  let osmBuildings: Cesium3DTileset | undefined;
+  let osmRequested = false;
+  let imageryRequest = 0;
+  let ionImagery: ImageryLayer | undefined;
+  let imageryShown = true;
+  let detailLevel: BuildingPreviewDetail = 'balanced';
   let cityStarted = false;
   let screening: GeoJsonDataSource | undefined;
   let screeningRequest: AbortController | undefined;
@@ -182,7 +195,7 @@ export function mountCesiumRegionalScene(
       const provider = await CesiumTerrainProvider.fromUrl(root, { requestWaterMask: false });
       if (stopped) return;
       terrain = provider;
-      if (visibility.terrain) widget.terrainProvider = provider;
+      if (visibility.terrain && terrainSource === 'local') widget.terrainProvider = provider;
       provider.errorEvent.addEventListener(() => update('terrain', 'unavailable', 'A USGS terrain tile failed to load'));
       update('terrain', 'ready', 'USGS 3DEP · regional relief');
       scene.requestRender();
@@ -203,7 +216,7 @@ export function mountCesiumRegionalScene(
       }
       addLines('buildings', data.features.flatMap((feature) => footprintLines(feature, '3D height unavailable in this preview')));
       const tileset = await Cesium3DTileset.fromUrl(`${BUILDINGS}tileset.json`, {
-        maximumScreenSpaceError: 18, cacheBytes: 96 * 1024 * 1024,
+        maximumScreenSpaceError: BUILDING_SCREEN_SPACE_ERROR[detailLevel], cacheBytes: 96 * 1024 * 1024,
         maximumCacheOverflowBytes: 64 * 1024 * 1024, preloadWhenHidden: false,
       });
       if (stopped) { tileset.destroy(); return; }
@@ -225,6 +238,28 @@ export function mountCesiumRegionalScene(
     } catch (error) {
       if (!stopped) console.error('Posey building layer failed', error);
       update('buildings', 'unavailable', 'Posey mesh tiles unavailable');
+    }
+  };
+
+  const loadOsmBuildings = async () => {
+    if (!ionToken || osmRequested) {
+      if (!ionToken) update('osmContext', 'unavailable', 'Cesium ion public-scoped token not configured');
+      return;
+    }
+    osmRequested = true;
+    update('osmContext', 'loading', 'Fetching Cesium OSM contextual buildings');
+    try {
+      const tileset = await Cesium3DTileset.fromIonAssetId(ION_CATALOG.osmBuildings, {
+        maximumScreenSpaceError: BUILDING_SCREEN_SPACE_ERROR[detailLevel],
+      });
+      if (stopped) { tileset.destroy(); return; }
+      osmBuildings = scene.primitives.add(tileset) as Cesium3DTileset;
+      osmBuildings.show = visibility.osmContext;
+      update('osmContext', 'ready', 'Cesium OSM Buildings · online context, not reviewed Posey LoD2');
+      scene.requestRender();
+    } catch {
+      osmRequested = false;
+      update('osmContext', 'unavailable', 'OSM buildings unavailable; local Posey tiles remain selectable');
     }
   };
 
@@ -307,13 +342,74 @@ export function mountCesiumRegionalScene(
     stopFlight() { camera.cancelFlight(); },
     setLayer(layer: SceneLayer, show: boolean) {
       visibility[layer] = show;
-      if (layer === 'terrain') widget.terrainProvider = show && terrain ? terrain : ellipsoid;
+      // Local Posey and global OSM building geometry are mutually exclusive to prevent double roofs.
+      if (show && layer === 'osmContext') {
+        visibility.buildings = false;
+        if (buildings) buildings.show = false;
+        for (const primitive of graphics.get('buildings') ?? []) primitive.show = false;
+      }
+      if (show && layer === 'buildings') {
+        visibility.osmContext = false;
+        if (osmBuildings) osmBuildings.show = false;
+      }
+      if (layer === 'terrain') {
+        widget.terrainProvider = show
+          ? (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid : ellipsoid;
+      }
       if (layer === 'buildings' && buildings) buildings.show = show;
+      if (layer === 'osmContext') {
+        if (osmBuildings) osmBuildings.show = show;
+        else if (show) void loadOsmBuildings();
+      }
       if (layer === 'city' && show && !cityStarted) void loadCity();
       for (const primitive of graphics.get(layer) ?? []) primitive.show = show;
       scene.requestRender();
     },
-    setImagery(show: boolean) { aerial.show = show; scene.requestRender(); },
+    setBuildingDetail(detail: BuildingPreviewDetail) {
+      detailLevel = detail;
+      if (buildings) buildings.maximumScreenSpaceError = BUILDING_SCREEN_SPACE_ERROR[detail];
+      if (osmBuildings) osmBuildings.maximumScreenSpaceError = BUILDING_SCREEN_SPACE_ERROR[detail];
+      scene.requestRender();
+    },
+    async setTerrainSource(source: 'local' | 'world') {
+      if (source === 'world' && !ionToken) throw new Error('Cesium ion token not configured');
+      terrainSource = source;
+      if (source === 'world' && !worldTerrain) {
+        worldTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
+        if (stopped) return;
+      }
+      if (visibility.terrain) {
+        widget.terrainProvider = (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid;
+      }
+      update('terrain', 'ready', source === 'world' ? 'Cesium World Terrain · online contextual elevation' : 'USGS 3DEP · local derived heightmap tiles');
+      scene.requestRender();
+    },
+    setImagery(show: boolean) {
+      imageryShown = show;
+      aerial.show = show && !ionImagery;
+      if (ionImagery) ionImagery.show = show;
+      scene.requestRender();
+    },
+    async setImageryPreset(preset: IonImageryPreset) {
+      const generation = ++imageryRequest;
+      if (preset === 'usgs') {
+        if (ionImagery) widget.imageryLayers.remove(ionImagery, true);
+        ionImagery = undefined;
+        aerial.show = imageryShown;
+        scene.requestRender();
+        return;
+      }
+      if (!ionToken) throw new Error('Cesium ion token not configured');
+      const provider = await IonImageryProvider.fromAssetId(ION_IMAGERY_ASSETS[preset]);
+      if (stopped || generation !== imageryRequest) return;
+      const nextLayer = widget.imageryLayers.addImageryProvider(provider);
+      nextLayer.show = imageryShown;
+      if (ionImagery) widget.imageryLayers.remove(ionImagery, true);
+      ionImagery = nextLayer;
+      aerial.show = false;
+      scene.requestRender();
+    },
+    resize() { if (!stopped) { widget.resize(); scene.requestRender(); } },
     async setScreening(level: number | null): Promise<void> {
       screeningRequest?.abort();
       if (screening) {
