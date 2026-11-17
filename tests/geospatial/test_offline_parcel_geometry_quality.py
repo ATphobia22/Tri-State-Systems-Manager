@@ -59,8 +59,11 @@ class OfflineParcelGeometryQualityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.write_fixture(tmp, [[0, 0], [500, 0], [500, 500], [0, 500]])
             result = audit(Path(tmp), require_parcels=True, check_geometry=True)
-            # GeoJSON-to-GEOS may auto-close a polygon ring; that is not survey proof.
+            # GEOS can auto-close a ring; original authoritative coordinates must not be normalized.
+            self.assertEqual(result["status"], "FAIL")
             self.assertEqual(result["geometry_checked"], 1)
+            self.assertEqual(result["geometry_invalid"], 1)
+            self.assertIn("not explicitly closed", " ".join(result["findings"]))
             self.assertEqual(result["geometry_quality"], "CHECKED")
 
 
