@@ -17,9 +17,8 @@ describe('TSM light map-first navigation and controls', () => {
   });
 
   it('keeps map tools closed by default and toggles an existing real layer control', () => {
-    cy.get('details[aria-label="Map layers, data and engineering tools"]')
-      .should('not.have.attr', 'open')
-      .find('summary').click();
+    cy.get('details[aria-label="Map layers, data and engineering tools"]').should('not.have.attr', 'open');
+    cy.get('details[aria-label="Map layers, data and engineering tools"]').find('summary').first().click();
     cy.get('details[aria-label="Map layers, data and engineering tools"]').should('have.attr', 'open');
     cy.contains('summary', 'Map overlays and camera controls').click();
     cy.contains('button', /FEMA NFHL/).then(($button) => {
