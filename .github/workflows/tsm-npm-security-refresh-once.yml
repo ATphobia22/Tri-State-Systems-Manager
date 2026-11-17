@@ -1,0 +1,77 @@
+# Temporary, isolated lockfile refresh on an owned feature branch. Remove before merge.
+name: TSM one-shot npm security refresh
+
+on:
+  push:
+    branches: [fix/npm-security-refresh-20261117]
+    paths:
+      - '.github/workflows/tsm-npm-security-refresh-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    if: github.repository == 'ATphobia22/Tri-State-Systems-Manager'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Confirm Vite security regression test reproduces the old lockfile
+        run: |
+          if node scripts/ci/validate-vite-security.test.mjs; then
+            echo 'Security regression test unexpectedly passed before remediation.'
+            exit 1
+          fi
+      - name: Re-resolve Vite 8.3.8 and its Rolldown bindings from npm registry
+        working-directory: tsm-console
+        run: |
+          npm install --save-dev --save-exact vite@8.3.8 --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Verify patched Vite/Rolldown lock, clean install, types and production bundle
+        run: |
+          node scripts/ci/validate-vite-security.test.mjs
+          cd tsm-console
+          npm ci --no-audit --no-fund --registry=https://registry.npmjs.org
+          npm run check:type
+          npm run build
+      - name: Record remaining npm audit findings without weakening the required CI gate
+        working-directory: tsm-console
+        run: |
+          mkdir -p ../artifacts
+          set +e
+          npm audit --audit-level=high --json > ../artifacts/security-refresh-npm-audit.json
+          status=$?
+          set -e
+          echo "Post-upgrade npm audit exit status: $status (nonzero remains a separate required CI blocker)."
+          printf 'Post-upgrade npm audit status: %s; no advisory waivers added.\n' "$status" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload audit evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-npm-security-refresh-audit
+          path: artifacts/security-refresh-npm-audit.json
+          if-no-files-found: error
+      - name: Commit only regenerated npm manifest and integrity-checked lockfile
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --name-only | grep -v -E '^tsm-console/(package.json|package-lock.json)$'; then
+            echo 'Unexpected tracked changes from security refresh; refusing to commit.'
+            exit 1
+          fi
+          if git diff --quiet -- tsm-console/package.json tsm-console/package-lock.json; then
+            echo 'No npm manifest or lockfile changes produced.'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tsm-console/package.json tsm-console/package-lock.json
+          git commit -m 'fix(security): upgrade Vite and Rolldown to patched registry releases'
+          git push origin HEAD:refs/heads/fix/npm-security-refresh-20261117
