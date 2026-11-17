@@ -1,0 +1,78 @@
+name: TSM Online Installer (optional, checksum-pinned)
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-native/Installer/TSM-Online.iss'
+      - 'scripts/native/Build-TSMOnlineInstaller.ps1'
+      - 'scripts/native/Report-PublicAuthenticodeTrust.ps1'
+      - 'tests/native/test_online_installer_policy.py'
+      - '.github/workflows/tsm-online-installer.yml'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Exact published offline release tag, e.g. v1.0.0'
+        required: true
+        type: string
+      offline_sha256:
+        description: '64 hex SHA-256 of FINAL signed offline setup exe'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  online-installer-source-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: python -m unittest discover -s tests/native -p test_online_installer_policy.py -v
+
+  compile-online-bootstrapper:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: online-installer-source-tests
+    runs-on: windows-2025
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install verified Inno Setup 7.1.1 compiler
+        shell: pwsh
+        run: |
+          $url = 'https://github.com/jrsoftware/issrc/releases/download/is-7_1_1/innosetup-7.1.1-x64.exe'
+          $expected = '8a5a6711c3766a6e5fb74f280ba0e3551e719ce94538d901fdbd1f8f9920b3f0'
+          $path = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.1-x64.exe'
+          Invoke-WebRequest -Uri $url -OutFile $path
+          $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $expected) { throw 'Inno Setup toolchain SHA-256 mismatch.' }
+          if ((Get-AuthenticodeSignature -LiteralPath $path).Status -ne 'Valid') {
+            throw 'Inno Setup compiler installer Authenticode signature invalid.'
+          }
+          $process = Start-Process -FilePath $path -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup install failed: $($process.ExitCode)" }
+      - name: Compile optional Windows online installer
+        shell: pwsh
+        env:
+          TSM_TAG: ${{ inputs.release_tag }}
+          TSM_HASH: ${{ inputs.offline_sha256 }}
+        run: |
+          .\scripts\native\Build-TSMOnlineInstaller.ps1 -ReleaseTag $env:TSM_TAG -OfflineInstallerSha256 $env:TSM_HASH
+      - name: Upload online bootstrapper preview
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-online-bootstrapper-preview-unsigned-unless-verified
+          path: dist/online-installer/TSM-Online-Setup-*-windows-x64.exe
+          if-no-files-found: error
+      - name: Upload online installer SHA-256 provenance
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-online-bootstrapper-evidence
+          path: dist/provenance/windows-online-installer.json
+          if-no-files-found: error
+      - name: Attest online bootstrapper build provenance (not public code signing)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/online-installer/TSM-Online-Setup-*-windows-x64.exe

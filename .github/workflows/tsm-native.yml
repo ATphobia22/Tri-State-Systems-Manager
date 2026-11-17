@@ -505,6 +505,24 @@ jobs:
           name: tsm-native-signed-artifacts-evidence
           path: dist/provenance/native-signed-artifact-evidence.json
           if-no-files-found: error
+      # Independent public trust is NOT inferred from a runner signature.
+      # The advisory must never prevent packaging or release evidence capture.
+      - name: Capture optional Windows signing evidence
+        if: ${{ always() }}
+        continue-on-error: true
+        shell: pwsh
+        env:
+          TSM_WINDOWS_PUBLISHER_SUBJECT: ${{ vars.TSM_WINDOWS_PUBLISHER_SUBJECT }}
+        run: |
+          .\scripts\native\Report-PublicAuthenticodeTrust.ps1 -ArchiveRoot 'dist/tsm-native/Windows' -InstallerDirectory 'dist/installer' -ExpectedPublisherSubject $env:TSM_WINDOWS_PUBLISHER_SUBJECT -SourceCommit '${{ github.sha }}' -OutputPath 'dist/provenance/windows-signing-advisory.json'
+      - name: Upload optional Windows signing evidence
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-windows-signing-advisory
+          path: dist/provenance/windows-signing-advisory.json
+          if-no-files-found: warn
       - name: Attest signed Windows artifact
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
