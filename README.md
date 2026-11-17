@@ -66,25 +66,25 @@ Other nearby communities or river reaches may appear in regional scenes and rese
 
 ## Visual tour of the project
 
+These **three images are future-state design concepts** for the envisioned Unreal-powered Tri-State 4D open world and its public web companion. They are generated illustrations informed by regional geography and the project UI, **not screenshots, geodetic reconstructions, measured flood simulations, confirmed building materials, or evidence that all 3D details are already deployed**.
+
 <p align="center">
-  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/">
-    <img src="docs/assets/tsm-source-backed-atlas.svg" width="100%" alt="Source-derived regional atlas overview showing positions of registered USGS gage markers and available USACE eHydro survey footprints. Not a live stage measurement, surveyed digital elevation model or certified flood simulation." />
-  </a>
+  <img src="docs/assets/concepts/tsm-regional-open-world-4d-concept.jpg" width="100%" alt="Future-state concept of an Unreal-inspired Tri-State River Valley open world, with a large oblique 3D regional landscape and compact collapsible geospatial controls; an illustrative visualization, not a verified regional terrain model." />
 </p>
-<p align="center"><sub><strong>Source-derived overview:</strong> plotted station positions and survey footprints from documented data; not a real-time hydrologic reading.</sub></p>
+<p align="center"><sub><strong>01 · Regional 4D open world</strong> — seamless-looking imagery, terrain, waterways, communities and compact map-first navigation. Design concept, not an actual runtime capture.</sub></p>
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="docs/design-reference/tsm-3d-openworld-mockup.jpg" width="100%" alt="Concept art of an iPhone river-valley 3D twin and engineering toolbox; design reference only, not an implemented or tested screen." /></td>
-    <td width="50%" align="center"><img src="docs/design-reference/levee-cross-section-diagram.jpg" width="100%" alt="Concept illustration of a levee cutaway with soil layers and seepage arrows; all displayed numbers are illustrative, not measured or certified." /></td>
+    <td width="50%" align="center"><img src="docs/assets/concepts/tsm-mount-vernon-3d-concept.jpg" width="100%" alt="Future-state concept of a detailed Mount Vernon, Indiana 3D urban twin with building rooftops and facades and collapsed GIS sidebar; materials and structure meshes are illustrative." /></td>
+    <td width="50%" align="center"><img src="docs/assets/concepts/tsm-flood-workbench-concept.jpg" width="100%" alt="Future-state concept of a river-valley flood engineering workbench showing hypothetical inundation and a soil or levee section; flood elevations and structural properties are not measured or certified." /></td>
   </tr>
   <tr>
-    <td><strong>Mobile 3D concept</strong> — visual direction for a compact map, expandable layers and engineering tools. <em>Not a runtime screenshot.</em></td>
-    <td><strong>Levee science concept</strong> — illustrates engineering ideas. <em>Not a site survey, accepted seepage result or real safety factor.</em></td>
+    <td><strong>02 · Mount Vernon building detail</strong> — desired roof geometry, materials and more open viewport space; detailed meshes must be validated before these visuals can be claimed as actual coverage.</td>
+    <td><strong>03 · Flood and levee science</strong> — hypothetical engineering scenarios, future cross-sections and expandable analytical tools. <em>Not a forecast, survey or accepted safety factor.</em></td>
   </tr>
 </table>
 
-For the latest working interface, **use the actual public console and its source** rather than interpreting these design studies as proof of implementation. The map-first light UI with collapsible navigation was merged in [PR #632](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/632).
+For audited geospatial reference rather than concept art, inspect the [source-derived regional overview](docs/assets/tsm-source-backed-atlas.svg), its documented source data, and the [public Cesium view](https://atphobia22.github.io/Tri-State-Systems-Manager/cesium/). Design concepts do not substitute for actual browser screenshots or clean Windows Unreal Shipping evidence.
 
 ## Software and platforms at a glance
 
