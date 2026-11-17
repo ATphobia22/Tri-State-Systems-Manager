@@ -39,6 +39,17 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.contains('Illinois: White, Gallatin');
     cy.contains('Kentucky: Henderson, Union');
     cy.get('#cesium-building-detail').should('not.be.visible');
+    // Exercise camera navigation while the renderer is fresh, before slow
+    // remote imagery/terrain requests. Never force interaction on a disabled
+    // control: a disabled selector is a real startup or context-loss failure.
+    cy.get('#cesium-place', { timeout: 30000 }).should('be.enabled');
+    cy.get('#cesium-place').select('Henderson, KY');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
+    cy.get('#cesium-place').select('Carmi, IL · White County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
+    cy.get('#cesium-place').select('Morganfield, KY · Union County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
+
     cy.contains('.tsm-cesium-accordion > summary', 'Map layers').click();
     cy.get('#cesium-building-detail').select('sharp').should('have.value', 'sharp');
     cy.get('#cesium-imagery-source').should('have.value', 'usgs');
@@ -63,12 +74,6 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.screenshot('mount-vernon-cesium-and-screening');
-    cy.get('#cesium-place').select('Henderson, KY');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
-    cy.get('#cesium-place').select('Carmi, IL · White County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
-    cy.get('#cesium-place').select('Morganfield, KY · Union County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
 
     cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
     cy.get('#cesium-film-shot').select('03-new-harmony');
