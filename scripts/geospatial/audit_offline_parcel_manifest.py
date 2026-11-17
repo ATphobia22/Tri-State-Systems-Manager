@@ -86,7 +86,7 @@ def audit(root: Path, require_parcels=False, check_geometry=False):
                 geometry = feature.get("geometry") or {}
                 if geometry.get("type") not in ("Polygon", "MultiPolygon"):
                     findings.append(f"{path}: unsupported parcel geometry")
-                if check_geometry:
+                if check_geometry and target == "EPSG:2966":
                     topology_checked += 1
                     issue = inspect_projected_polygon(geometry)
                     if issue:
@@ -100,7 +100,7 @@ def audit(root: Path, require_parcels=False, check_geometry=False):
             findings.append(f"{manifest_path}: no features")
     if require_parcels and checked == 0:
         findings.append("No offline parcel layer manifest found")
-    return {"status": "PASS" if not findings else "FAIL", "checked_batches": checked, "geometry_quality": "CHECKED" if check_geometry and checked else "NOT_RUN", "geometry_checked": topology_checked, "geometry_invalid": topology_invalid, "findings": findings}
+    return {"status": "PASS" if not findings else "FAIL", "checked_batches": checked, "geometry_quality": "CHECKED" if topology_checked else "NOT_RUN", "geometry_checked": topology_checked, "geometry_invalid": topology_invalid, "findings": findings}
 
 def main():
     parser = argparse.ArgumentParser()
