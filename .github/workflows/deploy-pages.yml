@@ -296,6 +296,11 @@ jobs:
           if (!cssContent.includes('.tsm-cesium')) {
             throw new Error('CesiumRegionalTwinView stylesheet missing from eager entry CSS');
           }
+          // If Vite still emits a Cesium route CSS chunk, a stale Pages index
+          // can request its hashed name before the CDN has it, breaking /cesium.
+          const lazyCss = fs.readdirSync('dist/assets').filter((name) =>
+            /^CesiumRegionalTwinView-[A-Za-z0-9_-]+\.css$/.test(name));
+          if (lazyCss.length) throw new Error('Lazy Cesium CSS chunk must not be emitted: ' + lazyCss.join(', '));
           console.log('PASS: Pages entry stylesheets exist; MapLibre + Atlas CSS eagerly loaded');
           NODE
       - name: Generate downloadable Cesium source-to-publication receipt
