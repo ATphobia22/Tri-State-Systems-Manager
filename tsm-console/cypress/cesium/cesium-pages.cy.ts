@@ -78,6 +78,9 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#cesium-place').should('be.enabled');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
+    // WebGL loss may trigger a real scene rebuild after streamed tiles arrive.
+    // This is a readiness assertion, not a forced interaction.
+    cy.get('#cesium-film-shot', { timeout: 30000 }).should('be.enabled');
     cy.get('#cesium-film-shot').select('03-new-harmony');
     cy.get('.tsm-cesium-place').should('contain.text', 'New Harmony, IN');
     cy.get('label[for="cesium-day"] output').should('have.text', '2025-04-01');
