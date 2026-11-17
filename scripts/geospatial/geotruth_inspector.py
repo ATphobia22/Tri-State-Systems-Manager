@@ -15,7 +15,11 @@ import math
 from pathlib import Path
 import sys
 
-from reconcile_published_buildings import _identifier, _inventory
+try:
+    from scripts.geospatial.reconcile_published_buildings import _identifier, _inventory
+except ModuleNotFoundError:
+    # CLI execution via python scripts/geospatial/geotruth_inspector.py
+    from reconcile_published_buildings import _identifier, _inventory
 
 MAX_GEOJSON_BYTES = 256 * 1024 * 1024
 SCHEMA = "tsm.geotruth.building-qa.v1"
