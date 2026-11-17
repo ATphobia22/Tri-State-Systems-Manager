@@ -150,6 +150,7 @@ export default function CesiumRegionalTwinView() {
             }, 8000);
           }
         },
+        (message) => setScreeningStatus(message),
       );
       scene.current = next;
       restoreSceneSelections(next);
