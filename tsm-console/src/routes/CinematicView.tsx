@@ -65,7 +65,6 @@ export default function CinematicView(): JSX.Element {
     <main style={{ position: 'relative', height: '100dvh', background: '#05080f' }}>
       <TriStateDigitalTwinMap
         hideSidebar
-        regionalAtlas
         cinematicTour={tourActive}
         onTourReducedMotion={stopReducedMotionTour}
         visible={visible}

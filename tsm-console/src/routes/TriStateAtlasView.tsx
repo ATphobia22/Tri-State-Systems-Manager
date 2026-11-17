@@ -75,6 +75,7 @@ export default function TriStateAtlasView(): JSX.Element {
   const [scenarioOpen, setScenarioOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  const [sceneToolsOpen, setSceneToolsOpen] = useState(false);
   const [largeType, setLargeType] = useState(false);
   const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
   const proposalOverlay = useMemo(() => {
@@ -272,6 +273,11 @@ export default function TriStateAtlasView(): JSX.Element {
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
             </button>
+            <button type="button" className="tsm-atlas-tour" aria-expanded={sceneToolsOpen} aria-controls="tsm-atlas-scene-tools"
+              onClick={() => setSceneToolsOpen((open) => !open)}>
+              {sceneToolsOpen ? 'Hide visual settings' : 'Show visual settings'}
+            </button>
+            {sceneToolsOpen && <div id="tsm-atlas-scene-tools" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', width: '100%' }}>
             <label className="tsm-atlas-mesh-toggle">
               <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
               3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
@@ -290,13 +296,14 @@ export default function TriStateAtlasView(): JSX.Element {
                 <label key={preset}><input type="radio" name="tsm-atlas-light" value={preset}
                   checked={light === preset} onChange={() => { setLight(preset); setSceneHour(preset === 'day' ? 12 : preset === 'golden' ? 18 : 22); }} />{preset}</label>)}
             </fieldset>
+            </div>}
           </div>
-          <div className="tsm-atlas-timebar">
+          {sceneToolsOpen && <div className="tsm-atlas-timebar">
             <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
             <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
               onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
             <small>4D presentation time does not advance USGS observations, weather or hydraulic simulations. Movie FX are visual-only layers; they do not change flood extents or terrain.</small>
-          </div>
+          </div>}
           <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
             <div className="tsm-civic-fx-overlay" aria-hidden="true" />
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}

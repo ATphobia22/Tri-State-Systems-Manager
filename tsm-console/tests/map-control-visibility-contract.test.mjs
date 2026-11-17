@@ -39,3 +39,23 @@ test('Cinematic scene HUD defaults map-first and wires real camera tour', () => 
   assert.match(hud, /\[hudCollapsed, setHudCollapsed\] = useState\(true\)/);
   assert.match(hud, /onClick=\{props.onToggleTour\}/);
 });
+
+test('Atlas visual settings are a closed-by-default group, leaving map and tour accessible', () => {
+ const atlas = read('src/routes/TriStateAtlasView.tsx');
+ assert.match(atlas, /\[sceneToolsOpen, setSceneToolsOpen\] = useState\(false\)/);
+ assert.match(atlas, /aria-controls="tsm-atlas-scene-tools"/);
+ assert.match(atlas, /\{sceneToolsOpen && <div className="tsm-atlas-timebar">/);
+ assert.match(atlas, /Play Wabash flyover/);
+});
+test('Twin Canvas coverage and building notices are collapsible', () => {
+ const twin = read('src/routes/TwinCanvasView.tsx');
+ assert.match(twin, /<details aria-label="Twin source coverage and building evidence"/);
+ assert.match(twin, /<AoiCoveragePanel\s*\/>/);
+ assert.match(twin, /<BuildingCoverageNotice\s*\/>/);
+});
+test('Local cinematic map keeps its source-derived terrain while moving the real camera', () => {
+ const cinematic = read('src/routes/CinematicView.tsx');
+ const map = read('src/components/TriStateDigitalTwinMap.tsx');
+ assert.doesNotMatch(cinematic, /hideSidebar\s*\n\s*regionalAtlas/);
+ assert.match(map, /if \(!mapReady \|\| !map \|\| !props.cinematicTour\) return;/);
+});

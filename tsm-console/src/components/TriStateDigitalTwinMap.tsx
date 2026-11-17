@@ -840,11 +840,12 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     };
   }, [mapReady, props.regionalAtlas, props.regionalBuildingMeshes]);
 
+  // The camera works in either the source-derived local view or the regional atlas.
   // The map exists only after its asynchronous load callback; tying the tour to
   // that readiness prevents pressing Play before map creation from doing nothing.
   useEffect(() => {
     const map = mapRef.current;
-    if (!mapReady || !map || !props.regionalAtlas || !props.cinematicTour) return;
+    if (!mapReady || !map || !props.cinematicTour) return;
     const stop = playCinematicTour(map);
     if (stop === null) {
       props.onTourReducedMotion?.();
