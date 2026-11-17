@@ -39,27 +39,36 @@ def canonical(value: object) -> bytes:
 def query(url: str, params: dict[str, object], *, max_bytes: int = MAX_RESPONSE_BYTES) -> tuple[dict, str]:
     qs = urlencode(params)
     request = Request(url + "/query?" + qs, headers={"User-Agent": "TSM-Government-Scene/1.0", "Accept": "application/json"})
-    # Agency feature services sometimes time out while streaming a valid batch.
-    # Retry transport failures only; never accept incomplete batches or invent values.
+    # Retry bounded, transient transport *and ArcGIS JSON-level 503* failures.
+    # Never substitute inferred geometry or accept partial source batches.
     for attempt in range(MAX_SOURCE_ATTEMPTS):
         try:
             with urlopen(request, timeout=SOURCE_REQUEST_TIMEOUT_SECONDS) as response:
-                # Prevent unbounded anonymous-government-service responses.
                 raw = response.read(max_bytes + 1)
-            break
         except HTTPError as error:
             if error.code not in RETRYABLE_HTTP_STATUSES or attempt == MAX_SOURCE_ATTEMPTS - 1:
                 raise
+            sleep(2 ** attempt)
+            continue
         except (TimeoutError, ConnectionError, URLError):
             if attempt == MAX_SOURCE_ATTEMPTS - 1:
                 raise
-        sleep(2 ** attempt)
-    if len(raw) > max_bytes:
-        raise ValueError("ARCGIS_RESPONSE_TOO_LARGE")
-    payload = json.loads(raw)
-    if not isinstance(payload, dict) or "error" in payload:
-        raise ValueError(f"ARCGIS_QUERY_FAILED: {str(payload.get('error'))[:200] if isinstance(payload, dict) else 'invalid JSON'}")
-    return payload, digest(raw)
+            sleep(2 ** attempt)
+            continue
+        if len(raw) > max_bytes:
+            raise ValueError("ARCGIS_RESPONSE_TOO_LARGE")
+        payload = json.loads(raw)
+        if not isinstance(payload, dict):
+            raise ValueError("ARCGIS_QUERY_FAILED: invalid JSON object")
+        if "error" in payload:
+            error = payload["error"]
+            code = error.get("code") if isinstance(error, dict) else None
+            if code in RETRYABLE_HTTP_STATUSES and attempt < MAX_SOURCE_ATTEMPTS - 1:
+                sleep(2 ** attempt)
+                continue
+            raise ValueError(f"ARCGIS_QUERY_FAILED: {str(error)[:200]}")
+        return payload, digest(raw)
+    raise RuntimeError("ARCGIS_RETRIES_EXHAUSTED")
 
 
 def valid_bbox(bbox: list[float] | tuple[float, ...]) -> tuple[float, float, float, float]:

@@ -69,6 +69,26 @@ class SceneBuilderTests(unittest.TestCase):
         self.assertEqual(request.call_count, scene.MAX_SOURCE_ATTEMPTS)
         self.assertEqual(sleep.call_count, scene.MAX_SOURCE_ATTEMPTS - 1)
 
+    def test_arcgis_json_503_is_bounded_and_source_identity_retained(self):
+        transient = b'{"error":{"code":503,"message":"Resource temporarily unavailable"}}'
+        valid = b'{"objectIds":[7,3]}'
+        with patch.object(scene, "urlopen", side_effect=[io.BytesIO(transient), io.BytesIO(valid)]) as request, \
+             patch.object(scene, "sleep") as sleep:
+            payload, source_hash = scene.query(scene.BUILDINGS, {"returnIdsOnly": "true"})
+        self.assertEqual(payload["objectIds"], [7, 3])
+        self.assertEqual(source_hash, scene.digest(valid))
+        self.assertEqual(request.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_persistent_arcgis_json_503_remains_a_release_blocker(self):
+        transient = b'{"error":{"code":503,"message":"User could not access this resource"}}'
+        with patch.object(scene, "urlopen", side_effect=[io.BytesIO(transient) for _ in range(scene.MAX_SOURCE_ATTEMPTS)]) as request, \
+             patch.object(scene, "sleep") as sleep:
+            with self.assertRaisesRegex(ValueError, "ARCGIS_QUERY_FAILED"):
+                scene.query(scene.BUILDINGS, {"returnIdsOnly": "true"})
+        self.assertEqual(request.call_count, scene.MAX_SOURCE_ATTEMPTS)
+        self.assertEqual(sleep.call_count, scene.MAX_SOURCE_ATTEMPTS - 1)
+
     def test_nontransient_http_errors_do_not_retry(self):
         from urllib.error import HTTPError
         denied = HTTPError(scene.BUILDINGS, 403, "Forbidden", {}, None)
