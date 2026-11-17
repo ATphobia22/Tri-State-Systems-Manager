@@ -1,0 +1,50 @@
+{
+  "schema": "tsm.posey.milestone-a.v1",
+  "status": "TEMPLATE_NOT_FROZEN",
+  "purpose": "Immutable Posey building source and OSM reconciliation evidence, not regulatory or survey certification",
+  "scope": {
+    "countyGEOID": "18129",
+    "sourceInventoryTargetCount": 23082,
+    "targetStatus": "NOT_VERIFIED",
+    "sourceHorizontalCRS": null,
+    "sourceVerticalDatum": null
+  },
+  "revision": {
+    "repository": "ATphobia22/Tri-State-Systems-Manager",
+    "commit": null,
+    "privateUnrealEngineRevision": null
+  },
+  "remoteContext": {
+    "cesiumOsmBuildingsAssetId": 96188,
+    "cesiumWorldBathymetryAssetId": 2426648,
+    "remoteAssetBytesFrozen": false,
+    "remoteAssetOfflineLicensed": false
+  },
+  "inputs": [
+    {
+      "role": "official_source_csv",
+      "sha256": null,
+      "rowCount": null
+    },
+    {
+      "role": "published_buildings_csv",
+      "sha256": null,
+      "rowCount": null
+    },
+    {
+      "role": "posey_reconciliation_csv",
+      "sha256": null,
+      "rowCount": null
+    },
+    {
+      "role": "reconciliation_overlay_style",
+      "sha256": null,
+      "rowCount": null
+    }
+  ],
+  "geometryVerified": false,
+  "completeLoD2LoD4Verified": false,
+  "regulatoryUseApproved": false,
+  "detachedSha256Required": true,
+  "humanAuthorityFinal": true
+}

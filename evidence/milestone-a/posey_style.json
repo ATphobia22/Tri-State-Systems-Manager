@@ -1,0 +1,30 @@
+{
+  "color": {
+    "conditions": [
+      [
+        "${match_status} === 'GEOMETRY_CONFLICT'",
+        "color('#b4404a', 0.92)"
+      ],
+      [
+        "${match_status} === 'MATCHED_GEOMETRY_VERIFIED'",
+        "color('#287d85', 0.90)"
+      ],
+      [
+        "${match_status} === 'MATCHED_CANDIDATE'",
+        "color('#e1a54d', 0.90)"
+      ],
+      [
+        "${match_status} === 'NO_OSM_MATCH'",
+        "color('#87929a', 0.68)"
+      ],
+      [
+        "${match_status} === 'SOURCE_UNAVAILABLE'",
+        "color('#a3a3a3', 0.55)"
+      ],
+      [
+        "true",
+        "color('#b6bec4', 0.62)"
+      ]
+    ]
+  }
+}
