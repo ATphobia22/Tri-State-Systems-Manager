@@ -47,7 +47,7 @@ def _is_amd64_pe(file: Path) -> bool:
         return False
     offset = int.from_bytes(header[0x3c:0x40], "little")
     return (64 <= offset <= len(header) - 26
-            and header[offset:offset + 4] == b"PE\\x00\\x00"
+            and header[offset:offset + 4] == b"PE\x00\x00"
             and int.from_bytes(header[offset + 4:offset + 6], "little") == 0x8664
             and int.from_bytes(header[offset + 24:offset + 26], "little") == 0x20b)
 
@@ -107,7 +107,7 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
                 raise ValueError(f"Hash mismatch for {name}")
             accepted[name] = file
         screenshot = accepted["headedScreenshot"].read_bytes()[:24]
-        if screenshot[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or len(screenshot) < 24:
+        if screenshot[:8] != b"\x89PNG\r\n\x1a\n" or len(screenshot) < 24:
             raise ValueError("Headed evidence is not a PNG screenshot")
         width = int.from_bytes(screenshot[16:20], "big")
         height = int.from_bytes(screenshot[20:24], "big")
@@ -115,8 +115,8 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
             raise ValueError("Headed screenshot dimensions too small")
         build_log = accepted["buildCookRunLog"].read_text(encoding="utf-8", errors="replace")
         if (f"TSM_SOURCE_COMMIT={source}" not in build_log
-                or not re.search(r"AutomationTool exiting with ExitCode=0\\b", build_log)
-                or not re.search(r"clientconfig[=:\\s]+Shipping", build_log, re.I)):
+                or not re.search(r"AutomationTool exiting with ExitCode=0\b", build_log)
+                or not re.search(r"clientconfig[=:\s]+Shipping", build_log, re.I)):
             raise ValueError("BuildCookRun log does not bind source, Shipping, and UAT exit 0")
         manifest = json.loads(accepted["stagedDataManifest"].read_text(encoding="utf-8"))
         if manifest.get("schemaVersion") != 1 or manifest.get("integrity") != "sha256" or not manifest.get("files"):
