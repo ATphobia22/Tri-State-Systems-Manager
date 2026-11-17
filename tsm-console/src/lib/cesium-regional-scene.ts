@@ -9,7 +9,7 @@ import {
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
-import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
+import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset, type IonTerrainSource } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -159,7 +159,9 @@ export function mountCesiumRegionalScene(
   const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false };
   let terrain: CesiumTerrainProvider | undefined;
   let worldTerrain: CesiumTerrainProvider | undefined;
-  let terrainSource: 'local' | 'world' = 'local';
+  let bathymetryTerrain: CesiumTerrainProvider | undefined;
+  let terrainSource: IonTerrainSource = 'local';
+  let terrainRequest = 0;
   const ellipsoid = new EllipsoidTerrainProvider();
   let buildings: Cesium3DTileset | undefined;
   let osmBuildings: Cesium3DTileset | undefined;
@@ -369,8 +371,8 @@ export function mountCesiumRegionalScene(
         if (osmBuildings) osmBuildings.show = false;
       }
       if (layer === 'terrain') {
-        widget.terrainProvider = show
-          ? (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid : ellipsoid;
+        const selected = terrainSource === 'bathymetry' ? bathymetryTerrain : terrainSource === 'world' ? worldTerrain : terrain;
+        widget.terrainProvider = show ? selected ?? ellipsoid : ellipsoid;
       }
       if (layer === 'buildings' && buildings) buildings.show = show;
       if (layer === 'osmContext') {
@@ -395,23 +397,36 @@ export function mountCesiumRegionalScene(
       }
       scene.requestRender();
     },
-    async setTerrainSource(source: 'local' | 'world') {
-      if (source === 'world' && !ionToken) throw new Error('Cesium ion token not configured');
-      const previous = terrainSource;
-      terrainSource = source;
+    async setTerrainSource(source: IonTerrainSource) {
+      if (source !== 'local' && !ionToken) throw new Error('Cesium ion token not configured');
+      const generation = ++terrainRequest;
       try {
         if (source === 'world' && !worldTerrain) {
           worldTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
-          if (stopped || terrainSource !== source) return;
         }
-        if (visibility.terrain) {
-          widget.terrainProvider = (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid;
+        if (source === 'bathymetry' && !bathymetryTerrain) {
+          bathymetryTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldBathymetry);
         }
-        if (source === 'world') update('terrain', 'ready', 'Cesium World Terrain · online contextual elevation');
-        else if (terrain) update('terrain', 'ready', 'USGS 3DEP · local source-derived terrain');
+        // Protect a newer selection if an earlier terrain request finishes later.
+        if (stopped || generation !== terrainRequest) return false;
+        const provider = source === 'bathymetry' ? bathymetryTerrain
+          : source === 'world' ? worldTerrain : terrain;
+        if (visibility.terrain) widget.terrainProvider = provider ?? ellipsoid;
+        terrainSource = source;
+        if (source === 'bathymetry') {
+          update('terrain', 'ready', 'Cesium World Bathymetry · ocean/global context; not Ohio-Wabash channel survey');
+        } else if (source === 'world') {
+          update('terrain', 'ready', 'Cesium World Terrain · online contextual elevation');
+        } else if (terrain) {
+          update('terrain', 'ready', 'USGS 3DEP · local source-derived terrain');
+        }
         scene.requestRender();
+        return true;
       } catch (error) {
-        terrainSource = previous;
+        // Keep the existing working terrain if remote ion access fails.
+        if (generation === terrainRequest) {
+          update('terrain', 'unavailable', 'Requested Cesium ion terrain unavailable; existing view retained');
+        }
         throw error;
       }
     },

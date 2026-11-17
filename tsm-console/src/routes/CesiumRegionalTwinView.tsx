@@ -5,7 +5,7 @@ import {
   CESIUM_VIEWS, loadCesiumReplay, loadCityScreening, mountCesiumRegionalScene, REPLAY_DATES,
   type LayerState, type PickedFeature, type Replay, type SceneLayer, type ScreeningFrame,
 } from '../lib/cesium-regional-scene';
-import { type IonImageryPreset, type BuildingPreviewDetail } from '../lib/cesium-ion-assets';
+import { type IonImageryPreset, type BuildingPreviewDetail, type IonTerrainSource } from '../lib/cesium-ion-assets';
 import type { OsmBuildingStyle } from '../lib/cesium-osm-building-style';
 
 const ION_ENABLED = Boolean((import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim());
@@ -40,7 +40,7 @@ export default function CesiumRegionalTwinView() {
   const [aerial, setAerial] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [imageryPreset, setImageryPreset] = useState<IonImageryPreset>('usgs');
-  const [terrainSource, setTerrainSource] = useState<'local' | 'world'>('local');
+  const [terrainSource, setTerrainSource] = useState<IonTerrainSource>('local');
   const [buildingDetail, setBuildingDetail] = useState<BuildingPreviewDetail>('balanced');
   const [osmStyle, setOsmStyle] = useState<OsmBuildingStyle>('native');
   const [ionMessage, setIonMessage] = useState('');
@@ -385,15 +385,19 @@ export default function CesiumRegionalTwinView() {
             <small>These modes color entire available meshes by OSM attributes; they do not add roof polygons, material textures, or verified heights. Untagged properties display neutrally. Click a building to inspect source metadata.</small>
             <label htmlFor="cesium-terrain-source">Terrain source</label>
             <select id="cesium-terrain-source" value={terrainSource} disabled={!ready} onChange={(event) => {
-              const source = event.target.value as 'local' | 'world';
+              const source = event.target.value as IonTerrainSource;
               setIonMessage('');
-              void scene.current?.setTerrainSource(source).then(() => setTerrainSource(source)).catch(() => {
-                setIonMessage('Ion World Terrain is unavailable; local terrain retained.');
+              void scene.current?.setTerrainSource(source).then((applied) => {
+                if (applied) setTerrainSource(source);
+              }).catch(() => {
+                setIonMessage('Selected ion terrain is unavailable; previous terrain retained.');
               });
             }}>
-              <option value="local">Local source-derived USGS terrain</option>
+              <option value="local">Local source-derived USGS terrain (default)</option>
               <option value="world" disabled={!ION_ENABLED}>Cesium World Terrain · asset 1 (online)</option>
+              <option value="bathymetry" disabled={!ION_ENABLED}>World Bathymetry · 2426648 (global/ocean context only)</option>
             </select>
+            <small>World Bathymetry is not surveyed Ohio–Wabash riverbed data. Do not use this context layer for local flood or sediment calculations. Requires a scoped online ion token.</small>
             <label htmlFor="cesium-imagery-source">Imagery source · one active basemap</label>
             <select id="cesium-imagery-source" value={imageryPreset} disabled={!ready} onChange={(event) => {
               const choice = event.target.value as IonImageryPreset;

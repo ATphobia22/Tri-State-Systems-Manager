@@ -5,6 +5,7 @@
 
 export const ION_CATALOG = {
   worldTerrain: 1,
+  worldBathymetry: 2426648,
   osmBuildings: 96188,
   googlePhotorealistic: 2275207,
   bingAerial: 2,
@@ -68,3 +69,6 @@ export const BUILDING_SCREEN_SPACE_ERROR: Record<BuildingPreviewDetail, number> 
   balanced: 16,
   sharp: 8,
 };
+
+/** Ocean-floor and global land-context preview; never a calibrated inland river-channel DEM. */
+export type IonTerrainSource = 'local' | 'world' | 'bathymetry';
