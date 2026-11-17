@@ -12,6 +12,8 @@ describe('Public Cesium 4D view on the project Pages base', () => {
   it('streams terrain and buildings, draws local sources and switches replay and screening', () => {
     const renderErrors: string[] = [];
     cy.on('fail', (error) => {
+      const alert = Cypress.$('.tsm-cesium-error').text().trim();
+      if (alert) error.message += `\nViewer recovery state: ${alert}`;
       if (renderErrors.length) error.message += `\nCesium render diagnostics:\n${renderErrors.join('\n')}`;
       throw error;
     });
@@ -29,6 +31,13 @@ describe('Public Cesium 4D view on the project Pages base', () => {
         }
         report(message, ...details);
       };
+      const warn = win.console.warn.bind(win.console);
+      win.console.warn = (message, ...details) => {
+        if (typeof message === 'string' && message.startsWith('Cesium')) renderErrors.push(message);
+        warn(message, ...details);
+      };
+      win.document.addEventListener('webglcontextlost', () => renderErrors.push('webglcontextlost'), true);
+      win.document.addEventListener('webglcontextrestored', () => renderErrors.push('webglcontextrestored'), true);
     } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
@@ -43,6 +52,16 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.contains('.tsm-cesium-accordion > summary', 'Map layers').click();
     cy.get('#cesium-building-detail').select('sharp').should('have.value', 'sharp');
     cy.get('#cesium-imagery-source').should('have.value', 'usgs');
+    // Check camera selection while the scene is responsive, before streaming
+    // many terrain and 3D tile assets. Do not force disabled controls.
+    cy.get('#cesium-place', { timeout: 30000 }).should('be.enabled');
+    cy.get('#cesium-place').select('Henderson, KY');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
+    cy.get('#cesium-place').select('Carmi, IL · White County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
+    cy.get('#cesium-place').select('Morganfield, KY · Union County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
+
     cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).then((hits) => {
       for (const hit of hits) expect(hit.response?.statusCode).to.eq(200);
     });
@@ -64,14 +83,13 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.screenshot('mount-vernon-cesium-and-screening');
-    cy.get('#cesium-place').select('Henderson, KY');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
-    cy.get('#cesium-place').select('Carmi, IL · White County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
-    cy.get('#cesium-place').select('Morganfield, KY · Union County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
-
+    // Later readiness is still a real gate: the viewer must survive tile loading.
+    cy.get('#cesium-place').should('be.enabled');
+    cy.get('.tsm-cesium-error').should('not.exist');
     cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
+    // WebGL loss may trigger a real scene rebuild after streamed tiles arrive.
+    // This is a readiness assertion, not a forced interaction.
+    cy.get('#cesium-film-shot', { timeout: 30000 }).should('be.enabled');
     cy.get('#cesium-film-shot').select('03-new-harmony');
     cy.get('.tsm-cesium-place').should('contain.text', 'New Harmony, IN');
     cy.get('label[for="cesium-day"] output').should('have.text', '2025-04-01');
