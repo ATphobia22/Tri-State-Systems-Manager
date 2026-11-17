@@ -1,6 +1,6 @@
 /** Root Layout — community trust-fabric status + live telemetry + operator settings. */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useRouteLoaderData } from 'react-router';
 import type { RootLoaderData } from '../types/loaders';
 import { t } from '../lib/design-tokens';
@@ -22,6 +22,13 @@ const nav = [
   { to: '/globe', label: 'Globe (MapLibre)' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/platform', label: 'Platform Capabilities' },
 ];
 
+const navGroups = [
+  { title: 'Explore the River Valley', routes: ['/atlas', '/map', '/globe', '/terrain-3d', '/twin', '/digital-twin-v2'] },
+  { title: 'Engineering & Simulation', routes: ['/engineering-section', '/flood-sim', '/cinematic-engineering', '/river-watch', '/eoc'] },
+  { title: 'Data & Evidence', routes: ['/data-fabric', '/lineage', '/ledger', '/architecture'] },
+  { title: 'Community & Platform', routes: ['/', '/experiences', '/workspaces', '/needs', '/benefit', '/platform'] },
+] as const;
+
 const SHELL_CSS = `
 .tsm-skip-link {
   position: absolute; left: -9999px; top: 0; z-index: 200;
@@ -29,15 +36,20 @@ const SHELL_CSS = `
   padding: 0.6rem 1rem; border-radius: 0 0 8px 0; text-decoration: none;
 }
 .tsm-skip-link:focus { left: 0; }
-.tsm-hamburger { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.4rem 0.6rem; border-radius: 8px; cursor: pointer; background: #eff6ff; color: #17324d; border: 1px solid #cbd5e1; }
+.tsm-hamburger { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.4rem 0.6rem; border-radius: 8px; cursor: pointer; background: #fff; color: #17324d; border: 1px solid #cbd5e1; }
+.tsm-hamburger:hover { background: #e6f3f4; }
+.tsm-sidebar a:focus-visible, .tsm-hamburger:focus-visible, .tsm-sidebar summary:focus-visible { outline: 3px solid #287d85; outline-offset: 2px; }
+.tsm-sidebar summary { list-style-position: inside; }
+.tsm-sidebar details[open] > summary { color: #205a63; }
+.tsm-sidebar { box-shadow: 5px 0 22px rgba(23,50,77,0.07); }
 @media (min-width: 768px) { .tsm-sidebar.collapsed { display: none !important; } }
 .tsm-backdrop { display: none; }
 @media (max-width: 767px) {
   .tsm-hamburger {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 44px; min-height: 44px; padding: 0.4rem 0.6rem;
-    background: transparent; border: 1px solid ${t.color.surface.card}; border-radius: 8px;
-    color: ${t.color.text.body}; font-size: 1.25rem; cursor: pointer;
+    background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
+    color: #17324d; font-size: 1.25rem; cursor: pointer;
   }
   .tsm-sidebar {
     position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
@@ -63,44 +75,65 @@ export default function RootLayout() {
   const stageDisclaimer = stage?.source === 'UNAVAILABLE'
     ? 'Live hydrologic telemetry unavailable. No continuity is fabricated; verify authoritative sources directly.'
     : `${sourceLabel} observed stage is ${provisional ? 'PROVISIONAL' : 'current'}; raw stage remains GAGE_DATUM. Human authority remains final.`;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [desktopNavOpen, setDesktopNavOpen] = useState(false);
-  const closeMenu = (): void => { setMenuOpen(false); setDesktopNavOpen(false); };
+  const [navOpen, setNavOpen] = useState(false);
+  const closeMenu = (): void => setNavOpen(false);
+  useEffect(() => {
+    if (!navOpen) return;
+    const closeOnEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setNavOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [navOpen]);
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', background: t.color.surface.base, color: t.color.text.body }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', background: '#f8fafc', color: '#17324d' }}>
       <style>{SHELL_CSS}</style>
       <RouteTitle />
       <a href="#main-content" className="tsm-skip-link">Skip to main content</a>
-      <header style={{ background: t.color.surface.deep, borderBottom: `1px solid ${t.color.surface.card}`, padding: '0.75rem 1.25rem' }}>
+      <header style={{ background: '#ffffff', borderBottom: '1px solid #dce8e6', padding: '0.75rem 1.25rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
               type="button"
               className="tsm-hamburger"
-              aria-label={(menuOpen || desktopNavOpen) ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={menuOpen || desktopNavOpen}
               aria-controls="tsm-sidebar"
-              onClick={() => { setMenuOpen((open) => !open); setDesktopNavOpen((open) => !open); }}
+              onClick={() => setNavOpen((open) => !open)}
             >
               ☰
             </button>
-            <div><div style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.95rem', color: t.color.accent.brand }}>TRI-STATE SYSTEMS MANAGER // RIVER VALLEY ENGINEERING CONSOLE</div><div style={{ fontSize: '0.7rem', color: t.color.text.secondary, marginTop: 2 }}>{community?.region ?? 'Tri-State River Valley'} · {community?.county ?? 'Posey County'} · Human Authority Final</div></div>
+            <div><div style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.95rem', color: '#205a63' }}>TRI-STATE SYSTEMS MANAGER // RIVER VALLEY ENGINEERING CONSOLE</div><div style={{ fontSize: '0.7rem', color: '#526879', marginTop: 2 }}>{community?.region ?? 'Tri-State River Valley'} · {community?.county ?? 'Posey County'} · Human Authority Final</div></div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace' }}>
-            {community && <div><span style={{ color: t.color.text.secondary }}>Scope </span><span style={{ color: t.color.accent.brand, fontWeight: 600 }}>{community.township}</span></div>}
-            <div><span style={{ color: t.color.text.secondary }}>Access </span><span style={{ color: auth ? t.color.status.success : t.color.accent.brand }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
+            {community && <div><span style={{ color: t.color.text.secondary }}>Scope </span><span style={{ color: '#205a63', fontWeight: 600 }}>{community.township}</span></div>}
+            <div><span style={{ color: t.color.text.secondary }}>Access </span><span style={{ color: '#205a63' }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
           </div>
         </div>
       </header>
       <TourOnboardingHint />
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {menuOpen && <button type="button" className="tsm-backdrop" aria-label="Close navigation menu" onClick={closeMenu} />}
-        <aside id="tsm-sidebar" className={`tsm-sidebar${menuOpen ? ' open' : ''}${desktopNavOpen ? '' : ' collapsed'}`} style={{ width: 280, background: t.color.surface.deep, borderRight: `1px solid ${t.color.surface.card}`, padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({ display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem', borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', color: isActive ? t.color.accent.brand : t.color.text.secondary, background: isActive ? t.color.accent.brandSoft : 'transparent', border: isActive ? `1px solid ${t.color.accent.brandHairline}` : '1px solid transparent' })}>{item.label}</NavLink>)}</nav>
+        {navOpen && <button type="button" className="tsm-backdrop" aria-label="Close navigation menu" onClick={closeMenu} />}
+        <aside id="tsm-sidebar" className={`tsm-sidebar${navOpen ? ' open' : ' collapsed'}`} style={{ width: 280, background: '#ffffff', borderRight: '1px solid #dce8e6', padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {navGroups.map((group) => <details key={group.title}  style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+              <summary style={{ cursor: 'pointer', padding: '0.75rem 0.5rem', minHeight: 44, fontSize: '0.82rem', fontWeight: 700, color: '#17324d' }}>{group.title}</summary>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {nav.filter((item) => (group.routes as readonly string[]).includes(item.to)).map((item) =>
+                  <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({
+                    display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem',
+                    borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600,
+                    textDecoration: 'none', color: isActive ? '#205a63' : '#526879',
+                    background: isActive ? '#dcefeb' : 'transparent',
+                    border: isActive ? '1px solid #9accbf' : '1px solid transparent',
+                  })}>{item.label}</NavLink>)}
+              </div>
+            </details>)}
+          </nav>
           <details style={{ marginTop: 4 }}><summary style={{ cursor: 'pointer', padding: '0.75rem', minHeight: 44, fontWeight: 600 }}>Engineering settings</summary><EngineeringSimSettings /></details>
-          <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: `1px solid ${t.color.surface.card}` }}>
-            <div style={{ color: t.color.status.success, marginBottom: 4 }}>● Trust Fabric Active</div>
+          <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: '1px solid #dce8e6' }}>
+            <div style={{ color: '#205a63', marginBottom: 4 }}>● Trust Fabric Active</div>
             <div>Technology informs.</div>
             <div>Humans decide.</div>
             <div style={{ marginTop: 6 }}>Public scope: community river valley. No private property is an engineering anchor.</div>
@@ -124,7 +157,7 @@ export default function RootLayout() {
             </div>
           </div>
         </aside>
-        <main id="main-content" tabIndex={-1} style={{ flex: 1, overflow: 'auto', background: t.color.surface.base, minWidth: 0 }}>
+        <main id="main-content" tabIndex={-1} style={{ flex: 1, overflow: 'auto', background: '#f8fafc', minWidth: 0 }}>
           <div style={{ padding: '0.75rem 1rem 0' }}><StageAuthorityBanner provisional={provisional} isSimulationDemo={false} verticalReference="GAGE_DATUM" conversionApplied={stage?.conversion_applied ?? false} disclaimer={stageDisclaimer} finding={stage?.qualifier === 'P' ? `USGS qualifier P — subject to revision. Discharge: ${stage.discharge_cfs ?? 'unavailable'} cfs.` : undefined} /></div>
           <Outlet />
         </main>
