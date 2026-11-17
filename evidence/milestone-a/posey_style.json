@@ -1,0 +1,31 @@
+{
+  "color": {
+    "conditions": [
+      [
+        "${match_status} === 'CONFLICT'",
+        "color('#b91c1c')"
+      ],
+      [
+        "${match_status} === 'MATCHED_VERIFIED' && ${height_source} === 'OBSERVED'",
+        "color('#16866a')"
+      ],
+      [
+        "${match_status} === 'MATCHED_VERIFIED' && ${height_source} === 'DERIVED'",
+        "color('#3b82b6')"
+      ],
+      [
+        "${match_status} === 'POSSIBLE_MATCH'",
+        "color('#d19a36')"
+      ],
+      [
+        "${match_status} === 'UNMATCHED'",
+        "color('#93a4b9')"
+      ],
+      [
+        "true",
+        "color('#e2e8f0')"
+      ]
+    ]
+  },
+  "show": true
+}

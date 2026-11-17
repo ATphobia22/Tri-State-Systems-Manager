@@ -1,0 +1,28 @@
+name: Milestone A Evidence Integrity
+on:
+  pull_request:
+    paths:
+      - 'evidence/milestone-a/**'
+      - 'scripts/evidence/freeze_milestone_a.py'
+      - 'tests/test_milestone_a_evidence.py'
+      - '.github/workflows/milestone-a-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'evidence/milestone-a/**'
+      - 'scripts/evidence/freeze_milestone_a.py'
+      - 'tests/test_milestone_a_evidence.py'
+      - '.github/workflows/milestone-a-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-milestone-a-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 repository-pinned action
+      - name: Validate manifest and no fabricated checksum
+        run: python3 scripts/evidence/freeze_milestone_a.py --lint
+      - name: Test complete synthetic freeze, exact identity join and tamper rejection
+        run: python3 -m unittest discover -s tests -p 'test_milestone_a_evidence.py' -v

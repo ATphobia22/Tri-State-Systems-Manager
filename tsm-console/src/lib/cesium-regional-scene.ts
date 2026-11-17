@@ -9,7 +9,7 @@ import {
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
-import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
+import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset, type TerrainPreviewSource } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -159,7 +159,9 @@ export function mountCesiumRegionalScene(
   const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false };
   let terrain: CesiumTerrainProvider | undefined;
   let worldTerrain: CesiumTerrainProvider | undefined;
-  let terrainSource: 'local' | 'world' = 'local';
+  let candidateTerrain: CesiumTerrainProvider | undefined;
+  let terrainRequest = 0;
+  let terrainSource: TerrainPreviewSource = 'local';
   const ellipsoid = new EllipsoidTerrainProvider();
   let buildings: Cesium3DTileset | undefined;
   let osmBuildings: Cesium3DTileset | undefined;
@@ -370,7 +372,7 @@ export function mountCesiumRegionalScene(
       }
       if (layer === 'terrain') {
         widget.terrainProvider = show
-          ? (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid : ellipsoid;
+          ? (terrainSource === 'world' ? worldTerrain : terrainSource === 'candidate2426648' ? candidateTerrain : terrain) ?? ellipsoid : ellipsoid;
       }
       if (layer === 'buildings' && buildings) buildings.show = show;
       if (layer === 'osmContext') {
@@ -395,23 +397,34 @@ export function mountCesiumRegionalScene(
       }
       scene.requestRender();
     },
-    async setTerrainSource(source: 'local' | 'world') {
-      if (source === 'world' && !ionToken) throw new Error('Cesium ion token not configured');
-      const previous = terrainSource;
-      terrainSource = source;
+    async setTerrainSource(source: TerrainPreviewSource): Promise<boolean> {
+      if (source !== 'local' && !ionToken) throw new Error('Cesium ion token not configured');
+      const generation = ++terrainRequest;
       try {
         if (source === 'world' && !worldTerrain) {
-          worldTerrain = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
-          if (stopped || terrainSource !== source) return;
+          const provider = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.worldTerrain);
+          if (stopped || generation !== terrainRequest) return false;
+          worldTerrain = provider;
         }
+        if (source === 'candidate2426648' && !candidateTerrain) {
+          // Preview only: this asset has no verified county coverage, license or NAVD88 receipt.
+          const provider = await CesiumTerrainProvider.fromIonAssetId(ION_CATALOG.terrainCandidate2426648);
+          if (stopped || generation !== terrainRequest) return false;
+          candidateTerrain = provider;
+        }
+        if (stopped || generation !== terrainRequest) return false;
+        terrainSource = source;
         if (visibility.terrain) {
-          widget.terrainProvider = (terrainSource === 'world' ? worldTerrain : terrain) ?? ellipsoid;
+          widget.terrainProvider = (source === 'world' ? worldTerrain
+            : source === 'candidate2426648' ? candidateTerrain : terrain) ?? ellipsoid;
         }
         if (source === 'world') update('terrain', 'ready', 'Cesium World Terrain · online contextual elevation');
+        else if (source === 'candidate2426648') update('terrain', 'ready', 'ion 2426648 · UNVERIFIED terrain preview; no engineering datum established');
         else if (terrain) update('terrain', 'ready', 'USGS 3DEP · local source-derived terrain');
         scene.requestRender();
+        return true;
       } catch (error) {
-        terrainSource = previous;
+        // Keep the previous terrain visible; do not let stale failures reset newer selections.
         throw error;
       }
     },
