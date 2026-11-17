@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from datetime import datetime, timezone
 from typing import Any
 
 _FLAGS = (
@@ -39,7 +40,7 @@ def _digest(file: Path) -> str:
 
 
 def _is_amd64_pe(file: Path) -> bool:
-    if not file.is_file() or file.stat().st_size < 4096:
+    if file.is_symlink() or not file.is_file() or file.stat().st_size < 4096:
         return False
     with file.open("rb") as handle:
         header = handle.read(4096)
@@ -66,7 +67,7 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
         result["reason"] = "Shipping binary is not a nonempty PE32+ AMD64 executable"
         return result
     try:
-        if receipt_path.stat().st_size > 256 * 1024:
+        if receipt_path.is_symlink() or receipt_path.stat().st_size > 256 * 1024:
             raise ValueError("Acceptance receipt exceeds size limit")
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
         if not isinstance(receipt, dict):
@@ -76,14 +77,18 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
         if receipt.get("classification") != "INDEPENDENTLY_ACCEPTED" or receipt.get("humanReviewRequired") is not False:
             raise ValueError("Smoke/process startup alone is not independently accepted")
         review = receipt.get("independentReview")
-        if not isinstance(review, dict) or not str(review.get("reviewer", "")).strip() or not str(review.get("reviewedAtUtc", "")).strip():
+        if not isinstance(review, dict) or not isinstance(review.get("reviewer"), str) or not review["reviewer"].strip() or not isinstance(review.get("reviewedAtUtc"), str):
             raise ValueError("Independent reviewer and UTC review date are required")
+        reviewed_at = datetime.fromisoformat(review["reviewedAtUtc"].replace("Z", "+00:00"))
+        if reviewed_at.tzinfo is None or reviewed_at.astimezone(timezone.utc) > datetime.now(timezone.utc):
+            raise ValueError("Independent review timestamp must be offset-aware and not future-dated")
         if receipt.get("engineVersion") != "5.8":
             raise ValueError("Exact UE5.8 version evidence is required")
         source = receipt.get("sourceCommit")
         if not isinstance(source, str) or not _SOURCE_SHA.fullmatch(source):
             raise ValueError("Immutable source commit is required")
-        if receipt.get("executableSha256", "").lower() != _digest(shipping_exe):
+        exe_checksum = receipt.get("executableSha256")
+        if not isinstance(exe_checksum, str) or exe_checksum.lower() != _digest(shipping_exe):
             raise ValueError("Installed Shipping PE SHA-256 differs from reviewed receipt")
         missing = [name for name in _FLAGS if receipt.get(name) is not True]
         if missing:
@@ -101,7 +106,7 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
             if not isinstance(digest, str) or not _SHA256.fullmatch(digest):
                 raise ValueError(f"Invalid {name} SHA-256")
             file = (root / entry["path"]).resolve()
-            if not file.is_relative_to(root) or not file.is_file() or file.stat().st_size == 0:
+            if not file.is_relative_to(root) or file.is_symlink() or not file.is_file() or file.stat().st_size == 0:
                 raise ValueError(f"Missing or unsafe {name} artifact")
             if _digest(file) != digest.lower():
                 raise ValueError(f"Hash mismatch for {name}")
@@ -119,7 +124,7 @@ def assess_shipping_acceptance(shipping_exe: Path | None, receipt_path: Path | N
                 or not re.search(r"clientconfig[=:\s]+Shipping", build_log, re.I)):
             raise ValueError("BuildCookRun log does not bind source, Shipping, and UAT exit 0")
         manifest = json.loads(accepted["stagedDataManifest"].read_text(encoding="utf-8"))
-        if manifest.get("schemaVersion") != 1 or manifest.get("integrity") != "sha256" or not manifest.get("files"):
+        if not isinstance(manifest, dict) or manifest.get("schemaVersion") != 1 or manifest.get("integrity") != "sha256" or not isinstance(manifest.get("files"), list) or not manifest["files"]:
             raise ValueError("Staged native data integrity manifest is not valid")
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
         result["reason"] = str(error)
