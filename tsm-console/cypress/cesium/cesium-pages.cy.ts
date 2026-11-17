@@ -107,7 +107,9 @@ describe('Public Cesium 4D view on the project Pages base', () => {
   it('supports IN/IL/KY camera selection on a mobile Pages viewport', () => {
     cy.viewport(390, 844);
     cy.visit('atlas/');
-    cy.get('#tsm-atlas-region').should('exist');
+    cy.get('button[aria-controls="tsm-atlas-layer-drawer"]').should('have.attr', 'aria-expanded', 'false').click();
+    cy.get('button[aria-controls="tsm-atlas-layer-drawer"]').should('have.attr', 'aria-expanded', 'true');
+    cy.get('#tsm-atlas-region').should('be.visible');
     cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
 
     cy.get('#tsm-atlas-region').select('shawneetown');
