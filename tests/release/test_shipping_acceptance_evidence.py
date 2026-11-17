@@ -14,7 +14,7 @@ def synthetic_amd64_pe(path: Path) -> None:
     data = bytearray(4096)
     data[:2] = b"MZ"
     data[0x3c:0x40] = (128).to_bytes(4, "little")
-    data[128:132] = b"PE\\x00\\x00"
+    data[128:132] = b"PE\x00\x00"
     data[132:134] = (0x8664).to_bytes(2, "little")
     data[152:154] = (0x20b).to_bytes(2, "little")
     path.write_bytes(data)
