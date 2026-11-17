@@ -85,7 +85,7 @@ export default function PagesUSGSGaugeReader(): JSX.Element {
         setStatus('Received a source-labeled USGS observation. Stage is on its original gage reference, not NAVD88.');
       }
     } catch (e: unknown) {
-      setStatus(`Live USGS request unavailable: ${e instanceof Error ? e.message : String(e)}. No observation is inferred.`);
+      setStatus(`Live USGS request unavailable: ${e instanceof Error ? e.message : String(e)}. No observation is inferred. If your browser blocks this request, use the official station dashboard link below.`);
     } finally {
       clearTimeout(timeout);
       setBusy(false);
@@ -116,6 +116,7 @@ export default function PagesUSGSGaugeReader(): JSX.Element {
       </dl>
       <a href={reading.sourceUrl} target="_blank" rel="noopener noreferrer">Inspect exact USGS data request</a>
     </article>}
+    {station && <p><a href={`https://waterdata.usgs.gov/monitoring-location/USGS-${station.stationId}/`} target="_blank" rel="noopener noreferrer">Open official USGS station dashboard</a> if the live browser request is unavailable.</p>}
     <p className="tsm-atlas-note">No automatic refresh. “Latest” depends on station telemetry; confirm timestamp and provisional approval before interpreting.</p>
   </section>;
 }

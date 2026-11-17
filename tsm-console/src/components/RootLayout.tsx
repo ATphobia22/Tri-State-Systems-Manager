@@ -12,7 +12,8 @@ import BackgroundMusic from './BackgroundMusic';
 
 const nav = [
   { to: '/atlas', label: '4D Engineering Atlas' },
-  { to: '/', label: 'Memorial', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/experiences', label: 'Experiences' },
+  { to: '/memorial', label: 'Memorial', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/experiences', label: 'Experiences' },
+  { to: '/cinematic', label: '3D Cinema' }, { to: '/cesium', label: 'Cesium 3D' },
   { to: '/cinematic-engineering', label: 'Cinema Eng' }, { to: '/workspaces', label: 'Workspaces' },
   { to: '/river-watch', label: 'River Watch' },
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
@@ -24,9 +25,9 @@ const nav = [
 
 const navGroups = [
   { title: 'Explore the River Valley', routes: ['/atlas', '/map', '/globe', '/terrain-3d', '/twin', '/digital-twin-v2'] },
-  { title: 'Engineering & Simulation', routes: ['/engineering-section', '/flood-sim', '/cinematic-engineering', '/river-watch', '/eoc'] },
+  { title: 'Engineering & Simulation', routes: ['/engineering-section', '/flood-sim', '/cinematic', '/cesium', '/cinematic-engineering', '/river-watch', '/eoc'] },
   { title: 'Data & Evidence', routes: ['/data-fabric', '/lineage', '/ledger', '/architecture'] },
-  { title: 'Community & Platform', routes: ['/', '/experiences', '/workspaces', '/needs', '/benefit', '/platform'] },
+  { title: 'Community & Platform', routes: ['/memorial', '/experiences', '/workspaces', '/needs', '/benefit', '/platform'] },
 ] as const;
 
 const SHELL_CSS = `

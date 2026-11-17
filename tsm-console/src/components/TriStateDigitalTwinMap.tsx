@@ -246,6 +246,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapToolsOpen, setMapToolsOpen] = useState(false);
   const [internalVisible, setInternalVisible] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
   const lightPreset = props.lightPreset ?? 'day';
   const lightPresetRef = useRef(lightPreset);
@@ -858,6 +859,13 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   return (
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      {!props.hideSidebar && <button type="button" aria-controls="tsm-map-plane-tools" aria-expanded={mapToolsOpen}
+        onClick={() => setMapToolsOpen((open) => !open)}
+        style={{ position: 'absolute', zIndex: 19, top: 12, left: 12, minHeight: 44, padding: '9px 14px',
+          color: '#f8fafc', background: 'rgba(5,8,15,.92)', border: '1px solid #64748b', borderRadius: 10,
+          fontWeight: 700, cursor: 'pointer' }}>
+        {mapToolsOpen ? 'Hide map layers' : 'Show map layers'}
+      </button>}
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
       {props.regionalAtlas && <details className="tsm-civic-site-index">
         <summary>Explore historic &amp; natural places ({siteIndex.length})</summary>
@@ -912,8 +920,8 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           <button type="button" onClick={() => setPicked(null)} aria-label="Dismiss selection" style={{ marginLeft: 10, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>×</button>
         </div>
       )}
-      {!props.hideSidebar && (
-      <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
+      {!props.hideSidebar && mapToolsOpen && (
+      <aside id="tsm-map-plane-tools" style={{ position: 'absolute', zIndex: 18, top: 62, left: 12, width: 'min(360px, calc(100% - 24px))', maxHeight: 'calc(100% - 74px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
           {terrainEnabled ? '● TERRAIN-RGB ONLINE' : '● TERRAIN-RGB RESILIENT'}

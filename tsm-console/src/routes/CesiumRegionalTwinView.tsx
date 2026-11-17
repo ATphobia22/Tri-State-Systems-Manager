@@ -259,6 +259,14 @@ export default function CesiumRegionalTwinView() {
           <Link to="/cinematic-engineering">Engineering</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/photorealistic-3d">Photorealistic 3D (opt-in)</Link>
+          <button type="button" className="tsm-cesium-tools-toggle" data-testid="cesium-buildings-quick-toggle"
+            disabled={!ready} aria-pressed={Boolean(visible.buildings)} onClick={() => {
+              const next = !visible.buildings;
+              setVisible((current) => ({ ...current, buildings: next, ...(next ? { osmContext: false } : {}) }));
+              scene.current?.setLayer('buildings', next);
+            }}>{visible.buildings ? 'Hide Posey buildings' : 'Show Posey buildings'}</button>
+          <button type="button" className="tsm-cesium-tools-toggle" disabled={!ready || reducedMotion}
+            onClick={startTour}>{tour ? 'Stop 3D flyover' : 'Play 3D flyover'}</button>
           <button type="button" className="tsm-cesium-tools-toggle" data-testid="cesium-tools-toggle"
             aria-controls="tsm-cesium-tools" aria-expanded={toolsOpen}
             onClick={() => setToolsOpen((open) => !open)}>
@@ -272,6 +280,7 @@ export default function CesiumRegionalTwinView() {
             onPointerDown={() => setShotPlayStart(null)} />
           <div className="tsm-cesium-place">
             <strong>{CESIUM_VIEWS[place]?.name}</strong>
+            <small>Posey buildings: {status.buildings?.state === 'unavailable' ? 'source unavailable' : visible.buildings ? 'requested / see status' : 'hidden'} · Cesium OSM buildings: {ION_ENABLED ? 'select in Map layers with authorized token' : 'requires configured ion token'}</small>
             {picked && <p>{picked.title}<small>{picked.detail}</small></p>}
           </div>
           {(graphicsPaused || error) && <div className="tsm-cesium-error" role="alert">

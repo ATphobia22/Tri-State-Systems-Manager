@@ -73,8 +73,8 @@ export default function TriStateAtlasView(): JSX.Element {
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
   const [scenarioOpen, setScenarioOpen] = useState(false);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
   const [largeType, setLargeType] = useState(false);
   const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
   const proposalOverlay = useMemo(() => {
@@ -152,6 +152,7 @@ export default function TriStateAtlasView(): JSX.Element {
           <Link to="/river-watch">River Watch</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/cinematic">Cinematic view</Link>
+          <Link to="/memorial">In loving memory</Link>
           <Link to="/spatial-planes">Regional spatial fabric</Link>
         </div>
       </div>
