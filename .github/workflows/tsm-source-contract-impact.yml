@@ -1,0 +1,38 @@
+name: TSM Source Contract Impact Research
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/government/source_contract_impact.py'
+      - 'data/acquisitions/tsm-data-plane-integration-v1.json'
+      - 'tests/government/test_source_contract_impact.py'
+      - 'docs/research/MICROSOFT-ECOSYSTEM-COMPOSITION-2026-11-16.md'
+      - '.github/workflows/tsm-source-contract-impact.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  advisory-source-contract-unit-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Test bounded catalog comparison including native TSM catalog
+        run: python -m unittest discover -s tests/government -p test_source_contract_impact.py -v
+      - name: Generate advisory snapshot comparison (not external verification)
+        run: |
+          python scripts/government/source_contract_impact.py \
+            --before data/schemas/tsm-indiana-data-catalog-v1.json \
+            --after data/schemas/tsm-indiana-data-catalog-v1.json \
+            --plane-map data/acquisitions/tsm-data-plane-integration-v1.json \
+            --output dist/research/source-contract-advisory.json
+      - name: Upload source comparison evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-source-contract-impact-advisory
+          path: dist/research/source-contract-advisory.json
+          if-no-files-found: error
