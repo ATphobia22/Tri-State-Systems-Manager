@@ -1,6 +1,6 @@
 import {
   ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, Cesium3DTileStyle, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
-  Color, ColorGeometryInstanceAttribute, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
+  Color, ColorGeometryInstanceAttribute, createOsmBuildingsAsync, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
   Ion, IonImageryProvider, type ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
@@ -9,7 +9,7 @@ import {
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
-import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
+import { BUILDING_SCREEN_SPACE_ERROR, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -163,6 +163,7 @@ export function mountCesiumRegionalScene(
   const ellipsoid = new EllipsoidTerrainProvider();
   let buildings: Cesium3DTileset | undefined;
   let osmBuildings: Cesium3DTileset | undefined;
+  let osmOriginalStyle: Cesium3DTileStyle | undefined;
   let osmRequested = false;
   let imageryRequest = 0;
   let ionImagery: ImageryLayer | undefined;
@@ -254,13 +255,16 @@ export function mountCesiumRegionalScene(
     osmRequested = true;
     update('osmContext', 'loading', 'Fetching Cesium OSM contextual buildings');
     try {
-      const tileset = await Cesium3DTileset.fromIonAssetId(ION_CATALOG.osmBuildings, {
+      // Cesium's dedicated factory applies curated OSM default colors from tags.
+      // fromIonAssetId(96188) lacks that documented default-style setup.
+      const tileset = await createOsmBuildingsAsync({
         maximumScreenSpaceError: BUILDING_SCREEN_SPACE_ERROR[detailLevel],
       });
       if (stopped) { tileset.destroy(); return; }
+      osmOriginalStyle = tileset.style;
       osmBuildings = scene.primitives.add(tileset) as Cesium3DTileset;
       const initialRules = osmBuildingStyleRules(osmStyleMode);
-      osmBuildings.style = initialRules ? new Cesium3DTileStyle(initialRules) : undefined;
+      osmBuildings.style = initialRules ? new Cesium3DTileStyle(initialRules) : osmOriginalStyle;
       osmBuildings.show = visibility.osmContext;
       update('osmContext', 'ready', 'Cesium OSM Buildings · online context, not reviewed Posey LoD2');
       scene.requestRender();
@@ -388,7 +392,7 @@ export function mountCesiumRegionalScene(
       osmStyleMode = mode;
       if (osmBuildings) {
         const rules = osmBuildingStyleRules(mode);
-        osmBuildings.style = rules ? new Cesium3DTileStyle(rules) : undefined;
+        osmBuildings.style = rules ? new Cesium3DTileStyle(rules) : osmOriginalStyle;
       }
       scene.requestRender();
     },
