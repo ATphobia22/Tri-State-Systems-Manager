@@ -253,6 +253,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const controlled = props.visible !== undefined;
   const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
+  const [mapToolsOpen, setMapToolsOpen] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
@@ -912,8 +913,15 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           <button type="button" onClick={() => setPicked(null)} aria-label="Dismiss selection" style={{ marginLeft: 10, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>×</button>
         </div>
       )}
-      {!props.hideSidebar && (
-      <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
+      {!props.hideSidebar && <button
+        type="button" aria-controls="tsm-maplibre-layer-controls" aria-expanded={mapToolsOpen}
+        aria-label={mapToolsOpen ? 'Hide 3D map layers and settings' : 'Show 3D map layers and settings'}
+        onClick={() => setMapToolsOpen((open) => !open)}
+        style={{ position: 'absolute', zIndex: 20, top: 12, left: 12, minHeight: 44, padding: '8px 14px', background: '#fff', color: '#17324d', border: '1px solid #9cbac4', borderRadius: 9, fontWeight: 800, cursor: 'pointer' }}>
+        {mapToolsOpen ? 'Hide 3D layers' : 'Show 3D layers'}
+      </button>}
+      {!props.hideSidebar && mapToolsOpen && (
+      <aside id="tsm-maplibre-layer-controls" aria-label="MapLibre 3D layers and map settings" style={{ position: 'absolute', top: 65, left: 12, width: 'min(360px, calc(100% - 24px))', maxHeight: 'calc(100% - 78px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)', zIndex: 19 }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
           {terrainEnabled ? '● TERRAIN-RGB ONLINE' : '● TERRAIN-RGB RESILIENT'}
