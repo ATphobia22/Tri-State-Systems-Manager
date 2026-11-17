@@ -508,16 +508,16 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       )}
       <details aria-label="Map layers, data and engineering tools" style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, width: 'min(480px, calc(100% - 24px))', border: '1px solid #cadbd9', borderRadius: 12, background: '#ffffff', color: '#17324d', fontSize: 12, lineHeight: 1.5, boxShadow: '0 6px 24px rgba(23,50,77,.14)' }}>
         <summary style={{ padding: '12px 14px', cursor: 'pointer', minHeight: 44, fontWeight: 700, color: '#205a63' }}>Layers, evidence &amp; map tools</summary>
-        <div style={{ maxHeight: 'min(72dvh, 720px)', overflowY: 'auto', padding: 12, borderRadius: '0 0 12px 12px', background: 'rgba(2,6,23,.96)', color: '#e2e8f0' }}>
+        <div style={{ maxHeight: 'min(72dvh, 720px)', overflowY: 'auto', padding: 12, borderRadius: '0 0 12px 12px', background: '#ffffff', color: '#17324d' }}>
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery \u00b7 USGS 3DEP hillshade (visualization DERIVED)</div>
         <div>FEMA NFHL: effective / insurance \u00b7 Indiana BAFM: planning / Flood Control Act \u00b7 NOAA/NWS: alerts/radar context only</div>
-        <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#fbbf24' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT \u00b7 Visualization/model context only; not a regulatory determination.</div>
+        <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#895a00' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT \u00b7 Visualization/model context only; not a regulatory determination.</div>
         <div role="status" aria-live="polite" aria-label="Government snapshot provenance"
-          style={{ marginTop: 8, padding: '8px 10px', background: 'rgba(15,23,42,.95)', borderRadius: 8,
+          style={{ marginTop: 8, padding: '8px 10px', background: '#f8fafc', borderRadius: 8,
             border: '1px solid rgba(251,191,36,.35)', overflowWrap: 'anywhere' }}>
-          <strong style={{ color: governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT' ? '#86efac'
-            : governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK' ? '#fbbf24' : '#cbd5e1' }}>
+          <strong style={{ color: governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT' ? '#216a4e'
+            : governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK' ? '#fbbf24' : '#526879' }}>
             {governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK'
               ? 'HISTORICAL GOVERNMENT SNAPSHOT — NOT LIVE'
               : governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT'
@@ -533,7 +533,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
               <div><strong>Retrieved:</strong> {governmentScene.capturedAt ?? 'Not evidenced'} · <strong>Source version:</strong> {governmentScene.sourceVersion ?? 'Not evidenced'}</div>
               <div><strong>Archive integrity:</strong> {governmentScene.archiveBytesVerified ? 'Runtime SHA-256 verified' : 'Build-pinned Merkle receipt; runtime bytes not independently hashed'} · <strong>Field validation:</strong> {governmentScene.validation ?? 'Not evidenced'}</div>
               {governmentScene.source && <a href={governmentScene.source} target="_blank" rel="noopener noreferrer"
-                style={{ color: '#93c5fd' }}>Source record / provenance</a>}
+                style={{ color: '#205a63' }}>Source record / provenance</a>}
               <details style={{ marginTop: 4 }}>
                 <summary>Exact provenance digests</summary>
                 <div>Archive SHA-256: <code>{governmentScene.tilesSha256}</code></div>
@@ -542,23 +542,23 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
               </details>
             </>
           )}
-          <div style={{ color: '#fbbf24' }}>Snapshot display is not a new FEMA determination, live observation, surveyed control or engineering approval.</div>
+          <div style={{ color: '#895a00' }}>Snapshot display is not a new FEMA determination, live observation, surveyed control or engineering approval.</div>
         </div>
 
-        <details style={{ marginTop: 10, marginBottom: 8, padding: 8, border: '1px solid #334155', borderRadius: 8 }}>
+        <details style={{ marginTop: 10, marginBottom: 8, padding: 8, border: '1px solid #cadbd9', borderRadius: 8 }}>
           <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Open-world structural planes (12) · runtime evidence</summary>
-          <div role="note" style={{ color: '#fbbf24', margin: '6px 0' }}>
+          <div role="note" style={{ color: '#895a00', margin: '6px 0' }}>
             Layer registration proves neither successful source download nor surveyed/engineering accuracy.
             Missing planes stay explicitly unavailable; cinematic outputs cannot become evidence.
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {openWorldPlanes.map(entry => (
-              <div key={entry.plane.id} style={{ padding: '5px 7px', background: '#0f172a', borderRadius: 4 }}>
+              <div key={entry.plane.id} style={{ padding: '5px 7px', background: '#eef4f5', borderRadius: 4 }}>
                 <div><strong>{String(entry.plane.index).padStart(2, '0')} · {entry.plane.title}</strong></div>
                 <div style={{ color: entry.readiness === 'NOT_RENDERED' || entry.readiness === 'SOURCE_UNAVAILABLE' ? '#fbbf24' : '#93c5fd' }}>
                   {entry.plane.authority} · {entry.readiness}
                 </div>
-                <div style={{ color: '#94a3b8' }}>{entry.plane.limitation}</div>
+                <div style={{ color: '#526879' }}>{entry.plane.limitation}</div>
               </div>
             ))}
           </div>
@@ -596,9 +596,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           stations={multiStations}
         />
 
-        <details style={{ marginTop: 10, border: '1px solid #334155', borderRadius: 8, padding: 8 }}>
+        <details style={{ marginTop: 10, border: '1px solid #cadbd9', borderRadius: 8, padding: 8 }}>
           <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Map overlays and camera controls</summary>
-          <p style={{ color: '#94a3b8', margin: '6px 0' }}>Turn reference layers on or off; requests occur only after enabling them.</p>
+          <p style={{ color: '#526879', margin: '6px 0' }}>Turn reference layers on or off; requests occur only after enabling them.</p>
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((v) => !v), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
@@ -629,9 +629,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
                 minHeight: 44,
                 padding: '0.5rem 0.9rem',
                 borderRadius: 8,
-                border: '1px solid #1e293b',
-                background: btn.pressed ? 'rgba(56,189,248,0.18)' : '#020617',
-                color: btn.pressed ? '#38bdf8' : '#94a3b8',
+                border: '1px solid #cadbd9',
+                background: btn.pressed ? '#dcefeb' : '#ffffff',
+                color: btn.pressed ? '#205a63' : '#526879',
                 fontWeight: 600,
                 fontSize: 12,
                 cursor: 'pointer',
@@ -641,14 +641,14 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
-        <div aria-live="polite" style={{ marginTop: 8, color: '#cbd5e1' }}>
+        <div aria-live="polite" style={{ marginTop: 8, color: '#526879' }}>
           {(['parcels', 'roads', 'buildings'] as const).map(kind => (
             <div key={kind}>IGIO {kind}: {indianaStates[kind]?.status ?? 'DISABLED'}
               {indianaStates[kind]?.count ? ` · ${indianaStates[kind]?.count} features` : ''}
               {' · '}{indianaStates[kind]?.detail ?? 'Opt-in, bounded 2D reference geometry; zoom 14+ required.'}
             </div>
           ))}
-          <div style={{ color: '#fbbf24' }}>IGIO coverage is Indiana only; no IL/KY parcel, road or building completeness is implied.</div>
+          <div style={{ color: '#895a00' }}>IGIO coverage is Indiana only; no IL/KY parcel, road or building completeness is implied.</div>
         </div>
         </details>
         {evidenceLensVisible && (
@@ -658,14 +658,14 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             tiles={{ enabled: tiles3DVisible, status: tiles3DStatus }}
           />
         )}
-        <div style={{ marginTop: 6, color: '#86efac' }}>
+        <div style={{ marginTop: 6, color: '#216a4e' }}>
           Live water: button-only by default; opt-in session shadow available (auto-stops). Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. Facility dashboard = screening context, not SCADA. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
         {tiles3DVisible && (
-          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
+          <div style={{ marginTop: 6, color: '#526879' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
         )}
         {buildingTiles3DVisible && (
-          <div style={{ marginTop: 6, color: '#fbbf24' }}>
+          <div style={{ marginTop: 6, color: '#895a00' }}>
             3D buildings: LiDAR-derived pilot tile subset · tileset state: {buildingTiles3DStatus}.
             No claim of all 23,082 identities, LoD2–4 acceptance, verified vertical datum or complete Posey coverage.
           </div>
