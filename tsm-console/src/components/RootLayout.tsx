@@ -12,7 +12,7 @@ import BackgroundMusic from './BackgroundMusic';
 
 const nav = [
   { to: '/atlas', label: '4D Engineering Atlas' },
-  { to: '/memorial', label: 'Beverly Ann Tucker Memorial' }, { to: '/architecture', label: 'Trust Planes' }, { to: '/experiences', label: 'Experiences' },
+  { to: '/memorial', label: 'Beverly Ann Tucker Memorial', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/experiences', label: 'Experiences' },
   { to: '/cinematic-engineering', label: 'Cinema Eng' }, { to: '/workspaces', label: 'Workspaces' },
   { to: '/river-watch', label: 'River Watch' },
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
