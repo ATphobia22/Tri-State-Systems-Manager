@@ -5,11 +5,37 @@ import unittest
 
 import numpy as np
 
-from build_cesium_regional_scene import POSTS, river_access_elevation
+from build_cesium_regional_scene import POSTS, river_access_elevation, write_screening_png
 from verify_cesium_regional_scene import verify_terrain_level
 
 
 class CityScreeningTests(unittest.TestCase):
+    def test_visual_raster_matches_exact_connected_cells_without_extra_dependencies(self):
+        # A transparent, bounded Cesium single image must encode precisely the
+        # same connected-cell mask as the audited GeoJSON polygon archive.
+        import rasterio
+        mask = np.array([[True, False, True], [False, True, False]], dtype=bool)
+        with TemporaryDirectory() as temporary:
+            image = Path(temporary) / "screening.png"
+            write_screening_png(image, mask)
+            self.assertEqual(image.read_bytes()[:8], b"\x5c\x78\x38\x39PNG\x5c\x72\x5c\x6e\x5c\x78\x31\x61\x5c\x6e")
+            with rasterio.open(image) as dataset:
+                self.assertEqual((dataset.width, dataset.height, dataset.count), (3, 2, 4))
+                bands = dataset.read()
+                np.testing.assert_array_equal(bands[3] > 0, mask)
+                np.testing.assert_array_equal(bands[3], mask.astype(np.uint8) * 136)
+                self.assertTrue((bands[0] == 35).all())
+                self.assertTrue((bands[1] == 186).all())
+                self.assertTrue((bands[2] == 242).all())
+
+    def test_screening_raster_rejects_empty_or_non_boolean_masks(self):
+        with TemporaryDirectory() as temporary:
+            out = Path(temporary) / "extent.png"
+            with self.assertRaises(ValueError):
+                write_screening_png(out, np.zeros((0, 4), dtype=bool))
+            with self.assertRaises(ValueError):
+                write_screening_png(out, np.ones((2, 2), dtype=np.uint8))
+
     def test_river_connection_requires_crossing_lowest_ridge_opening(self):
         elevation = np.array([[2, 9, 3], [2, 5, 3], [2, 9, 3]])
         seed = np.zeros_like(elevation, dtype=bool)
