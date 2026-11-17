@@ -131,7 +131,12 @@ test('Pages deep links preserve the Beverly Ann Tucker memorial and map entry po
   assert.match(workflow, /dist\/cinematic\/index.html/);
   const main = read('src/main.tsx');
   assert.match(main, /import '\.\/routes\/CesiumRegionalTwinView\.css'/);
+  assert.match(main, /import 'cesium\/Build\/Cesium\/Widgets\/widgets\.css'/);
+  const route = read('src/routes/CesiumRegionalTwinView.tsx');
+  assert.doesNotMatch(route, /import 'cesium\/Build\/Cesium\/Widgets\/widgets\.css'/);
+  assert.doesNotMatch(route, /import '\.\/CesiumRegionalTwinView\.css'/);
   assert.match(workflow, /CesiumRegionalTwinView stylesheet missing from eager entry CSS/);
+  assert.match(workflow, /Lazy Cesium CSS chunk must not be emitted/);
 });
 
 test('Atlas defaults to a visible map, not two expanded control columns', () => {

@@ -1,6 +1,5 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { FILM_PREVIEW_FPS, FILM_SHOTS, lastShotFrame, sampleShotCamera } from '../lib/cesium-film-shots';
 import {
   CESIUM_VIEWS, loadCesiumReplay, loadCityScreening, mountCesiumRegionalScene, REPLAY_DATES,
@@ -8,7 +7,6 @@ import {
 } from '../lib/cesium-regional-scene';
 import { type IonImageryPreset, type BuildingPreviewDetail } from '../lib/cesium-ion-assets';
 import type { OsmBuildingStyle } from '../lib/cesium-osm-building-style';
-import './CesiumRegionalTwinView.css';
 
 const ION_ENABLED = Boolean((import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim());
 
