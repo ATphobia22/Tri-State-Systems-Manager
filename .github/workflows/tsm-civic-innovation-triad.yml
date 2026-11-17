@@ -1,0 +1,49 @@
+name: TSM GeoTruth / Civic Passport / Contract Foundry
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/geotruth_inspector.py'
+      - 'scripts/public_interest/evidence_packet_export.py'
+      - 'scripts/government/contract_foundry.py'
+      - 'tests/innovation/test_triad_products.py'
+      - 'docs/innovation/GEOTRUTH-PASSPORT-CONTRACT-FOUNDRY.md'
+      - '.github/workflows/tsm-civic-innovation-triad.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  headless-civic-innovation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Three integrated offline product regression suites
+        run: python -m unittest discover -s tests/innovation -p test_triad_products.py -v
+      - name: Preserve existing public evidence and source impact contracts
+        run: |
+          python -m unittest discover -s scripts/public_interest -p test_evidence_kit.py -v
+          python -m unittest discover -s tests/government -p test_source_contract_impact.py -v
+      - name: Compile 26-source TSM catalog contracts without network retrieval
+        run: |
+          python scripts/government/contract_foundry.py \
+            --catalog data/schemas/tsm-indiana-data-catalog-v1.json \
+            --plane-map data/acquisitions/tsm-data-plane-integration-v1.json \
+            --output dist/innovation/government-contracts.json
+      - name: Inspect published Posey building QA against archived pinned delta
+        run: |
+          python scripts/geospatial/geotruth_inspector.py \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --pinned-delta data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json \
+            --output dist/innovation/geotruth-posey-qa.json
+      - name: Publish informational code and catalog QA results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-civic-innovation-advisory-artifacts
+          path: dist/innovation/
+          if-no-files-found: error
