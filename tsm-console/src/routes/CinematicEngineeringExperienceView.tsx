@@ -2,7 +2,10 @@
  * Full cinematic engineering experience — wired math, sources, streaming labels,
  * animation timeline, freeboard, gage discipline. PRESENTATION + MODEL_SIMULATION.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router";
+import TriStateDigitalTwinMap from "../components/TriStateDigitalTwinMap";
+import { prefersReducedMotion } from "../lib/reduced-motion";
 import {
   CINEMA_SITE,
   DEFAULT_STREAM_LAYERS,
@@ -18,6 +21,8 @@ import { CINEMATIC_PRESETS } from "../../../packages/geo/src/native/CinematicPro
 export default function CinematicEngineeringExperienceView(): React.JSX.Element {
   const path = useMemo(() => buildEngineeringCinemaPath(), []);
   const [playing, setPlaying] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const stopTourForReducedMotion = useCallback(() => setPlaying(false), []);
   const [tAnim, setTAnim] = useState(0);
   const [preset, setPreset] = useState(CINEMATIC_PRESETS[0].id);
   const raf = useRef<number>(0);
@@ -41,16 +46,29 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
   const activePreset = CINEMATIC_PRESETS.find((p) => p.id === preset) ?? CINEMATIC_PRESETS[0];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", minHeight: "100vh", background: "#070b14", color: "#e2e8f0", fontFamily: "system-ui,sans-serif" }}>
-      <section style={{ position: "relative", borderRight: "1px solid #1e293b" }}>
-        {/* Streaming viewport placeholder — MapLibre/Cesium/UE attach here */}
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "min(85dvh, 850px)", background: "#070b14", color: "#e2e8f0", fontFamily: "system-ui,sans-serif" }}>
+      <header style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "10px 12px", borderBottom: "1px solid #334155" }}>
+        <strong style={{ flex: "1 1 180px" }}>Cinematic Engineering · real regional map</strong>
+        <button type="button" aria-expanded={toolsOpen} aria-controls="tsm-cinematic-engineering-tools"
+          onClick={() => setToolsOpen((open) => !open)} style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>
+          {toolsOpen ? "Hide engineering settings" : "Show engineering settings"}
+        </button>
+        <button type="button" disabled={prefersReducedMotion()} onClick={() => setPlaying((playing) => !playing)}
+          style={{ ...btn, minHeight: 44, padding: "8px 14px" }}>{playing ? "Pause map flyover" : "Play map flyover"}</button>
+        <Link to="/cesium" style={{ color: "#a5e9ff", padding: 10 }}>Cesium cinematic shots &amp; 3D tiles</Link>
+      </header>
+      <div style={{ display: "flex", flexWrap: "wrap", flex: 1, minHeight: 0 }}>
+      <section style={{ position: "relative", flex: "1 1 540px", minWidth: 0, minHeight: "min(75dvh, 790px)", borderRight: "1px solid #1e293b" }}>
+        <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
+          onTourReducedMotion={stopTourForReducedMotion} />
+        {/* The engineering model timeline is displayed OVER the actual map; it is not the rendered camera pose. */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "radial-gradient(ellipse at 50% 60%, #0c4a6e 0%, #020617 55%, #000 100%)",
+            background: "transparent",
             overflow: "hidden",
+            pointerEvents: "none",
           }}
         >
           <div
@@ -68,7 +86,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
               transition: "left 0.05s linear, top 0.05s linear",
             }}
           >
-            <div style={{ color: "#38bdf8", fontWeight: 600 }}>Camera / stream HUD</div>
+            <div style={{ color: "#38bdf8", fontWeight: 600 }}>Illustrative model path · not measured map camera</div>
             <div>lon {sample.lon.toFixed(5)}</div>
             <div>lat {sample.lat.toFixed(5)}</div>
             <div>h {sample.heightM.toFixed(0)} m</div>
@@ -77,7 +95,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
             <div style={{ color: "#94a3b8" }}>{sample.label}</div>
           </div>
           <div style={{ position: "absolute", left: 16, bottom: 16, fontSize: 11, color: "#94a3b8", maxWidth: 420 }}>
-            Terrain-RGB + 3D Tiles/GLB stream via DEFAULT_STREAM_LAYERS. Web: MapLibre/Cesium routes;
+            Real MapLibre regional viewport. Separate computed sample values are illustrative only. Terrain-RGB and 3D Tiles are source-conditional;
             Native: UE World Partition + staged TSMData. SIMULATION_DEMO / DERIVED where labeled.
           </div>
           <div
@@ -98,7 +116,8 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
         </div>
       </section>
 
-      <aside style={{ padding: 16, overflow: "auto" }}>
+      <aside id="tsm-cinematic-engineering-tools" aria-label="Cinematic engineering settings" hidden={!toolsOpen}
+        style={{ flex: "1 1 300px", minWidth: 0, maxWidth: "min(100%, 390px)", maxHeight: "min(85dvh, 900px)", padding: 16, overflow: "auto", background: "#0f172a" }}>
         <h1 style={{ fontSize: 18, margin: "0 0 8px", color: "#38bdf8" }}>Cinematic Engineering</h1>
         <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 0 }}>{CINEMA_SITE.name}</p>
 
@@ -187,6 +206,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
           Phase-4 gates PASS on the TSM Native runner.
         </p>
       </aside>
+      </div>
     </div>
   );
 }

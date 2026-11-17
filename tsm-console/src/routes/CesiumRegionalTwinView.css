@@ -97,3 +97,18 @@
 .tsm-cesium-place { max-width: min(31rem, calc(100% - 1.7rem)); }
 .tsm-cesium-place p { max-height: 24dvh; overflow: hidden; line-height: 1.45; overflow-wrap: anywhere; }
 .tsm-cesium-place small { font-size: 0.78rem; }
+
+.tsm-cesium-map-shortcuts {
+  position: absolute; right: 0.85rem; top: 0.85rem; z-index: 12;
+  display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end;
+  gap: 0.4rem; max-width: min(75%, 25rem);
+}
+.tsm-cesium-map-shortcuts button, .tsm-cesium-map-shortcuts label {
+  background: rgba(248,251,254,0.97); color: #173c50; border: 1px solid #9ab5c0;
+  border-radius: 9px; min-height: 44px; padding: 0.5rem 0.7rem;
+  font: inherit; font-weight: 750; box-shadow: 0 4px 16px #071d2930;
+}
+.tsm-cesium-map-shortcuts button { cursor: pointer; }
+.tsm-cesium-map-shortcuts label { display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+.tsm-cesium-map-shortcuts :focus-visible { outline: 3px solid #0c95bd; outline-offset: 2px; }
+@media(max-width: 530px) { .tsm-cesium-map-shortcuts { top: auto; bottom: 0.75rem; max-width: calc(100% - 1.5rem); } }

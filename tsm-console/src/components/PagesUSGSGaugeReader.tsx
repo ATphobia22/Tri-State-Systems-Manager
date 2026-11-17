@@ -85,7 +85,7 @@ export default function PagesUSGSGaugeReader(): JSX.Element {
         setStatus('Received a source-labeled USGS observation. Stage is on its original gage reference, not NAVD88.');
       }
     } catch (e: unknown) {
-      setStatus(`Live USGS request unavailable: ${e instanceof Error ? e.message : String(e)}. No observation is inferred.`);
+      setStatus(`Live USGS request unavailable: ${e instanceof Error ? e.message : String(e)}. Open the official station link to inspect the source; no observation is inferred.`);
     } finally {
       clearTimeout(timeout);
       setBusy(false);
@@ -100,7 +100,7 @@ export default function PagesUSGSGaugeReader(): JSX.Element {
         {stations.map((s) => <option key={s.stationId} value={s.stationId}>{s.name}</option>)}
       </select>
     </label>
-    {station && <p className="tsm-atlas-note">USGS {station.stationId} · {station.river} · <a href={station.sourceUri} target="_blank" rel="noopener noreferrer">Official monitoring location</a></p>}
+    {station && <p className="tsm-atlas-note">USGS {station.stationId} · {station.river} · <a href={station.sourceUri} target="_blank" rel="noopener noreferrer">Official monitoring location and fallback</a></p>}
     <button className="tsm-atlas-reset" type="button" onClick={() => void getReading()} disabled={busy || !station}>
       {busy ? 'Contacting USGS…' : 'Fetch current gage height (00065)'}
     </button>

@@ -103,6 +103,7 @@ export default function FloodSimulator(): React.JSX.Element {
   const [cutFill, setCutFill] = useState<{ cutFt3: number; fillFt3: number; netFt3: number } | null>(null);
   const [crossSection, setCrossSection] = useState<Array<{ d: number; wse: number; g: number }>>([]);
   const [playingTour, setPlayingTour] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
   // Terrain source: 'auto' resolves the bundled source-derived screening
@@ -626,6 +627,12 @@ export default function FloodSimulator(): React.JSX.Element {
     return undefined;
   }, [scenarioId, buildKey, terrainMode, liveTerrain]);
 
+  // The WebGL camera must be resized after its flex viewport changes width.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    return () => cancelAnimationFrame(id);
+  }, [controlsOpen]);
+
   // -- handlers ---------------------------------------------------------------
   const durationSec = scenario.engine.durationHrs * 3600;
 
@@ -697,7 +704,7 @@ export default function FloodSimulator(): React.JSX.Element {
   const unplacedCount = worldRef.current?.markers.unplaced.length ?? 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'min(82dvh, 880px)', background: '#0b0e12' }}>
       {/* Persistent axiom banner */}
       <div
         role="note"
@@ -734,9 +741,20 @@ export default function FloodSimulator(): React.JSX.Element {
         </div>
       )}
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div role="toolbar" aria-label="Flood workbench map controls" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '9px 12px', background: '#15202c', color: '#f8fafc' }}>
+        <button type="button" aria-expanded={controlsOpen} aria-controls="tsm-flood-controls"
+          onClick={() => setControlsOpen((open) => !open)}
+          style={{ padding: '9px 14px', minHeight: 44, borderRadius: 8, fontWeight: 750, cursor: 'pointer' }}>
+          {controlsOpen ? 'Hide flood settings' : 'Show flood settings'}
+        </button>
+        <button type="button" onClick={handlePlayTour} style={{ padding: '9px 14px', minHeight: 44, borderRadius: 8, cursor: 'pointer' }}>
+          {playingTour ? 'Replay cinematic flythrough' : 'Play cinematic flythrough'}
+        </button>
+        <a href={`${import.meta.env.BASE_URL}river-watch/`} style={{ alignSelf: 'center', color: '#a5e9ff', padding: 8 }}>River gauges</a>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0 }}>
         {/* 3D viewport */}
-        <div style={{ position: 'relative', flex: '1 1 65%', minWidth: 0, background: '#0b0e12' }}>
+        <div style={{ position: 'relative', flex: '1 1 580px', minWidth: 0, minHeight: 'min(70dvh, 780px)', background: '#0b0e12' }}>
           <canvas
             ref={canvasRef}
             role="img"
@@ -779,7 +797,8 @@ export default function FloodSimulator(): React.JSX.Element {
         </div>
 
         {/* Control panel */}
-        <div style={{ flex: '1 1 35%', overflowY: 'auto', padding: 16, background: '#11151b', color: '#dbe2ec', minWidth: 300 }}>
+        <aside id="tsm-flood-controls" aria-label="Flood workbench settings" hidden={!controlsOpen}
+          style={{ flex: '1 1 320px', maxWidth: '100%', maxHeight: 'min(82dvh, 880px)', overflowY: 'auto', padding: 16, background: '#11151b', color: '#dbe2ec', minWidth: 0 }}>
           <h2 style={{ margin: '0 0 4px', fontSize: 18 }}>Level-5 Flood Simulator</h2>
           <p style={{ margin: '0 0 12px', fontSize: 12, color: '#93a0b4' }}>
             Deterministic engine (60 Hz fixed step) · pure WebGL · REST polling only — no streaming transports.
@@ -894,8 +913,8 @@ export default function FloodSimulator(): React.JSX.Element {
                     ` (${Math.round(liveSnapshot.terrainEndpoint.ageSec)}s ago)`}
                 </span>
                 <span>
-                  Gauges: <strong style={{ color: '#ff9d9d' }}>retired</strong>{' '}
-                  <span style={{ color: '#6b7280' }}>(owner decision 2026-09-29: live river data dropped)</span>
+                  Live gauges: <strong style={{ color: '#bce6ff' }}>in River Watch only</strong>{' '}
+                  <span style={{ color: '#94a3b8' }}>(user-triggered official source; not fed into the simulation)</span>
                 </span>
               </div>
             )}
@@ -1036,7 +1055,7 @@ export default function FloodSimulator(): React.JSX.Element {
               This view: <strong>simulation</strong>.
             </div>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

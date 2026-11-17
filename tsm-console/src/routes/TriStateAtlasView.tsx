@@ -73,8 +73,9 @@ export default function TriStateAtlasView(): JSX.Element {
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
   const [scenarioOpen, setScenarioOpen] = useState(false);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
+  const [sceneToolsOpen, setSceneToolsOpen] = useState(false);
   const [largeType, setLargeType] = useState(false);
   const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
   const proposalOverlay = useMemo(() => {
@@ -150,6 +151,7 @@ export default function TriStateAtlasView(): JSX.Element {
         <div className="tsm-atlas-links">
           <Link to="/cesium">Cesium 4D twin</Link>
           <Link to="/river-watch">River Watch</Link>
+          <Link to="/memorial">Beverly Ann Tucker Memorial</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/cinematic">Cinematic view</Link>
           <Link to="/spatial-planes">Regional spatial fabric</Link>
@@ -271,6 +273,11 @@ export default function TriStateAtlasView(): JSX.Element {
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
             </button>
+            <button type="button" className="tsm-atlas-tour" aria-expanded={sceneToolsOpen} aria-controls="tsm-atlas-scene-tools"
+              onClick={() => setSceneToolsOpen((open) => !open)}>
+              {sceneToolsOpen ? 'Hide visual settings' : 'Show visual settings'}
+            </button>
+            {sceneToolsOpen && <div id="tsm-atlas-scene-tools" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', width: '100%' }}>
             <label className="tsm-atlas-mesh-toggle">
               <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
               3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
@@ -289,13 +296,14 @@ export default function TriStateAtlasView(): JSX.Element {
                 <label key={preset}><input type="radio" name="tsm-atlas-light" value={preset}
                   checked={light === preset} onChange={() => { setLight(preset); setSceneHour(preset === 'day' ? 12 : preset === 'golden' ? 18 : 22); }} />{preset}</label>)}
             </fieldset>
+            </div>}
           </div>
-          <div className="tsm-atlas-timebar">
+          {sceneToolsOpen && <div className="tsm-atlas-timebar">
             <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
             <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
               onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
             <small>4D presentation time does not advance USGS observations, weather or hydraulic simulations. Movie FX are visual-only layers; they do not change flood extents or terrain.</small>
-          </div>
+          </div>}
           <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
             <div className="tsm-civic-fx-overlay" aria-hidden="true" />
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
@@ -374,8 +382,8 @@ export default function TriStateAtlasView(): JSX.Element {
             {riverOpen ? 'Close station board' : 'Open real station board'}
           </button>
           <div id="tsm-atlas-gauge-board">
-            {riverOpen ? <RiverGaugeBoard /> :
-              <p className="tsm-atlas-note">Advanced server-side observations have not been requested in this view. Open the board if an external TSM backend is configured.</p>}
+            {riverOpen && import.meta.env.VITE_TSM_PAGES_ATLAS_HOME !== 'true' ? <RiverGaugeBoard /> :
+              <p className="tsm-atlas-note">Use the direct USGS reader above on GitHub Pages. The advanced TSM server board is available only when the server-backed application is running.</p>}
           </div>
           <p className="tsm-atlas-note">GitHub Pages can directly request USGS observations through the user-triggered reader above, subject to provider access and browser CORS. NOAA forecasts and the advanced TSM server board still require a configured backend.</p>
         </div>

@@ -226,6 +226,12 @@ jobs:
           mkdir -p dist/atlas dist/cesium
           cp dist/index.html dist/atlas/index.html
           cp dist/index.html dist/cesium/index.html
+          # GitHub Pages has no server-side SPA rewrite. Publish actual route entries
+          # so direct links to memorial, gauges and 3D views work without a 404 hop.
+          for route in memorial river-watch cinematic cinematic-engineering flood-sim map map-plane globe terrain-3d photorealistic-3d twin digital-twin digital-twin-v2 engineering-section spatial-planes platform; do
+            mkdir -p "dist/${route}"
+            cp dist/index.html "dist/${route}/index.html"
+          done
       - name: Install Cypress for the headed Cesium rendering check
         working-directory: ${{ env.CONSOLE_DIR }}
         run: env -u CYPRESS_INSTALL_BINARY node_modules/.bin/cypress install
@@ -257,6 +263,9 @@ jobs:
           test -s dist/index.html
           test -s dist/404.html
           cmp -s dist/index.html dist/atlas/index.html
+          cmp -s dist/index.html dist/memorial/index.html
+          cmp -s dist/index.html dist/river-watch/index.html
+          cmp -s dist/index.html dist/cinematic/index.html
           test -s dist/spa-redirect.js
           test -s dist/3d-tiles/tileset.json
           test -s dist/3d-tiles/buildings-3d.json
@@ -283,6 +292,9 @@ jobs:
           }
           if (!cssContent.includes('.tsm-atlas')) {
             throw new Error('TriStateAtlasView stylesheet missing from eager entry CSS');
+          }
+          if (!cssContent.includes('.tsm-cesium')) {
+            throw new Error('CesiumRegionalTwinView stylesheet missing from eager entry CSS');
           }
           console.log('PASS: Pages entry stylesheets exist; MapLibre + Atlas CSS eagerly loaded');
           NODE

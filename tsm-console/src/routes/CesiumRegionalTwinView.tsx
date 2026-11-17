@@ -274,6 +274,22 @@ export default function CesiumRegionalTwinView() {
             <strong>{CESIUM_VIEWS[place]?.name}</strong>
             {picked && <p>{picked.title}<small>{picked.detail}</small></p>}
           </div>
+          <div className="tsm-cesium-map-shortcuts" aria-label="Visible Cesium scene shortcuts">
+            <button type="button" data-testid="cesium-map-layers-toggle"
+              aria-controls="tsm-cesium-tools" aria-expanded={toolsOpen}
+              onClick={() => setToolsOpen((open) => !open)}>
+              {toolsOpen ? 'Hide 3D layers' : '3D buildings & layers'}
+            </button>
+            <label>
+              <input type="checkbox" disabled={!ready} checked={visible.buildings}
+                onChange={(event) => {
+                  const show = event.target.checked;
+                  setVisible((current) => ({ ...current, buildings: show, ...(show ? { osmContext: false } : {}) }));
+                  scene.current?.setLayer('buildings', show);
+                }} />
+              Posey 3D
+            </label>
+          </div>
           {(graphicsPaused || error) && <div className="tsm-cesium-error" role="alert">
             <p>{graphicsPaused ? 'Graphics paused. Waiting for WebGL to recover.' : error}</p>
             <button type="button" onClick={() => setSceneVersion((version) => version + 1)}>Restart 3D view</button>{' '}

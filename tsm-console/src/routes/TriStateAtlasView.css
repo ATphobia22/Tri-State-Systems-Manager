@@ -267,3 +267,8 @@
 .tsm-civic-site-results small{margin-top:2px;color:#457086}
 .tsm-civic-site-index p{padding:6px 12px;font-size:.8rem;color:#375d71}
 @media(max-width:650px){.tsm-civic-site-index{width:min(320px,calc(100% - 22px));max-height:50vh;top:8px;left:8px}}
+
+/* A presentational flex rule must never override the HTML hidden state. */
+.tsm-atlas .tsm-atlas-controls[hidden],
+.tsm-atlas .tsm-atlas-inspector[hidden],
+.tsm-atlas [hidden] { display: none !important; }
