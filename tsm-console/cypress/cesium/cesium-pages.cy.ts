@@ -43,6 +43,16 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.contains('.tsm-cesium-accordion > summary', 'Map layers').click();
     cy.get('#cesium-building-detail').select('sharp').should('have.value', 'sharp');
     cy.get('#cesium-imagery-source').should('have.value', 'usgs');
+    // Check camera selection while the scene is responsive, before streaming
+    // many terrain and 3D tile assets. Do not force disabled controls.
+    cy.get('#cesium-place', { timeout: 30000 }).should('be.enabled');
+    cy.get('#cesium-place').select('Henderson, KY');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
+    cy.get('#cesium-place').select('Carmi, IL · White County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
+    cy.get('#cesium-place').select('Morganfield, KY · Union County');
+    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
+
     cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).then((hits) => {
       for (const hit of hits) expect(hit.response?.statusCode).to.eq(200);
     });
@@ -64,13 +74,9 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.screenshot('mount-vernon-cesium-and-screening');
-    cy.get('#cesium-place').select('Henderson, KY');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
-    cy.get('#cesium-place').select('Carmi, IL · White County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'White County');
-    cy.get('#cesium-place').select('Morganfield, KY · Union County');
-    cy.get('.tsm-cesium-place').should('contain.text', 'Union County');
-
+    // Later readiness is still a real gate: the viewer must survive tile loading.
+    cy.get('#cesium-place').should('be.enabled');
+    cy.get('.tsm-cesium-error').should('not.exist');
     cy.contains('.tsm-cesium-accordion > summary', 'Cinematic shots').click();
     cy.get('#cesium-film-shot').select('03-new-harmony');
     cy.get('.tsm-cesium-place').should('contain.text', 'New Harmony, IN');
