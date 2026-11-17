@@ -9,6 +9,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // Pages Atlas is a lazy route, but its stylesheet must be in the eager entry CSS.
 // Otherwise Vite injects a route-time preload that can reject after CDN/cache changes.
 import './routes/TriStateAtlasView.css';
+// Prevent the Cesium route's hashed CSS chunk from failing to preload after Pages deploy/cache changes.
+import './routes/CesiumRegionalTwinView.css';
 import './styles/shadcn-primitives.css';
 import './styles/tsm-design-system.css';
 

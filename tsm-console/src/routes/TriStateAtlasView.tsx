@@ -73,8 +73,8 @@ export default function TriStateAtlasView(): JSX.Element {
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
   const [scenarioOpen, setScenarioOpen] = useState(false);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
   const [largeType, setLargeType] = useState(false);
   const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
   const proposalOverlay = useMemo(() => {
@@ -150,6 +150,7 @@ export default function TriStateAtlasView(): JSX.Element {
         <div className="tsm-atlas-links">
           <Link to="/cesium">Cesium 4D twin</Link>
           <Link to="/river-watch">River Watch</Link>
+          <Link to="/memorial">Beverly Ann Tucker Memorial</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/cinematic">Cinematic view</Link>
           <Link to="/spatial-planes">Regional spatial fabric</Link>
@@ -374,8 +375,8 @@ export default function TriStateAtlasView(): JSX.Element {
             {riverOpen ? 'Close station board' : 'Open real station board'}
           </button>
           <div id="tsm-atlas-gauge-board">
-            {riverOpen ? <RiverGaugeBoard /> :
-              <p className="tsm-atlas-note">Advanced server-side observations have not been requested in this view. Open the board if an external TSM backend is configured.</p>}
+            {riverOpen && import.meta.env.VITE_TSM_PAGES_ATLAS_HOME !== 'true' ? <RiverGaugeBoard /> :
+              <p className="tsm-atlas-note">Use the direct USGS reader above on GitHub Pages. The advanced TSM server board is available only when the server-backed application is running.</p>}
           </div>
           <p className="tsm-atlas-note">GitHub Pages can directly request USGS observations through the user-triggered reader above, subject to provider access and browser CORS. NOAA forecasts and the advanced TSM server board still require a configured backend.</p>
         </div>

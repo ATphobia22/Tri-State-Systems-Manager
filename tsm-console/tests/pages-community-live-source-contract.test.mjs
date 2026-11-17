@@ -113,3 +113,28 @@ test('Pages Atlas route CSS is linked eagerly, not deferred to route-time preloa
   assert.match(main, /import '\.\/routes\/TriStateAtlasView\.css'/);
   assert.match(workflow, /TriStateAtlasView stylesheet missing from eager entry CSS/);
 });
+
+test('Pages River Watch uses the direct reader instead of a dead static /api endpoint', () => {
+  const river = read('src/routes/RiverWatchView.tsx');
+  assert.match(river, /<PagesUSGSGaugeReader\s*\/>/);
+  assert.match(river, /VITE_TSM_PAGES_ATLAS_HOME/);
+  assert.match(river, /!pages && <details/);
+  assert.match(gauge, /Official monitoring location and fallback/);
+  assert.match(view, /to="\/memorial"/);
+});
+
+test('Pages deep links preserve the Beverly Ann Tucker memorial and map entry points', () => {
+  const shell = read('src/components/RootLayout.tsx');
+  assert.match(shell, /to: '\/memorial', label: 'Beverly Ann Tucker Memorial'/);
+  assert.match(workflow, /dist\/memorial\/index.html/);
+  assert.match(workflow, /dist\/river-watch\/index.html/);
+  assert.match(workflow, /dist\/cinematic\/index.html/);
+  const main = read('src/main.tsx');
+  assert.match(main, /import '\.\/routes\/CesiumRegionalTwinView\.css'/);
+  assert.match(workflow, /CesiumRegionalTwinView stylesheet missing from eager entry CSS/);
+});
+
+test('Atlas defaults to a visible map, not two expanded control columns', () => {
+  assert.match(view, /\[leftOpen, setLeftOpen\] = useState\(false\)/);
+  assert.match(view, /\[rightOpen, setRightOpen\] = useState\(false\)/);
+});
