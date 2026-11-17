@@ -32,6 +32,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
+    cy.get('[data-testid="cesium-map-layers-toggle"]').should('be.visible');
     cy.get('[data-testid="cesium-tools-toggle"]').should('have.attr', 'aria-expanded', 'false').click();
     cy.get('.tsm-cesium-controls').should('be.visible');
     cy.contains('.tsm-cesium-accordion > summary', 'Regional county coverage').click();
@@ -107,7 +108,8 @@ describe('Public Cesium 4D view on the project Pages base', () => {
   it('supports IN/IL/KY camera selection on a mobile Pages viewport', () => {
     cy.viewport(390, 844);
     cy.visit('atlas/');
-    cy.get('#tsm-atlas-region').should('exist');
+    cy.contains('button', 'Show map tools').click().should('have.attr', 'aria-expanded', 'true');
+    cy.get('#tsm-atlas-region').should('be.visible');
     cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
 
     cy.get('#tsm-atlas-region').select('shawneetown');
@@ -122,6 +124,70 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#tsm-atlas-region').select('posey');
     cy.get('[data-testid="atlas-region-title"]').should('contain.text', 'Mount Vernon · Posey IN');
     cy.screenshot('atlas-three-state-mobile-regions');
+  });
+
+  it('preserves the Beverly Ann Tucker memorial on a direct Pages URL', () => {
+    cy.visit('memorial/');
+    cy.contains('h1', 'In Memory of Beverly Ann Tucker').should('be.visible');
+    cy.contains('This work is dedicated to Beverly Ann Tucker');
+  });
+
+  it('reads an explicit official USGS request on the static River Watch page', () => {
+    // Fixed fixture proves the browser parser and UI, NOT a live gauge reading.
+    cy.intercept('GET', '**/ogcapi/v1/collections/latest-continuous/items*', {
+      statusCode: 200,
+      body: {
+        type: 'FeatureCollection',
+        features: [{ properties: {
+          monitoring_location_id: 'USGS-03378500',
+          parameter_code: '00065',
+          value: '1.78',
+          time: '2026-11-17T09:30:00+00:00',
+          unit_of_measure: 'ft',
+          approval_status: 'Provisional',
+        } }],
+      },
+    }).as('directUsgs');
+    cy.visit('river-watch/');
+    cy.get('#tsm-pages-gauge-select').should('be.visible').should('have.value', '03378500');
+    cy.contains('button', 'Fetch current gage height (00065)').click();
+    cy.wait('@directUsgs');
+    cy.contains('Latest retrieved stage').should('be.visible');
+    cy.contains('1.78 ft').should('exist');
+    cy.contains('station gage reference ONLY').should('exist');
+  });
+
+  it('keeps the WebGL flood map exposed while controls are collapsed and expanded', () => {
+    cy.visit('flood-sim/');
+    cy.get('canvas[aria-label^="3D flood simulation viewport"]', { timeout: 30000 }).should('exist');
+    cy.contains('button', 'Show flood settings').should('be.visible');
+    cy.get('#tsm-flood-controls').should('not.be.visible');
+    cy.contains('button', 'Show flood settings').click();
+    cy.get('#tsm-flood-controls').should('be.visible');
+    cy.contains('button', 'Hide flood settings').click();
+    cy.get('#tsm-flood-controls').should('not.be.visible');
+  });
+
+  it('renders the real cinematic engineering map with collapsible settings', () => {
+    cy.visit('cinematic-engineering/');
+    cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
+    cy.contains('button', 'Show engineering settings').should('be.visible');
+    cy.get('#tsm-cinematic-engineering-tools').should('not.be.visible');
+    cy.contains('button', 'Show engineering settings').click();
+    cy.get('#tsm-cinematic-engineering-tools').should('be.visible');
+    cy.contains('button', 'Hide engineering settings').click();
+    cy.get('#tsm-cinematic-engineering-tools').should('not.be.visible');
+    cy.contains('button', 'Play map flyover').should('exist');
+  });
+
+  it('reveals real standalone cinematic controls without covering the map', () => {
+    cy.visit('cinematic/');
+    cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
+    cy.contains('button', 'Show scene controls').should('be.visible');
+    cy.contains('button', 'Play fly-through').should('be.visible');
+    cy.contains('button', 'Show scene controls').click();
+    cy.contains('button', 'Hide scene controls').should('be.visible');
+    cy.contains('button', 'Hide scene controls').click();
   });
 
 });

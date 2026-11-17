@@ -2,7 +2,7 @@
  * Full cinematic engineering experience — wired math, sources, streaming labels,
  * animation timeline, freeboard, gage discipline. PRESENTATION + MODEL_SIMULATION.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import TriStateDigitalTwinMap from "../components/TriStateDigitalTwinMap";
 import { prefersReducedMotion } from "../lib/reduced-motion";
@@ -22,6 +22,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
   const path = useMemo(() => buildEngineeringCinemaPath(), []);
   const [playing, setPlaying] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const stopTourForReducedMotion = useCallback(() => setPlaying(false), []);
   const [tAnim, setTAnim] = useState(0);
   const [preset, setPreset] = useState(CINEMATIC_PRESETS[0].id);
   const raf = useRef<number>(0);
@@ -59,7 +60,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
       <div style={{ display: "flex", flexWrap: "wrap", flex: 1, minHeight: 0 }}>
       <section style={{ position: "relative", flex: "1 1 540px", minWidth: 0, minHeight: "min(75dvh, 790px)", borderRight: "1px solid #1e293b" }}>
         <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
-          onTourReducedMotion={() => setPlaying(false)} />
+          onTourReducedMotion={stopTourForReducedMotion} />
         {/* The engineering model timeline is displayed OVER the actual map; it is not the rendered camera pose. */}
         <div
           style={{
