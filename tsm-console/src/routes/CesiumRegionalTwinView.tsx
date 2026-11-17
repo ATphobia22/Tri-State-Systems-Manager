@@ -6,13 +6,18 @@ import {
   CESIUM_VIEWS, loadCesiumReplay, loadCityScreening, mountCesiumRegionalScene, REPLAY_DATES,
   type LayerState, type PickedFeature, type Replay, type SceneLayer, type ScreeningFrame,
 } from '../lib/cesium-regional-scene';
+import { type IonImageryPreset, type BuildingPreviewDetail } from '../lib/cesium-ion-assets';
+import type { OsmBuildingStyle } from '../lib/cesium-osm-building-style';
 import './CesiumRegionalTwinView.css';
+
+const ION_ENABLED = Boolean((import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim());
 
 const LAYERS: { id: SceneLayer; title: string; initial: boolean }[] = [
   { id: 'terrain', title: 'USGS terrain', initial: true },
   { id: 'buildings', title: 'Posey 3D buildings', initial: true },
   { id: 'roads', title: 'Regional roads', initial: true },
   { id: 'city', title: 'Mount Vernon detail', initial: false },
+  { id: 'osmContext', title: 'Cesium OSM buildings (online context)', initial: false },
 ];
 
 type Scene = ReturnType<typeof mountCesiumRegionalScene>;
@@ -35,6 +40,12 @@ export default function CesiumRegionalTwinView() {
   const [status, setStatus] = useState<Partial<Record<SceneLayer, LayerState>>>({});
   const [visible, setVisible] = useState(() => Object.fromEntries(LAYERS.map((layer) => [layer.id, layer.initial])));
   const [aerial, setAerial] = useState(true);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [imageryPreset, setImageryPreset] = useState<IonImageryPreset>('usgs');
+  const [terrainSource, setTerrainSource] = useState<'local' | 'world'>('local');
+  const [buildingDetail, setBuildingDetail] = useState<BuildingPreviewDetail>('balanced');
+  const [osmStyle, setOsmStyle] = useState<OsmBuildingStyle>('native');
+  const [ionMessage, setIonMessage] = useState('');
   const [imageryError, setImageryError] = useState(false);
   const [picked, setPicked] = useState<PickedFeature | null>(null);
   const [day, setDay] = useState(16);
@@ -55,6 +66,10 @@ export default function CesiumRegionalTwinView() {
     next.fly(place, 0);
     for (const { id, initial } of LAYERS) next.setLayer(id, visible[id] ?? initial);
     next.setImagery(aerial);
+    next.setBuildingDetail(buildingDetail);
+    next.setOsmBuildingStyle(osmStyle);
+    void next.setImageryPreset(imageryPreset).catch(() => setIonMessage('Ion imagery unavailable; choose USGS imagery.'));
+    void next.setTerrainSource(terrainSource).catch(() => setIonMessage('Ion terrain unavailable; choose local USGS terrain.'));
   });
 
   useEffect(() => {
@@ -114,6 +129,11 @@ export default function CesiumRegionalTwinView() {
       scene.current = null;
     };
   }, [sceneVersion]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => scene.current?.resize(), 60);
+    return () => window.clearTimeout(handle);
+  }, [toolsOpen, ready]);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -238,9 +258,15 @@ export default function CesiumRegionalTwinView() {
           <Link to="/atlas">Atlas</Link>
           <Link to="/cinematic-engineering">Engineering</Link>
           <Link to="/flood-sim">Flood workbench</Link>
+          <Link to="/photorealistic-3d">Photorealistic 3D (opt-in)</Link>
+          <button type="button" className="tsm-cesium-tools-toggle" data-testid="cesium-tools-toggle"
+            aria-controls="tsm-cesium-tools" aria-expanded={toolsOpen}
+            onClick={() => setToolsOpen((open) => !open)}>
+            {toolsOpen ? 'Hide controls' : 'Show controls'}
+          </button>
         </nav>
       </header>
-      <div className="tsm-cesium-workspace">
+      <div className={`tsm-cesium-workspace${toolsOpen ? "" : " is-map-only"}`}>
         <div className="tsm-cesium-view">
           <div className="tsm-cesium-viewport" ref={host} aria-label="Interactive Cesium globe"
             onPointerDown={() => setShotPlayStart(null)} />
@@ -254,9 +280,10 @@ export default function CesiumRegionalTwinView() {
             <Link to="/atlas">Open Atlas</Link>
           </div>}
         </div>
-        <aside className="tsm-cesium-controls" aria-label="Scene controls">
-          <section>
-            <h2>Camera</h2>
+        <aside id="tsm-cesium-tools" className="tsm-cesium-controls" aria-label="Scene controls" hidden={!toolsOpen}>
+          <details className="tsm-cesium-accordion" open>
+            <summary>Camera</summary>
+            <section>
             <label htmlFor="cesium-place">Location</label>
             <select id="cesium-place" value={place} disabled={!ready} onChange={(event) => choosePlace(Number(event.target.value))}>
               {CESIUM_VIEWS.map((view, index) => <option value={index} key={view.name}>{view.name}</option>)}
@@ -265,8 +292,10 @@ export default function CesiumRegionalTwinView() {
               {tour ? 'Stop flyover' : 'Play regional flyover'}
             </button>
           </section>
-          <section>
-            <h2>Cinematic shots</h2>
+          </details>
+          <details className="tsm-cesium-accordion" >
+            <summary>Cinematic shots</summary>
+            <section>
             <label htmlFor="cesium-film-shot">Shot</label>
             <select id="cesium-film-shot" value={shotId} disabled={!ready || Boolean(error)}
               onChange={(event) => chooseShot(event.target.value)}>
@@ -290,23 +319,85 @@ export default function CesiumRegionalTwinView() {
               Flood comparison requires a calibrated model and verified water-surface provenance.
             </small>}
           </section>
-          <section>
-            <h2>Map layers</h2>
+          </details>
+          <details className="tsm-cesium-accordion" >
+            <summary>Map layers</summary>
+            <section>
             {LAYERS.map(({ id, title, initial }) => (
               <div className="tsm-cesium-layer" key={id}>
                 <label>
-                  <input type="checkbox" checked={visible[id]} disabled={!ready} onChange={(event) => {
+                  <input type="checkbox" checked={visible[id]} disabled={!ready || (id === 'osmContext' && !ION_ENABLED)} onChange={(event) => {
                     const show = event.target.checked;
-                    setVisible((current) => ({ ...current, [id]: show }));
+                    setVisible((current) => ({
+                      ...current,
+                      [id]: show,
+                      ...(show && id === 'osmContext' ? { buildings: false } : {}),
+                      ...(show && id === 'buildings' ? { osmContext: false } : {}),
+                    }));
                     scene.current?.setLayer(id, show);
                   }} />
                   {title}
                 </label>
                 {status[id] ? (
                   <small data-testid={`cesium-${id}-status`} data-state={status[id]?.state}>{status[id]?.detail}</small>
-                ) : !initial && <small>Indiana GIO footprints and road centerlines</small>}
+                ) : !initial && <small>{id === 'osmContext' ? 'Online only · requires authorized Cesium ion token' : 'Indiana GIO footprints and road centerlines'}</small>}
               </div>
             ))}
+            <label htmlFor="cesium-building-detail">Building mesh refinement</label>
+            <select id="cesium-building-detail" value={buildingDetail} onChange={(event) => {
+              const detail = event.target.value as BuildingPreviewDetail;
+              setBuildingDetail(detail);
+              scene.current?.setBuildingDetail(detail);
+            }}>
+              <option value="performance">Performance</option>
+              <option value="balanced">Balanced</option>
+              <option value="sharp">Sharper tiles</option>
+            </select>
+            <small>Refines source tile selection only. Does not invent roof geometry, façades, or PBR materials.</small>
+            <label htmlFor="cesium-osm-style">Cesium OSM building metadata style</label>
+            <select id="cesium-osm-style" data-testid="cesium-osm-style" value={osmStyle}
+              disabled={!ready || !ION_ENABLED || !visible.osmContext}
+              onChange={(event) => {
+                const mode = event.target.value as OsmBuildingStyle;
+                setOsmStyle(mode);
+                scene.current?.setOsmBuildingStyle(mode);
+              }}>
+              <option value="native">Original OSM visual appearance</option>
+              <option value="wall-material">Wall material tag · colored</option>
+              <option value="building-use">Building use tag · colored</option>
+              <option value="roof-shape">Roof shape tag · colored</option>
+              <option value="height-evidence">Tagged vs estimated height · colored</option>
+            </select>
+            <small>These modes color entire available meshes by OSM attributes; they do not add roof polygons, material textures, or verified heights. Untagged properties display neutrally. Click a building to inspect source metadata.</small>
+            <label htmlFor="cesium-terrain-source">Terrain source</label>
+            <select id="cesium-terrain-source" value={terrainSource} disabled={!ready} onChange={(event) => {
+              const source = event.target.value as 'local' | 'world';
+              setIonMessage('');
+              void scene.current?.setTerrainSource(source).then(() => setTerrainSource(source)).catch(() => {
+                setIonMessage('Ion World Terrain is unavailable; local terrain retained.');
+              });
+            }}>
+              <option value="local">Local source-derived USGS terrain</option>
+              <option value="world" disabled={!ION_ENABLED}>Cesium World Terrain · asset 1 (online)</option>
+            </select>
+            <label htmlFor="cesium-imagery-source">Imagery source · one active basemap</label>
+            <select id="cesium-imagery-source" value={imageryPreset} disabled={!ready} onChange={(event) => {
+              const choice = event.target.value as IonImageryPreset;
+              setIonMessage('');
+              void scene.current?.setImageryPreset(choice).then((applied) => { if (applied) setImageryPreset(choice); }).catch(() => {
+                setIonMessage('Requested ion imagery is unavailable; USGS aerial retained.');
+                setImageryPreset('usgs');
+                void scene.current?.setImageryPreset('usgs');
+              });
+            }}>
+              <option value="usgs">USGS The National Map aerial (default)</option>
+              <option value="googleLabels" disabled={!ION_ENABLED}>Google satellite with labels · 3830183</option>
+              <option value="azureAerial" disabled={!ION_ENABLED}>Azure aerial · 3891168</option>
+              <option value="azureRoads" disabled={!ION_ENABLED}>Azure roads · 3891169</option>
+              <option value="sentinel2" disabled={!ION_ENABLED}>Sentinel-2 · 3954</option>
+            </select>
+            {ionMessage && <small role="status">{ionMessage}</small>}
+            {!ION_ENABLED && <small>Ion assets are optional. A public-scoped VITE_CESIUM_ION_TOKEN is required for online access; no token is committed.</small>}
             <div className="tsm-cesium-layer">
               <label><input type="checkbox" checked={aerial} disabled={!ready} onChange={(event) => {
                 setAerial(event.target.checked);
@@ -315,8 +406,10 @@ export default function CesiumRegionalTwinView() {
               <small>{imageryError ? 'USGS imagery is partly unavailable' : 'USGS The National Map · streams online'}</small>
             </div>
           </section>
-          <section>
-            <h2>April 2025 river replay</h2>
+          </details>
+          <details className="tsm-cesium-accordion" >
+            <summary>April 2025 river replay</summary>
+            <section>
             <label htmlFor="cesium-day">Observation date <output>{date}</output></label>
             <input id="cesium-day" type="range" min={0} max={REPLAY_DATES.length - 1} value={day}
               onChange={(event) => { setPlaying(false); setDay(Number(event.target.value)); }} />
@@ -335,8 +428,10 @@ export default function CesiumRegionalTwinView() {
             })}
             <small>Daily means at each gauge. Gage height uses the station’s own reference.</small>
           </section>
-          <section>
-            <h2>Mount Vernon flood screening</h2>
+          </details>
+          <details className="tsm-cesium-accordion" >
+            <summary>Mount Vernon flood screening</summary>
+            <section>
             <label><input type="checkbox" checked={screeningOn} disabled={!ready || !screening.length} onChange={(event) => {
               setScreeningOn(event.target.checked);
               if (event.target.checked) choosePlace(0);
@@ -347,11 +442,26 @@ export default function CesiumRegionalTwinView() {
             {screeningStatus && <small role="status" data-testid="cesium-screening-status">{screeningStatus}</small>}
             <small>Fixed-level terrain screening. A calibrated hydraulic model is required for forecasts and engineering design.</small>
           </section>
-          <section>
-            <h2>Lighting</h2>
+          </details>
+          <details className="tsm-cesium-accordion" >
+            <summary>Lighting</summary>
+            <section>
             <label htmlFor="cesium-light">Scene time (CDT) <output>{String(hour).padStart(2, '0')}:00</output></label>
             <input id="cesium-light" type="range" min={0} max={23} value={hour} onChange={(event) => setHour(Number(event.target.value))} />
           </section>
+          </details>
+          <details className="tsm-cesium-accordion">
+            <summary>Regional county coverage &amp; evidence</summary>
+            <section>
+              <p><strong>Eight-county exact-boundary target</strong></p>
+              <p>Indiana: Posey, Vanderburgh, Gibson, Warrick</p>
+              <p>Illinois: White, Gallatin</p>
+              <p>Kentucky: Henderson, Union</p>
+              <small>Regional TIGER/Line road archive also includes Wabash County, Illinois. These county names identify mapped scope, not proof of complete parcel, roof, elevation, imagery, or flood-layer coverage.</small>
+              <small>Posey local mesh is a source-derived LoD1 preview; Illinois and Kentucky building-level materials and LoD2–4 have not been independently verified in the deployed viewer.</small>
+              <p><a href="https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/data/regional/eight-county-exact-spatial-validation-v1.json" target="_blank" rel="noreferrer">Read county-boundary validation contract</a></p>
+            </section>
+          </details>
         </aside>
       </div>
       <footer className="tsm-cesium-note">
