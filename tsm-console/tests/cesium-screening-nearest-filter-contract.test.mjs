@@ -9,5 +9,6 @@ test('source-cell screening imagery keeps hard pixel edges rather than interpola
   assert.match(scene, /magnificationFilter: TextureMagnificationFilter\.NEAREST/);
   assert.match(scene, /new ImageryLayer\(provider,\s*\{[^}]*minificationFilter:[^}]*magnificationFilter:/s,
     'Filtering options belong to ImageryLayer constructor, not ImageryLayerCollection.addImageryProvider');
-  assert.match(scene, /screening = widget\.imageryLayers\.add\(layer\)/);
+  assert.match(scene, /widget\.imageryLayers\.add\(layer\);\s*screening = layer;/,
+    'Collection.add returns void; retain the constructed imagery layer for teardown');
 });
