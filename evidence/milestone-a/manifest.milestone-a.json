@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "milestone": "A",
+  "status": "DRAFT_UNVERIFIED",
+  "intent": "Reconcile frozen public Posey County footprints with separately identified OSM candidates, without altering the live Cesium tileset",
+  "authority": "Indiana GIO building footprint evidence; USGS/other elevation inputs require separately documented provenance",
+  "scope": {
+    "state": "IN",
+    "county": "Posey",
+    "county_geoid": "18129",
+    "expected_source_building_ids": 23082,
+    "expected_reconciliation_rows": 23082,
+    "geographic_boundary": "exact authoritative county polygon; not approximate camera viewport"
+  },
+  "source": {
+    "service_url": null,
+    "source_snapshot_utc": null,
+    "acquisition_utc": null,
+    "crs": null,
+    "vertical_datum": null,
+    "units": null,
+    "license_review": "PENDING",
+    "coverage_verification": "PENDING"
+  },
+  "candidate_assets": [
+    {
+      "provider": "Cesium ion",
+      "asset_id": 96188,
+      "role": "OSM context buildings, NOT immutable source evidence",
+      "metadata_status": "UNVERIFIED",
+      "asset_hash": null
+    },
+    {
+      "provider": "Cesium ion",
+      "asset_id": 2426648,
+      "role": "optional online terrain candidate, NOT validated NAVD88 terrain",
+      "metadata_status": "UNVERIFIED",
+      "asset_hash": null
+    }
+  ],
+  "rules": {
+    "identity": "EXACT_SET_EQUALITY",
+    "matching": "human-reviewed OSM element type+ID with recorded spatial overlap; candidates do not confer authoritative status",
+    "allowed_match_status": [
+      "MATCHED_VERIFIED",
+      "POSSIBLE_MATCH",
+      "CONFLICT",
+      "UNMATCHED"
+    ],
+    "allowed_height_source": [
+      "OBSERVED",
+      "DERIVED",
+      "UNAVAILABLE"
+    ],
+    "no_lod_claim_without_mesh_evidence": true,
+    "computed_height_not_a_survey": true
+  },
+  "frozen_inputs": [
+    {
+      "path": "evidence/milestone-a/posey_buildings_source.csv",
+      "sha256": null,
+      "rows": null
+    },
+    {
+      "path": "evidence/milestone-a/posey_reconciliation.csv",
+      "sha256": null,
+      "rows": null
+    },
+    {
+      "path": "evidence/milestone-a/posey_style.json",
+      "sha256": null,
+      "rows": null
+    }
+  ],
+  "freeze_timestamp_utc": null,
+  "freeze_note": "A sidecar manifest.milestone-a.sha256.txt is emitted by the freeze tool ONLY after source and reconciliation validation. This draft is not a valid evidence receipt."
+}
