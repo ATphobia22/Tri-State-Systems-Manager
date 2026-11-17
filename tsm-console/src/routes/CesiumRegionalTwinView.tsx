@@ -219,7 +219,7 @@ export default function CesiumRegionalTwinView() {
     let current = true;
     const level = screeningOn && frame ? frame.levelMNavd88 : null;
     if (level !== null) setScreeningStatus('Loading screening extent…');
-    scene.current.setScreening(level, frame?.bounds).then(() => {
+    scene.current.setScreening(level, frame?.bounds, frame?.cols, frame?.rows).then(() => {
       if (current && level !== null) setScreeningStatus('Screening extent on map');
       if (current && level === null && screening.length) setScreeningStatus('');
     }).catch(() => {
