@@ -38,7 +38,7 @@ class NativePassportExportWiringTests(unittest.TestCase):
         self.assertIn('TryGetBoolField(TEXT("sourceBytesVerifiedNotSourceClaims")', code)
         self.assertIn('TryGetBoolField(TEXT("controlPointVerified")', code)
         self.assertIn("EJson::Object", code)
-        self.assertIn("EJson::Array", code)
+        self.assertIn('TryGetArrayField(TEXT("reasons")', code)
         self.assertIn("EJson::Number", code)
         self.assertIn('TryGetArrayField(TEXT("reasons")', code)
 
