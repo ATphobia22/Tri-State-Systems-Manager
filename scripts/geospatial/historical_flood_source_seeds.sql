@@ -164,47 +164,29 @@ SELECT e.event_id,c.county_fips
 FROM tsm_flood_history.flood_events e CROSS JOIN tsm_flood_history.counties c
 ON CONFLICT DO NOTHING;
 
--- An index entry is an interpretation of a historic flood map, not the map.
--- USGS WRI 74-48 was published March 1975, compiled January 16, 1975.
--- Posey rows include seven 1937 observed-event and four 100-year design maps.
-CREATE TABLE IF NOT EXISTS tsm_flood_history.historical_map_index (
-    county_fips char(5) NOT NULL REFERENCES tsm_flood_history.counties(county_fips),
-    source_id text NOT NULL REFERENCES tsm_flood_history.sources(source_id),
-    document_id text NOT NULL,
-    quadrangle_name text NOT NULL,
-    flood_area_delineated text NOT NULL,
-    qualitative_reliability text NOT NULL CHECK
-      (qualitative_reliability IN ('RECON','STANDARD','HIGH')),
-    publication_date_text text,
-    index_compilation_date_text text,
-    primary_report_url text NOT NULL,
-    mapped_flood_event_year integer,
-    original_map_asset_verified boolean NOT NULL DEFAULT false,
-    map_available_during_flood boolean NOT NULL DEFAULT false,
-    agency_use_during_flood_verified boolean NOT NULL DEFAULT false,
-    PRIMARY KEY (county_fips,source_id,document_id,quadrangle_name,flood_area_delineated),
-    CHECK (map_available_during_flood = false OR agency_use_during_flood_verified = true)
-);
+-- Only the schema migration declares historical_map_index. A source index entry
+-- is not the underlying map nor proof an agency used it during a historical flood.
+-- Original USGS WRI 74-48: March 1975; compiled January 16, 1975.
+-- Preserve 7 observed 1937 extents and 4 non-event 100-year design flood maps.
 INSERT INTO tsm_flood_history.historical_map_index
-(county_fips,source_id,document_id,quadrangle_name,flood_area_delineated,
- qualitative_reliability,publication_date_text,index_compilation_date_text,
- primary_report_url,mapped_flood_event_year)
+(county_fips,source_id,original_report_url,quadrangle,mapped_flood_year,
+ mapping_reliability,index_compiled_on,report_published_month,
+ original_map_geometry_verified,demonstrated_used_in_1937,notes)
 VALUES
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','UNIONTOWN, IN-KY','1937','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','WABASH, IN','1937','HIGH','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','WEST FRANKLIN, IN-KY','1937','HIGH','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','CATHRYN, IN-KY','1937','HIGH','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','MOUNT VERNON, IN-KY','1937','HIGH','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','EVANSVILLE, IN','1937','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','KASSON, IN','100-YR','HIGH','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf',NULL),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','SOLITUDE, IN-IL','1937','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1937'),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','CARMEL, IN','100-YR','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf',NULL),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','POSEYVILLE, IN','100-YR','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf',NULL),
- ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','NEW HARMONY, IN-IL','100-YR','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf',NULL)
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','UNIONTOWN, IN-KY',1937,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','WABASH, IN',1937,'HIGH','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','WEST FRANKLIN, IN-KY',1937,'HIGH','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','CATHRYN, IN-KY',1937,'HIGH','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','MOUNT VERNON, IN-KY',1937,'HIGH','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','EVANSVILLE, IN',1937,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','KASSON, IN',NULL,'HIGH','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; 100-year design flood, not an observed event; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','SOLITUDE, IN-IL',1937,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; observed historical 1937 extent; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','CARMEL, IN',NULL,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; 100-year design flood, not an observed event; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','POSEYVILLE, IN',NULL,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; 100-year design flood, not an observed event; index metadata only; original map not verified'),
+ ('18129','usgs_floodprone_1975','https://pubs.usgs.gov/wri/1974/0048/report.pdf','NEW HARMONY, IN-IL',NULL,'RECON','1975-01-16','1975-03',FALSE,FALSE,'USGS_WRI_74_48_MARCH_1975; 100-year design flood, not an observed event; index metadata only; original map not verified')
 ON CONFLICT DO NOTHING;
 
--- Source registry rows: 25; county source discovery scopes: 104;
--- regional event context rows: 4 events x 6 counties;
--- indexed original USGS flood-map quadrangle records: 11.
--- All numeric map accuracy, structure footprint vintage, BFE, and surveying remain
--- unknown until tile assets and original agency methods have been obtained.
+-- Source registry rows: 25; county/source discovery scopes: 104;
+-- historical map index quadrangles: 11.
+-- Neither SHA-only integrity nor map-index metadata verifies regulatory accuracy,
+-- original map geometry, contemporary agency use or building-specific BFEs.
