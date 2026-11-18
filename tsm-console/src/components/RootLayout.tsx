@@ -74,7 +74,7 @@ export default function RootLayout() {
   const provisional = stage?.status === 'provisional' || stage?.qualifier === 'P';
   const sourceLabel = stage?.source === 'NOAA' ? 'NOAA NWPS' : stage?.source === 'USGS' ? 'USGS Water Data' : 'UNAVAILABLE';
   const stageDisclaimer = stage?.source === 'UNAVAILABLE'
-    ? 'Live hydrologic telemetry unavailable. No continuity is fabricated; verify authoritative sources directly.'
+    ? 'No river observation is preloaded in the global status context. Use the River Watch or map gauge controls to request official USGS snapshots; readings may be provisional or unavailable. No continuous telemetry or NAVD88 conversion is inferred.'
     : `${sourceLabel} observed stage is ${provisional ? 'PROVISIONAL' : 'current'}; raw stage remains GAGE_DATUM. Human authority remains final.`;
   const [navOpen, setNavOpen] = useState(false);
   const closeMenu = (): void => setNavOpen(false);
