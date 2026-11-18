@@ -6,6 +6,7 @@ on:
       - 'tsm-console/src/lib/unreal-web-bridge.ts'
       - 'tsm-console/src/routes/PlatformCapabilitiesView.tsx'
       - 'tsm-console/tests/unreal-web-bridge.test.mjs'
+      - 'tsm-console/cypress/e2e/unreal-web-bridge.cy.ts'
       - '.github/workflows/tsm-unreal-web-bridge.yml'
       - 'docs/architecture/UNREAL-PUBLIC-WEB-BRIDGE-2026-11-18.md'
   push:
@@ -14,6 +15,7 @@ on:
       - 'tsm-console/src/lib/unreal-web-bridge.ts'
       - 'tsm-console/src/routes/PlatformCapabilitiesView.tsx'
       - 'tsm-console/tests/unreal-web-bridge.test.mjs'
+      - 'tsm-console/cypress/e2e/unreal-web-bridge.cy.ts'
       - '.github/workflows/tsm-unreal-web-bridge.yml'
   workflow_dispatch:
 
