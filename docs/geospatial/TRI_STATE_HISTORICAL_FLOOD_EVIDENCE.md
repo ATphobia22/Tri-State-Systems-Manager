@@ -2,7 +2,7 @@
 
 **Reviewed:** 2026-11-18. **Scope:** Posey IN (18129); Henderson KY (21101); Union KY (21225); Gallatin IL (17059); Wabash IL (17185); White IL (17193).
 
-**Evidence state:** Source-discovery registry and a reproducible offline inventory generator. **No complete county-wide downloaded map/terrain/building source set; no map-use attribution, pixel-accurate flood depth, certified BFE, actual event-by-building exposure, or regulatory determination established.** GitHub Actions tests exercise synthetic files only. No operational PostGIS instance is modified by the scripts.
+**Evidence state:** Source-discovery registry and a reproducible offline inventory generator. **No complete county-wide downloaded map/terrain/building source set; no map-use attribution, pixel-accurate flood depth, certified BFE, actual event-by-building exposure, or regulatory determination established.** GitHub Actions exercises synthetic source files plus an **ephemeral PostgreSQL 16 / PostGIS migration+seed replay smoke test**. This is a schema execution proof, NOT evidence of real geographic data import. No operational PostGIS instance is modified by CI.
 
 ## Why map era, map edition and flood event must be separated
 
@@ -108,7 +108,8 @@ Existing authority catalog: [OpenFEMA catalog](../../data/fema/openfema-catalog.
 - `scripts/geospatial/historical_flood_evidence_schema.sql`: PostGIS tables for counties, events, agency sources, map edition, source asset quality, BFE records, versioned building polygons, explicit agency map use review, and temporal diagnostic view.
 - `scripts/geospatial/historical_flood_source_seeds.sql`: SQL seeds for **all 25** registry categories, 104 county/source discovery scopes, four regional event contexts, and the 11 original USGS Posey quadrangle index entries; no claim of tile coverage.
 - `scripts/government/historical_flood_bundles.py`: no-network, hash-validating local bundle builder that refuses out-of-root paths, hash mismatches and post-event-map historical-use claims.
-- `tests/government/test_historical_flood_bundles.py` and `.github/workflows/historical-flood-evidence.yml`: synthetic tests and six-county CI-generated inventory.
+- `tests/government/test_historical_flood_bundles.py`, `tests/government/test_historical_flood_sql_contract.py` and `.github/workflows/historical-flood-evidence.yml`: synthetic tests, SQL contract checks, six-county review-only CI inventory, and ephemeral PostgreSQL 16/PostGIS DDL + seed tests (two consecutive replays verified 6 counties / 25 sources / 104 source-county scopes / 4 event contexts / 24 county-event references / 11 USGS index quadrangles, seven 1937 and four 100-year design).
+- `scripts/geospatial/historical_flood_evidence_schema.sql` requires **PostgreSQL 15+ with PostGIS enabled**; a null-safe uniqueness index prevents repeatedly seeding 100-year design maps whose observed event year is unknown. The CI test independently exercises actual SQL, not a production database.
 - `scripts/government/openfema_tristate_declarations.py` and `tests/government/test_openfema_tristate_declarations.py`: separate **opt-in** actual OpenFEMA declarations downloader and entirely mocked, zero-network unit tests for all six counties. The new action uploads inventory JSON plus SHA-256 sidecars for review; those are not source map tiles.
 
 ```sh
@@ -121,8 +122,10 @@ python scripts/government/historical_flood_bundles.py \
 python scripts/government/openfema_tristate_declarations.py \
   --out /some/new/openfema-declaration-snapshot-folder
 # Apply to a reviewed PostGIS database ONLY after inspecting and backing up schema:
-psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_evidence_schema.sql
-psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_source_seeds.sql
+psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+psql -1 -v ON_ERROR_STOP=1 \
+  -f scripts/geospatial/historical_flood_evidence_schema.sql \
+  -f scripts/geospatial/historical_flood_source_seeds.sql
 ```
 
 Optional `--asset-manifest` accepts a JSON array of operator-owned local assets. Each record must reference a catalog `source_id`, event, county, evidence class, **relative filename and actual SHA-256**. An accepted file is always marked `NOT_VERIFIED` engineering-wise, even when its bytes match the declared digest. An agency-use claim requires a supporting archival URL and can never contradict the edition's event date. No network access or fictitious file contents are used to generate example files.
@@ -157,7 +160,7 @@ The review of these repos is an architectural selection, not a claim of full dep
 2. Retrieve actual Indiana GIO, KyFromAbove and Illinois ISGS/ISWS terrain, imagery and footprint tiles with work-unit metadata, official county coverage and per-file SHA-256. Validate collection date and coverage in each county.
 3. Attach actual event-era photographs, high-water marks, gauging records, original agency maps/archives, dates and georeferencing accuracy; distinguish real observed historic structures from later reconstruction.
 4. For BFE, extract FIS profile/cross-section and official revision records per time-valid map; inspect native datum/units before numeric comparisons; keep BAFL planning values separate from regulatory BFEs.
-5. Run the approved seed migrations against an **authorized actual PostGIS instance** and retain migration transaction/verification receipts. CI currently proves source-code tests, not a production database deployment.
+5. Run the approved seed migrations against an **authorized actual PostGIS instance** and retain migration transaction/verification receipts. CI also demonstrates the migration and seeds execute twice in a fresh PostGIS 16 instance. It does **not** prove connectivity, verified geographic assets, production migration, or county data completeness.
 6. Create reviewed source manifests and rerun offline bundle generation; validate missingness, spatial coverage, river/levee topology, vintage change and methods before advertising a county as data-complete. Formal NFIP or LOMA decisions remain with competent authorities.
 
 **No source, agency or map edition in the registry is represented as independently having been used during the event without documentary evidence.**
