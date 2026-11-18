@@ -6,6 +6,7 @@ import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { BuildingInspectionPanel } from './BuildingInspectionPanel';
+import GeoTruthLayerControl from './GeoTruthLayerControl';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
@@ -928,6 +929,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           {terrainEnabled ? '● TERRAIN-RGB ONLINE' : '● TERRAIN-RGB RESILIENT'}
         </div>
         <div role="status" aria-live="polite" style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>{status}</div>
+        <GeoTruthLayerControl map={mapReady ? mapRef.current : null} />
         <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
           {MAP_PLANE_FABRIC.map((item) => {
             const checked = Boolean(visible[item.id]);
