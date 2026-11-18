@@ -29,10 +29,19 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
   beforeEach(() => cy.viewport(1280, 900));
 
   it('loads Posey QA only after opt-in and leaves the map available after hiding', () => {
+    // Use an explicitly synthetic 2×2 test tile; live IGIO imagery latency must
+    // not determine when MapLibre's initial load event enables QA controls.
+    // This fixture does not verify the actual government imagery endpoint.
+    cy.intercept('GET', '**/Indiana_Current_Imagery/ImageServer/exportImage*', {
+      statusCode: 200,
+      headers: { 'content-type': 'image/png', 'access-control-allow-origin': '*' },
+      body: Cypress.Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGMU0bD5z8DAwMDEAAUAFYABe3P1OxMAAAAASUVORK5CYII=', 'base64'),
+    }).as('imageryFixture');
     cy.intercept('GET', '**/3d-tiles/buildings-3d.json', {
       statusCode: 200, body: qa,
     }).as('qa');
     cy.visit('/map');
+    cy.wait('@imageryFixture');
     cy.get('.maplibregl-canvas', { timeout: 30000 }).should('exist');
     cy.get('details[aria-label="Map layers, data and engineering tools"] > summary').click();
     cy.contains('summary', 'Map overlays and camera controls').click();
