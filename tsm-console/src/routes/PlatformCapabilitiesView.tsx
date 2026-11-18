@@ -104,7 +104,7 @@ function UnrealWebBridgePanel(): JSX.Element {
 
 export default function PlatformCapabilitiesView(): JSX.Element {
   return (
-    <main style={{ maxWidth: 1180, margin: '0 auto', padding: '1.5rem', color: '#e7f0fa' }}>
+    <main style={{ maxWidth: 1180, margin: '0 auto', padding: '1.5rem', color: '#e7f0fa', background: '#081728', borderRadius: 12, minHeight: '100%' }}>
       <header style={{ borderBottom: '1px solid #20354b', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
         <p style={{ color: '#70d6ff', letterSpacing: '0.12em', fontSize: '0.75rem', fontWeight: 700 }}>TSM / UACF · PLATFORM INDEX</p>
         <h1 style={{ fontSize: 'clamp(1.7rem,4vw,2.6rem)', margin: '0.2rem 0 0.6rem' }}>Capabilities, packages and operational boundaries</h1>
