@@ -1,0 +1,39 @@
+name: TSM Public Unreal-to-Web Capability Contract
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/src/lib/unreal-web-bridge.ts'
+      - 'tsm-console/src/routes/PlatformCapabilitiesView.tsx'
+      - 'tsm-console/tests/unreal-web-bridge.test.mjs'
+      - 'tsm-console/cypress/e2e/unreal-web-bridge.cy.ts'
+      - '.github/workflows/tsm-unreal-web-bridge.yml'
+      - 'docs/architecture/UNREAL-PUBLIC-WEB-BRIDGE-2026-11-18.md'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/src/lib/unreal-web-bridge.ts'
+      - 'tsm-console/src/routes/PlatformCapabilitiesView.tsx'
+      - 'tsm-console/tests/unreal-web-bridge.test.mjs'
+      - 'tsm-console/cypress/e2e/unreal-web-bridge.cy.ts'
+      - '.github/workflows/tsm-unreal-web-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-capability-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Check Unreal module provenance, browser boundary and filtering
+        run: node --experimental-strip-types --test tsm-console/tests/unreal-web-bridge.test.mjs

@@ -1,47 +1,102 @@
 {
   "schemaVersion": "1.0.0",
   "artifactType": "tsm.platform_capabilities.v1",
-  "generatedFrom": "main after PR #246 conflict resolution; code presence is not deployment attestation",
+  "generatedFrom": "2026-11-18 public-router source review; source presence is not deployment or source-data attestation",
   "product": "Tri-State Systems Manager / UACF",
   "publicRoutes": [
     {
       "path": "/terrain-3d/",
-      "name": "Self-hosted CesiumJS 3D Terrain",
-      "status": "implemented; deployment validation required",
-      "format": "OGC 3D Tiles 1.1",
-      "source": "USGS 3DEP-derived terrain visualization"
+      "name": "3D terrain viewer (MapLibre GL)",
+      "status": "route implemented; raster/DEM coverage and source datum conditional",
+      "format": "MapLibre WebGL with configured terrain source",
+      "source": "Published terrain only where configured and source-verified"
     },
     {
       "path": "/globe/",
-      "name": "Self-hosted CesiumJS Globe",
-      "status": "implemented on main"
+      "name": "3D globe (MapLibre GL)",
+      "status": "route implemented; map layers depend on source availability",
+      "format": "MapLibre WebGL"
+    },
+    {
+      "path": "/cesium/",
+      "name": "Regional CesiumJS twin",
+      "status": "route implemented; building tiles and renderer assets are source-conditional",
+      "format": "CesiumJS with OGC 3D Tiles and optional ion assets"
+    },
+    {
+      "path": "/cinematic-engineering/",
+      "name": "Cinematic engineering map",
+      "status": "MapLibre default; optional Cesium renderer via ?renderer=cesium; runtime and source verification separate",
+      "format": "MapLibre default / optional CesiumJS"
     },
     {
       "path": "/platform/",
-      "name": "Platform Capabilities Index",
-      "status": "implemented"
+      "name": "Platform Capabilities and Unreal-to-Web crosswalk",
+      "status": "public client-side reference; not a UE5.8 runtime",
+      "format": "HTML/React"
     },
     {
       "path": "/twin/",
       "name": "Twin Canvas",
-      "status": "existing MapLibre twin surface"
+      "status": "existing MapLibre twin surface",
+      "format": "MapLibre WebGL"
     }
   ],
-  "applications": ["dashboard", "docs", "playground", "uacf-gateway"],
-  "packages": ["agent-runtime", "contracts", "core", "evidence", "gates", "geo", "hydraulics", "research"],
-  "providers": ["local", "browser", "search"],
-  "plugins": ["hydrology", "grants", "evidence-ledger"],
-  "runtimes": ["docker", "python"],
+  "applications": [
+    "dashboard",
+    "docs",
+    "playground",
+    "uacf-gateway"
+  ],
+  "packages": [
+    "agent-runtime",
+    "contracts",
+    "core",
+    "evidence",
+    "gates",
+    "geo",
+    "hydraulics",
+    "research"
+  ],
+  "providers": [
+    "local",
+    "browser",
+    "search"
+  ],
+  "plugins": [
+    "hydrology",
+    "grants",
+    "evidence-ledger"
+  ],
+  "runtimes": [
+    "docker",
+    "python"
+  ],
   "operatorSkills": [],
   "validationEntrypoints": [
     "scripts/ci/validate-self-hosted-cesium.mjs",
-    "scripts/geospatial/validate-terrain-3d-tiles.py"
+    "scripts/geospatial/validate-terrain-3d-tiles.py",
+    "tsm-console/tests/unreal-web-bridge.test.mjs",
+    ".github/workflows/tsm-unreal-web-bridge.yml"
   ],
   "evidenceBoundaries": {
     "terrainAuthority": "DERIVED",
     "engineeringUse": false,
     "regulatoryUse": false,
     "statement": "A terrain visualization is not survey-grade vertical control or a regulatory determination.",
-    "visualizationPolicy": "Render available, provenance-labelled assets independently of unrelated live service availability; surface missing assets explicitly."
+    "visualizationPolicy": "Render available, provenance-labelled assets independently of unrelated live service availability; surface missing assets explicitly.",
+    "unrealShippingProved": false,
+    "fullAoiTerrainProved": false,
+    "fullBuildingCensusProved": false
+  },
+  "unrealWebBridge": {
+    "sourceIndex": "user-supplied Unreal Engine module/plugin terminology index, version 5.6",
+    "publicRoute": "/platform/#unreal-web-bridge",
+    "sourcePath": "tsm-console/src/lib/unreal-web-bridge.ts",
+    "entryCount": 10,
+    "headlessPipeline": "Unreal Editor build/cook/render automation remains outside the browser",
+    "nativeShippingVerification": "NOT_EVIDENCED",
+    "dataAuthority": "INFORMATIONAL_ONLY",
+    "browserExecution": "HTML_CSS_JAVASCRIPT_NOT_UNREAL"
   }
 }
