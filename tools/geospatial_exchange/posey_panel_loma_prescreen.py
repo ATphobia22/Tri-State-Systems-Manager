@@ -115,10 +115,16 @@ def screen(args) -> tuple[list[dict], dict]:
         axis = crs.axis_info[0]
         if axis.unit_conversion_factor is None:
             raise ValueError('DEM projected CRS has no established horizontal units')
+        grid_x_m = math.hypot(dem.transform.a, dem.transform.d) * axis.unit_conversion_factor
+        grid_y_m = math.hypot(dem.transform.b, dem.transform.e) * axis.unit_conversion_factor
+        if not (0 < grid_x_m <= 2.0 and 0 < grid_y_m <= 2.0):
+            raise ValueError('DEM raster resolution exceeds 2 meters; cannot pre-screen structures')
         width = args.ring_width_m / axis.unit_conversion_factor
         v_m = {'metre': 1.0, 'us_survey_foot': 1200 / 3937, 'international_foot': 0.3048}[args.dem_unit]
         parcels = vector(paths['parcels'], ['parcel_id'], crs)
         buildings = vector(paths['buildings'], ['building_id'], crs)
+        if any(not isinstance(pid, str) or not pid.strip() for pid in parcels['parcel_id']):
+            raise ValueError('Parcel source contains blank or invalid parcel identity')
         sfha = vector(paths['sfha'], ['DFIRM_ID', 'FLD_ZONE', 'SFHA_TF'], crs)
         panels = vector(paths['panels'], ['DFIRM_ID', 'FIRM_PAN'], crs)
         panel = panels[(panels['FIRM_PAN'] == args.panel_id) & (panels['DFIRM_ID'] == '18129C')]
@@ -135,10 +141,11 @@ def screen(args) -> tuple[list[dict], dict]:
         rows: list[dict] = []
         for building in buildings.itertuples(index=False):
             geom = building.geometry
-            if geom.intersection(panel.geometry.iloc[0]).area <= 0:
+            within_panel = geom.intersection(panel.geometry.iloc[0])
+            if within_panel.area <= 0:
                 continue
-            if not any(geom.intersection(zones.geometry.iloc[i]).area > 0
-                       for i in zone_index.query(geom, predicate='intersects')):
+            if not any(within_panel.intersection(zones.geometry.iloc[i]).area > 0
+                       for i in zone_index.query(within_panel, predicate='intersects')):
                 continue
             match_indices = [i for i in parcel_index.query(geom, predicate='intersects')
                              if parcels.geometry.iloc[i].intersection(geom).area > 0]
