@@ -28,7 +28,7 @@ class NativePassportExportWiringTests(unittest.TestCase):
 
     def test_receipt_is_created_exclusively_without_overwrite_race(self):
         code = SOURCE.read_text(encoding="utf-8")
-        self.assertIn("CreateFileWriter(*ReceiptPath, FILEWRITE_NoReplaceExisting)", code)
+        self.assertRegex(code, r"CreateFileWriter\(\s*\*ReceiptPath,\s*FILEWRITE_NoReplaceExisting\)")
         self.assertNotIn("FFileHelper::SaveStringToFile(ReceiptText, *ReceiptPath)", code)
 
     def test_native_receipt_hashes_actual_export_bytes(self):
