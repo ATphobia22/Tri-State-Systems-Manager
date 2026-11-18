@@ -414,6 +414,46 @@ private:
                 return FReply::Handled();
             }
         }
+        FString ParcelId, CountyFips, SnapshotId, AsOf, Notice;
+        bool bSourceBytesVerifiedNotSourceClaims = false;
+        const TSharedPtr<FJsonValue>* EvidenceCounts = Passport->Values.Find(TEXT("evidenceStateCounts"));
+        if (!Passport->TryGetStringField(TEXT("parcelId"), ParcelId) ||
+            !Passport->TryGetStringField(TEXT("countyFips"), CountyFips) ||
+            !Passport->TryGetStringField(TEXT("snapshotId"), SnapshotId) ||
+            !Passport->TryGetStringField(TEXT("asOf"), AsOf) ||
+            !Passport->TryGetStringField(TEXT("notice"), Notice) ||
+            !Passport->TryGetBoolField(TEXT("sourceBytesVerifiedNotSourceClaims"),
+                                       bSourceBytesVerifiedNotSourceClaims) ||
+            !bSourceBytesVerifiedNotSourceClaims ||
+            ParcelId.IsEmpty() || ParcelId.Len() > 128 ||
+            CountyFips.Len() != 5 ||
+            SnapshotId.IsEmpty() || SnapshotId.Len() > 128 ||
+            AsOf.IsEmpty() || AsOf.Len() > 64 ||
+            Notice.IsEmpty() || Notice.Len() > 1024 ||
+            !EvidenceCounts || !EvidenceCounts->IsValid() ||
+            (*EvidenceCounts)->Type != EJson::Object)
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "PASSPORT // REQUIRED PUBLIC SOURCE METADATA MISSING OR MALFORMED")));
+            return FReply::Handled();
+        }
+        for (const TCHAR Digit : CountyFips)
+        {
+            if (Digit < TEXT('0') || Digit > TEXT('9'))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID COUNTY FIPS")));
+                return FReply::Handled();
+            }
+        }
+        for (const auto& Pair : (*EvidenceCounts)->AsObject()->Values)
+        {
+            if (!Pair.Value.IsValid() || Pair.Value->Type != EJson::Number ||
+                Pair.Value->AsNumber() < 0 || !FMath::IsFinite(Pair.Value->AsNumber()))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID EVIDENCE COUNTER")));
+                return FReply::Handled();
+            }
+        }
         for (const TSharedPtr<FJsonValue>& FactValue : *Facts)
         {
             const TSharedPtr<FJsonObject> Fact =
@@ -429,6 +469,66 @@ private:
                 {
                     ResultText->SetText(FText::FromString(TEXT(
                         "PASSPORT // RESTRICTED OR UNSUPPORTED FACT FIELD")));
+                    return FReply::Handled();
+                }
+            }
+            FString Label, SourceId, DataRole, EvidenceState;
+            bool bControlPointVerified = true;
+            const TArray<TSharedPtr<FJsonValue>>* Reasons = nullptr;
+            const TSharedPtr<FJsonValue>* FactPayload = Fact->Values.Find(TEXT("value"));
+            if (!Fact->TryGetStringField(TEXT("label"), Label) ||
+                !Fact->TryGetStringField(TEXT("sourceId"), SourceId) ||
+                !Fact->TryGetStringField(TEXT("dataRole"), DataRole) ||
+                !Fact->TryGetStringField(TEXT("evidenceState"), EvidenceState) ||
+                !Fact->TryGetBoolField(TEXT("controlPointVerified"), bControlPointVerified) ||
+                bControlPointVerified ||
+                !Fact->TryGetArrayField(TEXT("reasons"), Reasons) || !Reasons ||
+                Reasons->Num() > 32 ||
+                Label.IsEmpty() || Label.Len() > 120 ||
+                SourceId.IsEmpty() || SourceId.Len() > 128 ||
+                DataRole.IsEmpty() || DataRole.Len() > 64 ||
+                EvidenceState.IsEmpty() || EvidenceState.Len() > 64 ||
+                !FactPayload || !FactPayload->IsValid() ||
+                ((*FactPayload)->Type != EJson::String &&
+                 (*FactPayload)->Type != EJson::Number &&
+                 (*FactPayload)->Type != EJson::Null))
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // UNSUPPORTED FACT TYPES OR SCIENTIFIC CLAIMS")));
+                return FReply::Handled();
+            }
+            if (((*FactPayload)->Type == EJson::String &&
+                 (*FactPayload)->AsString().Len() > 200) ||
+                ((*FactPayload)->Type == EJson::Number &&
+                 !FMath::IsFinite((*FactPayload)->AsNumber())))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT VALUE")));
+                return FReply::Handled();
+            }
+            for (const TSharedPtr<FJsonValue>& Reason : *Reasons)
+            {
+                if (!Reason.IsValid() || Reason->Type != EJson::String ||
+                    Reason->AsString().Len() > 512)
+                {
+                    ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT REASON")));
+                    return FReply::Handled();
+                }
+            }
+            const TArray<FString> NullableTextFields = {
+                TEXT("units"), TEXT("verticalDatum"), TEXT("sourceSha256"),
+                TEXT("observedAt")
+            };
+            for (const FString& Key : NullableTextFields)
+            {
+                const TSharedPtr<FJsonValue>* OptionalValue = Fact->Values.Find(Key);
+                if (!OptionalValue || !OptionalValue->IsValid() ||
+                    ((*OptionalValue)->Type != EJson::Null &&
+                     (*OptionalValue)->Type != EJson::String) ||
+                    ((*OptionalValue)->Type == EJson::String &&
+                     (*OptionalValue)->AsString().Len() > 256))
+                {
+                    ResultText->SetText(FText::FromString(TEXT(
+                        "PASSPORT // UNEXPECTED NESTED OR OVERSIZED FACT METADATA")));
                     return FReply::Handled();
                 }
             }
