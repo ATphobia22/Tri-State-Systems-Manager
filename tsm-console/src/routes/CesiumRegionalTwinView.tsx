@@ -21,7 +21,10 @@ const LAYERS: { id: SceneLayer; title: string; initial: boolean }[] = [
 type Scene = ReturnType<typeof mountCesiumRegionalScene>;
 
 
-export default function CesiumRegionalTwinView() {
+export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverChange }: {
+  autoFlyover?: boolean;
+  onFlyoverChange?: (active: boolean) => void;
+} = {}) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<Scene | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -35,6 +38,12 @@ export default function CesiumRegionalTwinView() {
   const [sceneVersion, setSceneVersion] = useState(0);
   const [place, setPlace] = useState(0);
   const [tour, setTour] = useState(false);
+  const previousTour = useRef(false);
+  useEffect(() => {
+    if (previousTour.current === tour) return;
+    previousTour.current = tour;
+    onFlyoverChange?.(tour);
+  }, [tour, onFlyoverChange]);
   const [shotId, setShotId] = useState('');
   const [shotFrame, setShotFrame] = useState(0);
   const [shotPlayStart, setShotPlayStart] = useState<number | null>(null);
@@ -239,6 +248,16 @@ export default function CesiumRegionalTwinView() {
     return () => window.clearTimeout(advance);
   }, [day, playing]);
 
+  // External engineering-cinema Play/Pause drives the actual Cesium camera;
+  // model water levels are never used as real elevation or gage observations.
+  const syncExternalFlyover = useEffectEvent((play: boolean) => {
+    if (play && !tour && !reducedMotion) startTour();
+    if (!play && tour) stopTour();
+  });
+  useEffect(() => {
+    if (ready && !error) syncExternalFlyover(autoFlyover);
+  }, [autoFlyover, ready, error]);
+
   function stopTour() {
     window.clearTimeout(timer.current);
     scene.current?.stopFlight();
@@ -302,6 +321,10 @@ export default function CesiumRegionalTwinView() {
           <Link to="/cinematic-engineering">Engineering</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/photorealistic-3d">Photorealistic 3D (opt-in)</Link>
+          <button type="button" className="tsm-cesium-tools-toggle" disabled={!ready || reducedMotion}
+            data-testid="cesium-flyover-toolbar" onClick={startTour}>
+            {tour ? 'Stop 3D flyover' : 'Play 3D flyover'}
+          </button>
           <button type="button" className="tsm-cesium-tools-toggle" data-testid="cesium-tools-toggle"
             aria-controls="tsm-cesium-tools" aria-expanded={toolsOpen}
             onClick={() => setToolsOpen((open) => !open)}>
@@ -315,6 +338,7 @@ export default function CesiumRegionalTwinView() {
             onPointerDown={() => setShotPlayStart(null)} />
           <div className="tsm-cesium-place">
             <strong>{CESIUM_VIEWS[place]?.name}</strong>
+            <small>Posey building layer: {!visible.buildings ? 'hidden' : status.buildings?.state === 'ready' ? 'ready' : status.buildings?.state === 'loading' ? 'loading' : status.buildings?.state === 'unavailable' ? 'source unavailable' : 'awaiting status'} · Online OSM: {ION_ENABLED ? 'opt-in' : 'unavailable without ion token'}</small>
             {picked && <p>{picked.title}<small>{picked.detail}</small></p>}
           </div>
           <div className="tsm-cesium-map-shortcuts" aria-label="Visible Cesium scene shortcuts">
@@ -324,13 +348,13 @@ export default function CesiumRegionalTwinView() {
               {toolsOpen ? 'Hide 3D layers' : '3D buildings & layers'}
             </button>
             <label>
-              <input type="checkbox" disabled={!ready} checked={visible.buildings}
+              <input type="checkbox" data-testid="cesium-buildings-quick-toggle" disabled={!ready} checked={visible.buildings}
                 onChange={(event) => {
                   const show = event.target.checked;
                   setVisible((current) => ({ ...current, buildings: show, ...(show ? { osmContext: false } : {}) }));
                   scene.current?.setLayer('buildings', show);
                 }} />
-              Posey 3D
+              Posey 3D buildings
             </label>
           </div>
           {(graphicsPaused || error) && <div className="tsm-cesium-error" role="alert">
