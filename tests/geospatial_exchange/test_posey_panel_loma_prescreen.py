@@ -101,3 +101,44 @@ def test_nodata_dem_never_becomes_zero(tmp_path):
     assert result.returncode == 0, result.stderr
     assert rows[0]['status'] == 'INSUFFICIENT_DEM_EVIDENCE'
     assert rows[0]['dem_adjacent_min_navd88_ft'] == ''
+
+def test_building_zone_only_outside_firm_panel_is_excluded(tmp_path):
+    args, _ = fixtures(tmp_path)
+    parcels, buildings, zones, panels, *_ = args
+    b = gpd.read_file(buildings)
+    b.loc[0, 'geometry'] = box(18, 7, 22, 11)
+    b.to_file(buildings, driver='GeoJSON')
+    p = gpd.read_file(parcels)
+    p.loc[0, 'geometry'] = box(17, 3, 25, 17)
+    p.to_file(parcels, driver='GeoJSON')
+    z = gpd.read_file(zones)
+    z.loc[0, 'geometry'] = box(20.1, 0, 30, 20)
+    z.to_file(zones, driver='GeoJSON')
+    result, rows, _ = run(tmp_path, *args)
+    assert result.returncode == 0, result.stderr
+    assert rows == [], 'Zone AE outside the selected FIRM panel cannot create a candidate'
+
+
+def test_missing_parcel_identity_rejected(tmp_path):
+    args, _ = fixtures(tmp_path)
+    parcels = args[0]
+    p = gpd.read_file(parcels)
+    p.loc[0, 'parcel_id'] = ''
+    p.to_file(parcels, driver='GeoJSON')
+    result, rows, _ = run(tmp_path, *args)
+    assert result.returncode != 0
+    assert not rows
+    assert 'parcel' in result.stderr.lower()
+
+
+def test_coarse_30m_dem_not_accepted_as_structure_grade(tmp_path):
+    args, _ = fixtures(tmp_path)
+    dem = args[4]
+    with rasterio.open(dem, 'w', driver='GTiff', height=2, width=2, count=1,
+                       dtype='float32', transform=from_origin(0, 40, 30, 30),
+                       crs=CRS, nodata=-9999) as ds:
+        ds.write(np.full((2, 2), 120.0, dtype='float32'), 1)
+    result, rows, _ = run(tmp_path, *args)
+    assert result.returncode != 0
+    assert not rows
+    assert 'resolution' in result.stderr.lower()
