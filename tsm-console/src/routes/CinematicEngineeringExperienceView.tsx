@@ -75,7 +75,7 @@ export default function CinematicEngineeringExperienceView(): React.JSX.Element 
       <div style={{ display: "flex", flexWrap: "wrap", flex: 1, minHeight: 0 }}>
       <section style={{ position: "relative", flex: "1 1 540px", minWidth: 0, minHeight: "min(75dvh, 790px)", borderRight: "1px solid #1e293b" }}>
         {renderer === 'cesium'
-          ? <CesiumRegionalTwinView autoFlyover={playing} />
+          ? <CesiumRegionalTwinView autoFlyover={playing} onFlyoverChange={setPlaying} />
           : <TriStateDigitalTwinMap hideSidebar regionalAtlas cinematicTour={playing}
               onTourReducedMotion={stopTourForReducedMotion} />}
         {/* The engineering model timeline is displayed OVER the actual map; it is not the rendered camera pose. */}
