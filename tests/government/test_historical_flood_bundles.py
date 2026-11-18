@@ -124,5 +124,24 @@ class HistoricalFloodBundleTests(unittest.TestCase):
             self.fail("Missing OpenFEMA source")
 
 
+    def test_historic_usgs_quad_quality_is_qualitative_and_post_event(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = bundle.build_county_bundle(
+                self.catalog, "18129", [], Path(tmp), "2026-11-18T00:00:00Z"
+            )
+        records = {r["quadrangle"]: r for r in doc["historical_map_index_records"]}
+        self.assertEqual(records["MOUNT VERNON, IN-KY"]["qualitative_reliability"], "HIGH")
+        self.assertEqual(records["UNIONTOWN, IN-KY"]["qualitative_reliability"], "RECON")
+        self.assertFalse(records["MOUNT VERNON, IN-KY"]["agency_use_during_1937_verified"])
+        self.assertFalse(records["MOUNT VERNON, IN-KY"]["map_geometry_attached"])
+        self.assertEqual(records["MOUNT VERNON, IN-KY"]["publication_date"], "1975-03")
+
+    def test_official_flood_event_years_are_retained_as_coarse_windows(self):
+        ids = {e["id"]: e for e in self.catalog["events"]}
+        self.assertEqual(ids["1913_wabash"]["date_precision"], "MONTH_RANGE")
+        self.assertEqual(ids["2005_lower_wabash_ohio"]["date_precision"], "MONTH_RANGE")
+        self.assertEqual(ids["2011_ohio_wabash"]["date_precision"],
+                         "YEAR_WINDOW_NOT_EVENT_START_END")
+
 if __name__ == "__main__":
     unittest.main()
