@@ -16,9 +16,36 @@ FEMA's Map Service Center **Search All Products** exposes historic/effective/pre
 - FEMA NFHL: https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer
 - FEMA FIRM/FIS training: https://emilms.fema.gov/is_0274/groups/122.html
 - USGS 1937 study: https://pubs.usgs.gov/publication/wsp838
+- USGS March 1975 Posey flood-map quality index: https://pubs.usgs.gov/wri/1974/0048/report.pdf
+- USGS New Harmony Wabash stage-conditioned inundation study (2016): https://pubs.usgs.gov/publication/sir20165119
+- USGS Grayville/I-64 Wabash hydraulic study (published 2018): https://pubs.usgs.gov/publication/sir20175140
+- NOAA NCEI Storm Events database: https://www.ncei.noaa.gov/access/storm-events-database/
+- USACE National Levee Database GIS/metadata: https://levees.sec.usace.army.mil/data-services/services/
 - USGS 2012 Ohio River backwater study: https://pubs.usgs.gov/sir/2012/5212/
 - USGS Flood Event Viewer / high-water marks: https://apps.usgs.gov/fev/data-download-portal
 - NOAA NWPS (historic crests/low-water history only, not full historic time series): https://water.noaa.gov/about/api
+
+## Verified USGS historical map index (not original map files)
+
+The USGS **WRI 74-48** was published **March 1975**, using a computer map inventory compiled **1975-01-16**. The original document indexes **11 Posey County quadrangles**: seven maps of the **observed 1937 flood** and four depicting a **100-year design flood**. They are distinct types of flood mapping:
+
+| Flood depiction | Quadrangle | USGS reliability |
+|---|---|---|
+| 1937 observed flood | Uniontown IN-KY | RECON |
+| 1937 observed flood | Wabash IN | HIGH |
+| 1937 observed flood | West Franklin IN-KY | HIGH |
+| 1937 observed flood | Cathryn IN-KY | HIGH |
+| 1937 observed flood | Mount Vernon IN-KY | HIGH |
+| 1937 observed flood | Evansville IN | RECON |
+| 1937 observed flood | Solitude IN-IL | RECON |
+| 100-year design | Kasson IN | HIGH |
+| 100-year design | Carmel IN | RECON |
+| 100-year design | Poseyville IN | RECON |
+| 100-year design | New Harmony IN-IL | RECON |
+
+**Original USGS definitions:** `RECON` means approximate reconnaissance mapping without field surveys and/or detailed hydraulic/hydrologic analysis; `STANDARD` uses detailed surveys and hydraulics; `HIGH` adds observed flood evidence at or near the mapped reach. The labels are not numeric positional/vertical accuracy. The index does **not** establish that maps were created or used in 1937; that would be impossible for a 1975 inventory. The catalog stores all 11 as index metadata with `map_geometry_attached=false` and `agency_use_during_1937_verified=false` until original map scans, agency records and georeferencing evidence are recovered.
+
+The **2016 USGS New Harmony study** calibrated stage-inundation hydraulic profiles using 2013 high-water marks; the **2018 Grayville/I-64 study** used GPS surveyed water-surface elevations and ratings at USGS gages 03377500 and 03378500. They are useful documented modeling methods for the modern twin, but must **not** be attributed to 1937 or 2011 emergency response. NOAA historical narratives and USACE levee geometry are reference context, not direct records of surveyed flood extent for each parcel.
 
 ## Map-formation evidence to collect per source and event
 
@@ -53,7 +80,7 @@ Shared USGS historic streamgage/event and USACE archive sources must be linked b
 
 ### Indiana public S3
 
-The Indiana bucket public root was enumerated separately using the AWS API. Its collection families include `copc/`, `las/`, `demraw/`, `demoptimized/`, `dsmraw/`, `metadata/` and `ndhmoptimized/`. Root prefix existence **does not validate Posey coverage, individual tile hash, dates, collection accuracy or height datum**.
+The public Indiana GIO bucket is a discovery target. A fresh S3 object-level enumeration could not be independently executed in this run, so no tile key, original metadata file, checksum or county coverage is certified. Reported collection families include `copc/`, `las/`, `demraw/`, `demoptimized/`, `dsmraw/`, `metadata/` and `ndhmoptimized/`. Root prefix existence **does not validate Posey coverage, individual tile hash, dates, collection accuracy or height datum**.
 
 ```sh
 aws s3 ls s3://giselevationingov/ --no-sign-request
@@ -68,26 +95,31 @@ Kentucky tile and asset discovery: https://kygeonet.ky.gov/catalogexplorer/ . Il
 
 ## OpenFEMA integration (reuse existing TSM client)
 
-Existing authority catalog: [OpenFEMA catalog](../../data/fema/openfema-catalog.json). Existing controlled client: [openfema_client.py](../../backend/geospatial/fema/openfema_client.py). Existing snapshot: [Posey declaration export](../../scripts/government/openfema_posey_snapshot.py).
+Existing authority catalog: [OpenFEMA catalog](../../data/fema/openfema-catalog.json). Existing controlled client: [openfema_client.py](../../backend/geospatial/fema/openfema_client.py). Existing snapshot: [Posey declaration export](../../scripts/government/openfema_posey_snapshot.py). New six-county source-correct exporter: [openfema_tristate_declarations.py](../../scripts/government/openfema_tristate_declarations.py).
 
-- `DisasterDeclarationsSummaries` v2: federal incident/declaration administrative records; county FIPS, declaration date, incident type.
+- `DisasterDeclarationsSummaries` v2: federal incident/declaration administrative records; county FIPS, declaration date, incident type. A dedicated six-county exporter validates state/county codes (including IL Gallatin `059`), preserves original page SHA-256 receipts, rejects incomplete pagination and writes six new, hash-receipted JSON snapshots; network use is opt-in via CLI only.
 - `NfipPolicies` v3 and `NfipClaims` v3: **redacted, administrative, not geocoded parcels**. Aggregate only at statistically/privacy-safe levels and avoid small-cell reidentification.
 - Preserve source `retrieved_at`, versioned URL, OData query, selection, completeness/PARTIAL status, pagination receipts and raw-response SHA-256. A published API catalog record is not a live observed event.
 - The existing TSM bounded adapter has file/response budgets. Large historical national NFIP exports can be staged in versioned Parquet for **offline DuckDB** summaries after privacy review. Do not force Apache Spark, ClickHouse or a continuously streaming service into the zero-login offline Windows installer.
 
 ## Implemented artifacts and review-only commands
 
-- `data/historical-floods/tri-state-catalog-v1.json`: 17 source/product categories, 6 county targets, 2 regional historical-event contexts, one photographed Posey 2014 map edition; all unknown dates and QL fields are **null**, not guesses.
+- `data/historical-floods/tri-state-catalog-v1.json`: 25 source/product categories, 6 county targets, 4 historically anchored regional event contexts, one photographed Posey 2014 map edition, and 11 official USGS 1975 historical-quality index records; all unknown dates and QL fields are **null**, not guesses.
 - `scripts/geospatial/historical_flood_evidence_schema.sql`: PostGIS tables for counties, events, agency sources, map edition, source asset quality, BFE records, versioned building polygons, explicit agency map use review, and temporal diagnostic view.
-- `scripts/geospatial/historical_flood_source_seeds.sql`: SQL seeds for **all 17** registry categories and county-specific discovery scopes; no claim of tile coverage.
+- `scripts/geospatial/historical_flood_source_seeds.sql`: SQL seeds for **all 25** registry categories, 104 county/source discovery scopes, four regional event contexts, and the 11 original USGS Posey quadrangle index entries; no claim of tile coverage.
 - `scripts/government/historical_flood_bundles.py`: no-network, hash-validating local bundle builder that refuses out-of-root paths, hash mismatches and post-event-map historical-use claims.
 - `tests/government/test_historical_flood_bundles.py` and `.github/workflows/historical-flood-evidence.yml`: synthetic tests and six-county CI-generated inventory.
+- `scripts/government/openfema_tristate_declarations.py` and `tests/government/test_openfema_tristate_declarations.py`: separate **opt-in** actual OpenFEMA declarations downloader and entirely mocked, zero-network unit tests for all six counties. The new action uploads inventory JSON plus SHA-256 sidecars for review; those are not source map tiles.
 
 ```sh
 python -m unittest discover -s tests/government -p test_historical_flood_bundles.py -v
+python -m unittest discover -s tests/government -p test_openfema_tristate_declarations.py -v
 python scripts/government/historical_flood_bundles.py \
   --catalog data/historical-floods/tri-state-catalog-v1.json \
   --asset-root . --out /some/new/review-only-inventory-folder
+# OPTIONAL LIVE ADMINISTRATIVE QUERY (network, bounded, six counties, no NFIP claims):
+python scripts/government/openfema_tristate_declarations.py \
+  --out /some/new/openfema-declaration-snapshot-folder
 # Apply to a reviewed PostGIS database ONLY after inspecting and backing up schema:
 psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_evidence_schema.sql
 psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_source_seeds.sql
