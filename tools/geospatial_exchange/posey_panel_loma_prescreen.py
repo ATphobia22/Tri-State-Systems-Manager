@@ -197,12 +197,14 @@ def screen(args) -> tuple[list[dict], dict]:
                 'dem_adjacent_min_navd88_ft': f'{minimum:.3f}' if minimum is not None else '',
                 'bfe_navd88_ft': f'{bfe:.3f}' if bfe is not None else '',
                 'freeboard_dem_minus_bfe_ft': f'{margin:.3f}' if margin is not None else '',
-                'sampled_dem_cells': cells, 'status': status, 'official_loma_eligible': 'false',
+                'sampled_dem_cells': cells, 'status': status, 'official_loma_eligible': 'NOT_DETERMINED',
             })
         receipt = {
             'authority': 'FEMA NFHL source snapshot as supplied, not independently revalidated',
             'panel_id': args.panel_id, 'screening_only': True,
-            'official_loma_eligible_count': 0, 'candidate_structures': len(rows),
+            'official_loma_eligible_count': None, 'candidate_structures': None,
+            'screened_structure_rows': len(rows),
+            'count_state': 'UNKNOWN_MISSING_EVIDENCE_NOT_ZERO',
             'run_generated_at_utc': datetime.now(timezone.utc).isoformat(),
             'source_vintage_independently_verified': False,
             'sha256_inputs': {key: sha256(path) for key, path in paths.items()},
