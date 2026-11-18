@@ -42,6 +42,11 @@ class NativePassportExportWiringTests(unittest.TestCase):
         self.assertIn("EJson::Number", code)
         self.assertIn('TryGetArrayField(TEXT("reasons")', code)
 
+    def test_export_bytes_are_read_back_before_receipt_claim(self):
+        code = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("FFileHelper::LoadFileToArray(ExportReadback, *ExportJson)", code)
+        self.assertIn("ReadbackHash != FileSha256", code)
+
     def test_native_receipt_hashes_actual_export_bytes(self):
         code=SOURCE.read_text(encoding="utf-8")
         self.assertIn("TsmSha256HexOfString",code)
