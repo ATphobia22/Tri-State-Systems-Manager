@@ -10,6 +10,10 @@ on:
       - 'tsm-console/src/components/TriStateDigitalTwinMap.tsx'
       - 'tsm-console/src/routes/LedgerView.tsx'
       - 'tsm-console/tests/geotruth-qa-map.test.mjs'
+      - 'tsm-console/tests/foundry-ledger-review.test.mjs'
+      - 'tsm-console/src/lib/foundry-ledger-review.ts'
+      - 'tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp'
+      - 'tests/innovation/test_native_passport_export_wiring.py'
       - 'scripts/government/foundry_ledger_queue.py'
       - 'tests/government/test_foundry_ledger_queue.py'
       - 'tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp'
@@ -31,9 +35,11 @@ jobs:
         with:
           node-version: '22'
       - name: Test source-ID, privacy and height QA handling
-        run: node --experimental-strip-types --test tsm-console/tests/geotruth-qa-map.test.mjs
+        run: node --experimental-strip-types --test tsm-console/tests/geotruth-qa-map.test.mjs tsm-console/tests/foundry-ledger-review.test.mjs
       - name: Test Foundry ledger review state and hash binding
         run: python -m unittest discover -s tests/government -p test_foundry_ledger_queue.py -v
+      - name: Native HUD wiring contract (not a Windows compile)
+        run: python -m unittest discover -s tests/innovation -p test_native_passport_export_wiring.py -v
       - name: Preserve existing triad and evidence assurance
         run: |
           python -m unittest discover -s tests/innovation -p 'test_*.py' -v
