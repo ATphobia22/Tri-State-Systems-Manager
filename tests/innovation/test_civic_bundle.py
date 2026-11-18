@@ -90,6 +90,15 @@ class CivicBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unexpected evidence schema"):
             combine.bundle(self.geo, self.contracts)
 
+    def test_json_hash_and_parser_share_one_bounded_byte_read(self):
+        from hashlib import sha256
+        from unittest.mock import patch
+        expected_bytes = self.geo.read_bytes()
+        with patch.object(Path, "read_text", side_effect=AssertionError("second read")):
+            document, digest = combine._json(self.geo)
+        self.assertEqual(digest, sha256(expected_bytes).hexdigest())
+        self.assertEqual(document["schema"], "tsm.geotruth.building-qa.v1")
+
     def test_rejects_duplicate_json_properties(self):
         self.contracts.write_text('{"schema":"tsm.government.contract-foundry.v1","schema":"evil"}')
         with self.assertRaisesRegex(ValueError, "Duplicate JSON property"):
