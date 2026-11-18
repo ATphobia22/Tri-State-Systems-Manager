@@ -21,8 +21,9 @@ import numpy as np
 import rasterio
 from pyproj import CRS
 from rasterio.errors import WindowError
+from rasterio.features import geometry_mask
 from rasterio.mask import mask
-from shapely.geometry import mapping
+from shapely.geometry import Polygon, mapping
 
 OUTPUT_FIELDS = [
     'building_id', 'parcel_id', 'parcel_match', 'panel_id', 'flood_zone',
@@ -83,19 +84,46 @@ def sample_adjacent_min_ft(dem: rasterio.io.DatasetReader, building,
                            width_in_crs_units: float, metres_per_vertical_unit: float):
     # Sample a narrow exterior band, not a filled building footprint or rooftop.
     exterior = building.buffer(width_in_crs_units).difference(building)
-    if exterior.is_empty:
+    if exterior.is_empty or exterior.area <= 0:
         return None, 0
+
+    # A truncated DEM cannot establish a minimum adjacent grade. Use the
+    # transformed raster-corner quadrilateral, not just its bounding box;
+    # this also handles projected rasters with rotation or shear.
+    corners = [dem.transform * (col, row) for col, row in (
+        (0, 0), (dem.width, 0), (dem.width, dem.height), (0, dem.height),
+    )]
+    raster_footprint = Polygon(corners)
+    if (not raster_footprint.is_valid or
+            exterior.difference(raster_footprint).area > exterior.area * 0.01):
+        return None, 0
+
     try:
-        array, _ = mask(dem, [mapping(exterior)], crop=True, filled=False, indexes=1,
-                        all_touched=False)
+        array, clipped_transform = mask(
+            dem, [mapping(exterior)], crop=True, filled=False,
+            indexes=1, all_touched=False,
+        )
     except (ValueError, WindowError):
         return None, 0
-    valid = np.asarray(array.compressed(), dtype=np.float64)
-    valid = valid[np.isfinite(valid)]
-    valid = valid[~np.isin(valid, [-999, -9999, -8888])]
-    if len(valid) == 0:
+
+    # Rasterio's masked output does not distinguish cells outside the ring
+    # from nodata cells inside it. Measure the selected ring explicitly.
+    ring_mask = geometry_mask(
+        [mapping(exterior)], out_shape=array.shape,
+        transform=clipped_transform, invert=True, all_touched=False,
+    )
+    ring_count = int(np.count_nonzero(ring_mask))
+    if ring_count == 0:
         return None, 0
-    return float(valid.min() * metres_per_vertical_unit / 0.3048), len(valid)
+    data = np.asarray(np.ma.getdata(array), dtype=np.float64)
+    usable = (ring_mask & ~np.ma.getmaskarray(array) &
+              np.isfinite(data) & ~np.isin(data, [-999, -9999, -8888]))
+    valid_count = int(np.count_nonzero(usable))
+    # Never elevate a partial peripheral measurement to a positive review
+    # result; this is a data-completeness gate, not survey-grade assurance.
+    if valid_count / ring_count < 0.80:
+        return None, valid_count
+    return float(data[usable].min() * metres_per_vertical_unit / 0.3048), valid_count
 
 
 def screen(args) -> tuple[list[dict], dict]:
@@ -180,7 +208,7 @@ def screen(args) -> tuple[list[dict], dict]:
             'sha256_inputs': {key: sha256(path) for key, path in paths.items()},
             'raster_crs': crs.to_string(), 'dem_vertical_datum_asserted': args.dem_vertical_datum,
             'dem_vertical_unit': args.dem_unit, 'adjacent_buffer_width_m': args.ring_width_m,
-            'sampling': 'minimum valid cell intersecting exterior ring; DEM proxy only; not certified LAG',
+            'sampling': 'minimum valid cell in exterior ring; 99% raster extent and >=80% valid ring-cell coverage required; DEM proxy only, not certified LAG',
             'limitations': 'No FEMA determination, surveyed LAG/LLE, no fill history, no BFE interpolation, no legal parcel LOMA eligibility',
         }
     return rows, receipt
