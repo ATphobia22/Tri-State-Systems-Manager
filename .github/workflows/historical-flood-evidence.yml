@@ -1,0 +1,24 @@
+name: Tri-State historical flood evidence bundles
+on:
+  pull_request:
+    paths:
+      - 'scripts/government/historical_flood_bundles.py'
+      - 'tests/government/test_historical_flood_bundles.py'
+      - 'data/historical-floods/tri-state-catalog-v1.json'
+      - '.github/workflows/historical-flood-evidence.yml'
+  workflow_dispatch:
+jobs:
+  offline-inventory-and-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify offline historical flood bundle contracts
+        run: python -m unittest discover -s tests/government -p 'test_historical_flood_bundles.py' -v
+      - name: Generate review-only artifacts for all six counties
+        run: |
+          python scripts/government/historical_flood_bundles.py \
+            --catalog data/historical-floods/tri-state-catalog-v1.json \
+            --asset-root . --out ${{ runner.temp }}/historical-flood-evidence
