@@ -6,6 +6,7 @@ on:
       - 'scripts/government/openfema_tristate_declarations.py'
       - 'tests/government/test_openfema_tristate_declarations.py'
       - 'tests/government/test_historical_flood_bundles.py'
+      - 'tests/government/test_historical_flood_sql_contract.py'
       - 'data/historical-floods/tri-state-catalog-v1.json'
       - 'scripts/geospatial/historical_flood_evidence_schema.sql'
       - 'scripts/geospatial/historical_flood_source_seeds.sql'
@@ -27,6 +28,8 @@ jobs:
         run: python -m unittest discover -s tests/government -p 'test_historical_flood_bundles.py' -v
       - name: Validate mocked six-county OpenFEMA administrative exports
         run: python -m unittest discover -s tests/government -p 'test_openfema_tristate_declarations.py' -v
+      - name: Verify SQL seed columns match the authoritative migration
+        run: python -m unittest discover -s tests/government -p 'test_historical_flood_sql_contract.py' -v
       - name: Generate review-only artifacts for all six counties
         run: |
           python scripts/government/historical_flood_bundles.py \
@@ -39,3 +42,63 @@ jobs:
           path: ${{ runner.temp }}/historical-flood-evidence/
           if-no-files-found: error
           retention-days: 30
+
+  postgis-schema-smoke:
+    name: PostgreSQL 16 / PostGIS migration and replay proof
+    runs-on: ubuntu-latest
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: tsm_ci
+          POSTGRES_USER: tsm_ci
+          POSTGRES_PASSWORD: local-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tsm_ci -d tsm_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: tsm_ci
+      PGUSER: tsm_ci
+      PGPASSWORD: local-ci-only
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+      - name: Apply PostGIS schema and all six-county source seeds twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS postgis"
+          for replay in 1 2; do
+            psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_evidence_schema.sql
+            psql -v ON_ERROR_STOP=1 -f scripts/geospatial/historical_flood_source_seeds.sql
+          done
+      - name: Assert source, county, index and 100-year design records
+        shell: bash
+        run: |
+          set -euo pipefail
+          sql="SELECT
+            (SELECT count(*) FROM tsm_flood_history.counties),
+            (SELECT count(*) FROM tsm_flood_history.sources),
+            (SELECT count(*) FROM tsm_flood_history.source_county_scope),
+            (SELECT count(*) FROM tsm_flood_history.flood_events),
+            (SELECT count(*) FROM tsm_flood_history.event_county_context),
+            (SELECT count(*) FROM tsm_flood_history.historical_map_index),
+            (SELECT count(*) FROM tsm_flood_history.historical_map_index WHERE mapped_flood_year = 1937),
+            (SELECT count(*) FROM tsm_flood_history.historical_map_index WHERE mapped_flood_year IS NULL);"
+          actual="$(psql -v ON_ERROR_STOP=1 -At -F ',' -c "$sql")"
+          expected="6,25,104,4,24,11,7,4"
+          echo "Observed source integrity counts: $actual"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PostGIS source/catalog/replay counts differ from the asserted schema contract"
+            exit 1
+          fi
+          psql -v ON_ERROR_STOP=1 -At -c "SELECT postgis_version()"
