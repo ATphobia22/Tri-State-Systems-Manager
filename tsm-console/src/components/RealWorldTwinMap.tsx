@@ -359,7 +359,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     setMultiBusy(true);
     setMultiError(null);
     try {
-      const snaps = await fetchAllLiveStations();
+      // An explicit user click may use official USGS OGC data when the
+      // optional same-origin TSM API is unavailable (e.g. GitHub Pages).
+      // Background observation/shadow paths do not opt into this fallback.
+      const snaps = await fetchAllLiveStations(undefined, { browserFallback: true });
       setMultiStations(snaps);
       const primary = snaps.find((s) => s.stationId === '03378500');
       if (primary && primary.stage_ft != null) {
