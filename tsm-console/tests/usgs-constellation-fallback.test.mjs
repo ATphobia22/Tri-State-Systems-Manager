@@ -87,5 +87,5 @@ test('browser constellation fallback is wired only to explicit map button, not p
   assert.match(fetchSource,/browserFallback\?: boolean/);
   assert.match(fetchSource,/options\.browserFallback/);
   assert.match(mapSource,/fetchAllLiveStations\([^)]*browserFallback: true/);
-  assert.match(fetchSource,/const.*browserFallback|if \(options\.browserFallback/);
+  assert.match(fetchSource,/if \(!options\.browserFallback\) return serverRows/);
 });
