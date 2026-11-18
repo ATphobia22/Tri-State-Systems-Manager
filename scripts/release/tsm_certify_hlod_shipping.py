@@ -17,6 +17,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+try:
+    from .shipping_acceptance_evidence import assess_shipping_acceptance
+except ImportError:  # Direct execution as a repository script
+    from shipping_acceptance_evidence import assess_shipping_acceptance
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -117,17 +122,18 @@ def certify(args: argparse.Namespace) -> Dict[str, Any]:
                 "label": "airgap_acceptance_log",
                 "present": False,
                 "path": None,
-                "note": "Pass --airgap-log from Test-TSMShippingRuntime.ps1 output",
+                "note": "Pass --airgap-log with a reviewed offline-smoke JSON evidence receipt, not a text log",
             }
         )
 
     hlod_ready = bool(tileset.exists() and glb_count > 0 and not staging_only)
-    shipping_ready = bool(
-        shipping_exe
-        and shipping_exe.exists()
-        and airgap_log
-        and airgap_log.exists()
-    )
+    shipping_evidence = assess_shipping_acceptance(shipping_exe, airgap_log)
+    shipping_ready = shipping_evidence["certified"]
+    checks.append({
+        "label": "reviewed_offline_shipping_evidence",
+        "present": shipping_ready,
+        "reason": shipping_evidence["reason"],
+    })
 
     report = {
         "schema_version": "1.0.0",
