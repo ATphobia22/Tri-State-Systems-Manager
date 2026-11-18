@@ -140,19 +140,23 @@ export function candidateGaugeObservation(definition: RiverGaugeDefinition): Riv
   };
 }
 
-function normalizeObservation(
+/** Reject all known no-data sentinels at the final client boundary. Genuine zero is valid. */
+export function sanitizeGaugeValue(raw: unknown): number | null {
+  return typeof raw === 'number' && Number.isFinite(raw) &&
+    raw !== -999 && raw !== -9999 && raw !== -8888 ? raw : null;
+}
+
+export function normalizeCommunityGaugeObservation(
   definition: RiverGaugeDefinition,
   payload: Record<string, unknown>,
   nowMs: number,
   maxAgeMs: number,
   provenancePath: RiverGaugeObservation['provenancePath'],
 ): RiverGaugeObservation {
-  const value =
-    typeof payload.value === 'number'
-      ? payload.value
-      : typeof payload.stage_ft === 'number'
-        ? payload.stage_ft
-        : null;
+  const value = sanitizeGaugeValue(payload.value) ?? sanitizeGaugeValue(payload.stage_ft);
+  const dischargeCfs = sanitizeGaugeValue(payload.dischargeCfs) ??
+    sanitizeGaugeValue(payload.discharge_cfs);
+  const freshnessStatus = isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale';
   const observedAt =
     typeof payload.observedAt === 'string'
       ? payload.observedAt
@@ -170,7 +174,7 @@ function normalizeObservation(
     provider,
     name: definition.name,
     river: definition.river,
-    value: value != null && value !== -999 ? value : null,
+    value,
     unit: typeof payload.unit === 'string' ? payload.unit : 'ft',
     observedAt,
     retrievedAt:
@@ -178,15 +182,10 @@ function normalizeObservation(
     qualifier: typeof payload.qualifier === 'string' ? payload.qualifier : null,
     provisional: Boolean(payload.provisional ?? (payload.qualifier === 'P')),
     status:
-      payload.status === 'unavailable' || value == null || value === -999
+      payload.status === 'unavailable' || (value === null && dischargeCfs === null)
         ? 'unavailable'
-        : isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale',
-    dischargeCfs:
-      typeof payload.dischargeCfs === 'number'
-        ? payload.dischargeCfs
-        : typeof payload.discharge_cfs === 'number'
-          ? payload.discharge_cfs
-          : null,
+        : provenancePath === 'lkg' ? 'stale' : freshnessStatus,
+    dischargeCfs,
     sourceUri: typeof payload.sourceUri === 'string' ? payload.sourceUri : null,
     provenancePath,
     error: typeof payload.error === 'string' ? payload.error : undefined,
@@ -266,7 +265,7 @@ export async function fetchCommunityGauges(
       if (remote) {
         result.set(
           key,
-          normalizeObservation(definition, remote, nowMs, maxAgeMs, 'tsm-community'),
+          normalizeCommunityGaugeObservation(definition, remote, nowMs, maxAgeMs, 'tsm-community'),
         );
       }
     }
@@ -296,7 +295,7 @@ export async function fetchCommunityGauges(
       if (existing?.value != null) continue;
       const remote = observations.find((item) => item.stationId === key || item.nwsId === key || item.usgs_id === key);
       if (remote) {
-        result.set(key, normalizeObservation(definition, remote, nowMs, maxAgeMs, 'lkg'));
+        result.set(key, normalizeCommunityGaugeObservation(definition, remote, nowMs, maxAgeMs, 'lkg'));
       }
     }
   }
