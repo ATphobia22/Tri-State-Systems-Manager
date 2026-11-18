@@ -57,7 +57,7 @@ class FoundryLedgerQueueTests(unittest.TestCase):
     def test_rejects_invalid_or_duplicate_source_ids(self):
         bad = json.loads(json.dumps(self.report))
         bad["sources"].append(bad["sources"][0])
-        with self.assertRaisesRegex(ValueError,"duplicate"):
+        with self.assertRaisesRegex(ValueError,"[Dd]uplicate"):
             adapter.make_queue(bad,"b"*64)
     def test_script_refuses_to_overwrite_source_or_prior_receipt(self):
         with tempfile.TemporaryDirectory() as d:
