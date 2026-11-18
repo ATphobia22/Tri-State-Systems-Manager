@@ -25,9 +25,19 @@ MAX_GEOJSON_BYTES = 256 * 1024 * 1024
 SCHEMA = "tsm.geotruth.building-qa.v1"
 
 
-def _bounded_json(path: Path) -> dict:
+def _read_bounded_bytes(path: Path) -> bytes:
     if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_GEOJSON_BYTES:
         raise ValueError("Input must be a bounded regular JSON file, not a symlink")
+    with path.open("rb") as stream:
+        raw = stream.read(MAX_GEOJSON_BYTES + 1)
+    if len(raw) > MAX_GEOJSON_BYTES:
+        raise ValueError("Input exceeds the GeoJSON byte limit")
+    return raw
+
+
+def _bounded_json(path: Path, *, raw: bytes | None = None) -> dict:
+    if raw is None:
+        raw = _read_bounded_bytes(path)
     def unique_pairs(pairs):
         out = {}
         for k, value in pairs:
@@ -35,7 +45,7 @@ def _bounded_json(path: Path) -> dict:
                 raise ValueError("Duplicate JSON key: " + k)
             out[k] = value
         return out
-    obj = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs,
+    obj = json.loads(raw, object_pairs_hook=unique_pairs,
                      parse_constant=lambda v: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
     if not isinstance(obj, dict):
         raise ValueError("JSON root must be an object")
@@ -64,8 +74,9 @@ def inspect(published: Path, pin: Path, *, include_geojson: bool = False) -> tup
     missing = reference["missingArchivedSourceObjectIds"]
     if any(type(v) is not int or v < 0 for v in missing) or len(set(missing)) != len(missing):
         raise ValueError("Invalid or duplicate pinned missing IDs")
-    inventory = _inventory(published)
-    data = _bounded_json(published)
+    published_raw = _read_bounded_bytes(published)
+    data = _bounded_json(published, raw=published_raw)
+    inventory = _inventory(published, file_bytes=published_raw)
     if data.get("type") != "FeatureCollection" or not isinstance(data.get("features"), list):
         raise ValueError("Published GeoJSON must be a FeatureCollection")
     published_pin_matches = (inventory["sha256"] == reference.get("publishedAssetSha256")
