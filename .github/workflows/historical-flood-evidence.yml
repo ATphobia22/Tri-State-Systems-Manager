@@ -5,6 +5,9 @@ on:
       - 'scripts/government/historical_flood_bundles.py'
       - 'tests/government/test_historical_flood_bundles.py'
       - 'data/historical-floods/tri-state-catalog-v1.json'
+      - 'scripts/geospatial/historical_flood_evidence_schema.sql'
+      - 'scripts/geospatial/historical_flood_source_seeds.sql'
+      - 'docs/geospatial/TRI_STATE_HISTORICAL_FLOOD_EVIDENCE.md'
       - '.github/workflows/historical-flood-evidence.yml'
   workflow_dispatch:
 permissions:
@@ -25,3 +28,10 @@ jobs:
           python scripts/government/historical_flood_bundles.py \
             --catalog data/historical-floods/tri-state-catalog-v1.json \
             --asset-root . --out ${{ runner.temp }}/historical-flood-evidence
+      - name: Upload six county review-only evidence inventories
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tri-state-historical-flood-source-inventory-only
+          path: ${{ runner.temp }}/historical-flood-evidence/
+          if-no-files-found: error
+          retention-days: 30
