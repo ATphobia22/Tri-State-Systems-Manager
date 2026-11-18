@@ -178,6 +178,18 @@ def build_county_bundle(catalog: dict, county_fips: str, asset_rows: list,
         "spatial_authority": s["spatial_authority"],
     } for s in catalog["sources"]
         if not s["counties"] or county_fips in s["counties"]]
+    historical_map_index_records = []
+    for index_record in catalog.get("historical_map_index_records", []):
+        if index_record["county_fips"] != county_fips:
+            continue
+        if index_record["source_id"] not in sources:
+            raise ValueError("USGS historical map record has unknown source")
+        if index_record["qualitative_reliability"] not in ("RECON", "STANDARD", "HIGH"):
+            raise ValueError("Invalid original USGS map reliability class")
+        if (index_record.get("map_geometry_attached") is not False
+                or index_record.get("agency_use_during_1937_verified") is not False):
+            raise ValueError("USGS index cannot assert an unverified map or 1937 use")
+        historical_map_index_records.append(dict(index_record))
     edition_contexts = []
     for edition in catalog["map_editions"]:
         if edition["county_fips"] != county_fips:
@@ -208,6 +220,7 @@ def build_county_bundle(catalog: dict, county_fips: str, asset_rows: list,
                             "county_impact_status": "REGIONAL_CONTEXT_NOT_COUNTY_VERIFIED"}
                            for e in catalog["events"]],
         "map_edition_temporal_review": edition_contexts,
+        "historical_map_index_records": historical_map_index_records,
         "source_candidates": source_candidates, "assets": selected,
         "evidence_class_coverage": {
             kind: "ASSET_ATTACHED_UNREVIEWED" if kind in present
