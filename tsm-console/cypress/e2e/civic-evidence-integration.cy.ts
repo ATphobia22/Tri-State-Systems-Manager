@@ -43,6 +43,14 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
     cy.contains('Imported height estimates: 1').should('exist');
     cy.contains('Missing/invalid heights: 2').should('exist');
     cy.screenshot('qa-map-fixture-enabled');
+    // Closing the inspector must release its temporary QA overlay and opt-in state.
+    cy.get('details[aria-label="GeoTruth building quality inspector"] > summary').click();
+    cy.get('details[aria-label="GeoTruth building quality inspector"]').should('not.have.attr', 'open');
+    cy.get('details[aria-label="GeoTruth building quality inspector"] > summary').click();
+    cy.contains('button', 'Load QA layer (opt-in)').should('have.attr', 'aria-pressed', 'false');
+    cy.contains('QA available: 3 published records').should('not.exist');
+    cy.contains('button', 'Load QA layer (opt-in)').click();
+    cy.contains('QA available: 3 published records').should('exist');
     cy.contains('button', 'Hide QA layer').click();
     cy.contains('button', 'Load QA layer (opt-in)').should('exist');
     cy.get('.maplibregl-canvas').should('exist');
