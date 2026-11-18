@@ -551,12 +551,29 @@ private:
                 return FReply::Handled();
             }
         }
-        // The current native path hashes actual bytes, but does NOT recompute
-        // Python's canonical sorted-key passport digest; no false integrity claim.
+        // Re-serialize only the validated public JSON object. Copying raw
+        // bytes would preserve duplicate-key/hidden metadata that a JSON
+        // parser may ignore while enforcing the field allowlist.
+        FString SanitizedText;
+        TSharedRef<TJsonWriter<>> SanitizedWriter = TJsonWriterFactory<>::Create(&SanitizedText);
+        if (!FJsonSerializer::Serialize(Passport.ToSharedRef(), SanitizedWriter))
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // SANITIZED JSON SERIALIZATION FAILED")));
+            return FReply::Handled();
+        }
+        const FTCHARToUTF8 SanitizedUtf8(*SanitizedText);
+        TArray<uint8> ExportBytes;
+        ExportBytes.Append(reinterpret_cast<const uint8*>(SanitizedUtf8.Get()), SanitizedUtf8.Length());
+        // Hash the actual bytes intended for export. This does NOT recompute
+        // Python's sorted-key passport integrity digest; no false claim.
         const std::string Digest = TsmSha256HexOfString(
+            reinterpret_cast<const char*>(ExportBytes.GetData()),
+            static_cast<size_t>(ExportBytes.Num()));
+        const FString FileSha256 = UTF8_TO_TCHAR(Digest.c_str());
+        const std::string SourceDigest = TsmSha256HexOfString(
             reinterpret_cast<const char*>(Bytes.GetData()),
             static_cast<size_t>(Bytes.Num()));
-        const FString FileSha256 = UTF8_TO_TCHAR(Digest.c_str());
+        const FString SourceFileSha256 = UTF8_TO_TCHAR(SourceDigest.c_str());
         const FString OutputDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("CivicExports"));
         if (!IFileManager::Get().MakeDirectory(*OutputDir, true))
         {
@@ -581,7 +598,7 @@ private:
             ResultText->SetText(FText::FromString(TEXT("PASSPORT // CANNOT CREATE EXPORT FILE")));
             return FReply::Handled();
         }
-        Output->Serialize(Bytes.GetData(), Bytes.Num());
+        Output->Serialize(ExportBytes.GetData(), ExportBytes.Num());
         const bool bWritten = !Output->IsError();
         Output.Reset();
         if (!bWritten)
@@ -595,7 +612,7 @@ private:
         // before asserting an exported-file SHA-256 in the receipt.
         TArray<uint8> ExportReadback;
         if (!FFileHelper::LoadFileToArray(ExportReadback, *ExportJson) ||
-            ExportReadback.Num() != Bytes.Num())
+            ExportReadback.Num() != ExportBytes.Num())
         {
             IFileManager::Get().Delete(*ExportJson);
             ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT READBACK FAILED")));
@@ -617,13 +634,15 @@ private:
         Receipt->SetStringField(TEXT("inputSource"), TEXT("Saved/PublicEvidence/parcel-evidence.json"));
         Receipt->SetStringField(TEXT("exportedFile"), FPaths::GetCleanFilename(ExportJson));
         Receipt->SetStringField(TEXT("exportedBytesSha256"), FileSha256);
+        Receipt->SetStringField(TEXT("originalSourceBytesSha256"), SourceFileSha256);
+        Receipt->SetStringField(TEXT("normalization"), TEXT("VALIDATED_PUBLIC_JSON_RESERIALIZED"));
         Receipt->SetStringField(TEXT("passportDeclaredIntegritySha256"), DeclaredIntegrity);
         Receipt->SetStringField(TEXT("passportIntegrityValidation"), TEXT("DECLARED_NOT_REVALIDATED"));
         Receipt->SetBoolField(TEXT("sourceDataIndependentlyVerified"), false);
         Receipt->SetBoolField(TEXT("regulatoryDetermination"), false);
         Receipt->SetBoolField(TEXT("surveyCertification"), false);
         Receipt->SetStringField(TEXT("notice"),
-            TEXT("This is a local exported copy of a supplied informational passport, "
+            TEXT("This is a sanitized local JSON export from a supplied informational passport, "
                  "not an independently validated parcel join or reviewed DOCX/XLSX packet."));
         FString ReceiptText;
         TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ReceiptText);
