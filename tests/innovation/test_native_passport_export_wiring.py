@@ -42,6 +42,12 @@ class NativePassportExportWiringTests(unittest.TestCase):
         self.assertIn("EJson::Number", code)
         self.assertIn('TryGetArrayField(TEXT("reasons")', code)
 
+    def test_sanitized_json_is_exported_instead_of_untrusted_raw_input(self):
+        code = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("FJsonSerializer::Serialize(Passport.ToSharedRef(), SanitizedWriter)", code)
+        self.assertIn("Output->Serialize(ExportBytes.GetData(), ExportBytes.Num())", code)
+        self.assertNotIn("Output->Serialize(Bytes.GetData(), Bytes.Num())", code)
+
     def test_export_bytes_are_read_back_before_receipt_claim(self):
         code = SOURCE.read_text(encoding="utf-8")
         self.assertIn("FFileHelper::LoadFileToArray(ExportReadback, *ExportJson)", code)
