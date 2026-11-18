@@ -1,0 +1,35 @@
+name: TSM npm audit policy regression tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/ci/validate-npm-audit*.mjs'
+      - 'scripts/ci/validate-vite-security.test.mjs'
+      - 'tsm-console/package-lock.json'
+      - 'tsm-console/package.json'
+      - '.github/workflows/tsm-npm-audit-policy-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/ci/validate-npm-audit*.mjs'
+      - 'scripts/ci/validate-vite-security.test.mjs'
+      - 'tsm-console/package-lock.json'
+      - 'tsm-console/package.json'
+      - '.github/workflows/tsm-npm-audit-policy-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-policy-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Reject advisory drift and verify patched Vite/Rolldown releases
+        run: |
+          node --test scripts/ci/validate-npm-audit.test.mjs scripts/ci/validate-npm-audit-picomatch.test.mjs scripts/ci/validate-vite-security.test.mjs

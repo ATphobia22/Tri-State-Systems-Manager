@@ -50,6 +50,12 @@ jobs:
         run: |
           python -m pytest tests/geospatial/test_posey_ecef_bounds.py tests/geospatial/test_posey_ecef_regression.py -v
 
+      # Synthetic topology tests only: do not claim current Posey parcels are valid.
+      - name: Step 4b - Test non-mutating parcel topology review
+        run: |
+          python -m py_compile scripts/geospatial/audit_offline_parcel_manifest.py
+          python -m unittest discover -s tests/geospatial -p 'test_offline_parcel_geometry_quality.py' -v
+
       - name: Step 5 - Recompile release archive manifest
         run: |
           python scripts/release/tsm_archive_compiler.py
@@ -58,6 +64,11 @@ jobs:
         run: |
           python scripts/release/tsm_verify_archive_manifest.py
 
-      - name: Step 7 - Master Verification Suite
+      - name: Step 7 - Shipping release evidence negative tests
+        run: |
+          python -m py_compile scripts/release/shipping_acceptance_evidence.py scripts/release/tsm_certify_hlod_shipping.py scripts/release/tsm_master_verification_suite.py
+          python -m unittest discover -s tests/release -p 'test_shipping_acceptance_evidence.py' -v
+
+      - name: Step 8 - Master Verification Suite
         run: |
           python scripts/release/tsm_master_verification_suite.py

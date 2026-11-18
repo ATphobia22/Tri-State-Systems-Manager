@@ -9,6 +9,7 @@
  */
 import { useCallback, useRef, useState } from 'react';
 import { tsmApiUrl } from '../lib/api-base';
+import { sanitizeGaugeValue } from '../lib/river-gauges';
 
 interface SnapshotStation {
   siteNo: string;
@@ -105,8 +106,9 @@ const buttonStyle = {
 } as const;
 
 function formatValue(value: number | null | undefined, unit: string | null, digits: number): string {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
-  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ''}`;
+  const safe = sanitizeGaugeValue(value);
+  if (safe === null) return '—';
+  return `${safe.toFixed(digits)}${unit ? ` ${unit}` : ''}`;
 }
 
 function formatTime(iso: string | null | undefined): string {
@@ -158,7 +160,8 @@ export default function RiverGaugeBoard(): JSX.Element {
       const results = SNAPSHOT_STATIONS.map((station): StationSnapshot => {
         const observation = payload.observations!.find((item) => item.stationId === station.siteNo) ?? null;
         const unavailable = !observation || observation.status === 'unavailable' ||
-          (observation.value == null && observation.dischargeCfs == null);
+          (sanitizeGaugeValue(observation.value) === null &&
+            sanitizeGaugeValue(observation.dischargeCfs) === null);
         return {
           station,
           observation,

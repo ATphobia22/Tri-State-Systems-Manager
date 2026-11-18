@@ -1,0 +1,5 @@
+# Optional offline LOMA pre-screen; install beside requirements.txt for CI.
+geopandas==1.1.2
+rasterio==1.5.0
+pyproj==3.7.2
+pytest==9.0.3
