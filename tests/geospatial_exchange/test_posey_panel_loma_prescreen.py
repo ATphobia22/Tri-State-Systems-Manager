@@ -142,3 +142,32 @@ def test_coarse_30m_dem_not_accepted_as_structure_grade(tmp_path):
     assert result.returncode != 0
     assert not rows
     assert 'resolution' in result.stderr.lower()
+
+
+def test_partial_dem_tile_does_not_claim_above_bfe(tmp_path):
+    """A one-sided DEM tile may be higher than BFE but cannot establish an adjacent minimum."""
+    args, _ = fixtures(tmp_path)
+    dem = args[4]
+    # Bounds x=0..9 cover only part of the exterior ring of building x=7..11.
+    with rasterio.open(dem, 'w', driver='GTiff', height=20, width=9, count=1,
+                       dtype='float32', transform=from_origin(0, 20, 1, 1),
+                       crs=CRS, nodata=-9999) as ds:
+        ds.write(np.full((20, 9), 120.0, dtype='float32'), 1)
+    result, rows, _ = run(tmp_path, *args)
+    assert result.returncode == 0, result.stderr
+    assert rows[0]['status'] == 'INSUFFICIENT_DEM_EVIDENCE'
+    assert rows[0]['dem_adjacent_min_navd88_ft'] == ''
+
+
+def test_nodata_majority_of_adjacent_ring_does_not_claim_above_bfe(tmp_path):
+    """Do not pass an incomplete building perimeter just because a few valid cells survive."""
+    args, _ = fixtures(tmp_path)
+    with rasterio.open(args[4], 'r+') as ds:
+        arr = ds.read(1)
+        # Mask western half of the building's surrounding 1-meter ring.
+        arr[:, :9] = -9999
+        ds.write(arr, 1)
+    result, rows, _ = run(tmp_path, *args)
+    assert result.returncode == 0, result.stderr
+    assert rows[0]['status'] == 'INSUFFICIENT_DEM_EVIDENCE'
+    assert rows[0]['dem_adjacent_min_navd88_ft'] == ''
