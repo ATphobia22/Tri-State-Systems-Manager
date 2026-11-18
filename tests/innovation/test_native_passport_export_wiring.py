@@ -31,6 +31,17 @@ class NativePassportExportWiringTests(unittest.TestCase):
         self.assertRegex(code, r"CreateFileWriter\(\s*\*ReceiptPath,\s*FILEWRITE_NoReplaceExisting\)")
         self.assertNotIn("FFileHelper::SaveStringToFile(ReceiptText, *ReceiptPath)", code)
 
+    def test_passport_fact_types_are_bounded_before_public_export(self):
+        code = SOURCE.read_text(encoding="utf-8")
+        self.assertIn('TryGetStringField(TEXT("parcelId")', code)
+        self.assertIn('TryGetStringField(TEXT("countyFips")', code)
+        self.assertIn('TryGetBoolField(TEXT("sourceBytesVerifiedNotSourceClaims")', code)
+        self.assertIn('TryGetBoolField(TEXT("controlPointVerified")', code)
+        self.assertIn("EJson::Object", code)
+        self.assertIn("EJson::Array", code)
+        self.assertIn("EJson::Number", code)
+        self.assertIn('TryGetArrayField(TEXT("reasons")', code)
+
     def test_native_receipt_hashes_actual_export_bytes(self):
         code=SOURCE.read_text(encoding="utf-8")
         self.assertIn("TsmSha256HexOfString",code)
