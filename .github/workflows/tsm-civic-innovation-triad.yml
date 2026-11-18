@@ -4,6 +4,13 @@ on:
   pull_request:
     paths:
       - 'scripts/geospatial/geotruth_inspector.py'
+      - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/government/source_contract_impact.py'
+      - 'scripts/public_interest/evidence_kit.py'
+      - 'data/schemas/tsm-indiana-data-catalog-v1.json'
+      - 'data/acquisitions/tsm-data-plane-integration-v1.json'
+      - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
+      - 'tsm-console/public/3d-tiles/buildings-3d.json'
       - 'scripts/public_interest/evidence_packet_export.py'
       - 'scripts/government/contract_foundry.py'
       - 'scripts/innovation/civic_evidence_bundle.py'
