@@ -50,10 +50,19 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
   });
 
   it('exposes the opt-in GeoTruth map layer in public Atlas even with its original sidebar hidden', () => {
+    // The QA integration must not rely on availability or timing of a third-party
+    // vector basemap. A deliberately empty test style lets the real MapLibre
+    // lifecycle complete, while the QA GeoJSON stays a clearly synthetic fixture.
+    cy.intercept('GET', 'https://tiles.openfreemap.org/styles/liberty*', {
+      statusCode: 200,
+      headers: { 'access-control-allow-origin': '*' },
+      body: { version: 8, name: 'E2E fixture basemap (no authoritative layers)', sources: {}, layers: [] },
+    }).as('atlasStyle');
     cy.intercept('GET', '**/3d-tiles/buildings-3d.json', {
       statusCode: 200, body: qa,
     }).as('qa');
     cy.visit('/atlas');
+    cy.wait('@atlasStyle');
     cy.get('.maplibregl-canvas', { timeout: 30000 }).should('exist');
     cy.get('details[aria-label="GeoTruth building quality inspector"] > summary').should('be.visible').click();
     cy.contains('button', 'Load QA layer (opt-in)').should('be.enabled').click();
