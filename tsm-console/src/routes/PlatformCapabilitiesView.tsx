@@ -17,8 +17,8 @@ const groups = [
   },
   {
     title: 'Self-hosted 3D rendering',
-    summary: 'MapLibre GL 3D buildings and terrain served from the same GitHub Pages origin; no external 3D services required.',
-    items: ['.github/workflows/deploy-pages.yml', 'tsm-console/public/terrain_3dep', 'tsm-console/src/routes/CesiumTerrainView.tsx'],
+    summary: 'MapLibre GL map and configured terrain are the public default; CesiumJS is a separately selectable 3D viewer. Source availability and offline operation depend on the selected layers.',
+    items: ['.github/workflows/deploy-pages.yml', 'tsm-console/public/terrain_3dep', 'tsm-console/src/routes/GlobeView.tsx'],
     status: '3DEP-derived terrain is screening/visualization data, not survey-grade or regulatory evidence.',
   },
   {
