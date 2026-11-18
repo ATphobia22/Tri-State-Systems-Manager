@@ -981,6 +981,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         </div>
       </aside>
       )}
+      {props.hideSidebar && props.regionalAtlas && (
+        <div
+          aria-label="Atlas building quality controls"
+          style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 18,
+            width: 'min(310px, calc(100% - 24px))', maxHeight: '65%',
+            overflowY: 'auto', color: '#e2e8f0', background: 'rgba(15,23,42,.94)',
+            borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,.25)' }}>
+          <GeoTruthLayerControl map={mapReady ? mapRef.current : null} />
+        </div>
+      )}
     </section>
   );
 }
