@@ -246,5 +246,12 @@ CREATE TABLE IF NOT EXISTS tsm_flood_history.historical_map_index (
     notes text,
     UNIQUE(county_fips,source_id,quadrangle,mapped_flood_year)
 );
+-- Postgres 15+: the four 100-year design maps have NULL mapped_flood_year.
+-- Default UNIQUE treats NULL years as distinct and duplicates on every seed replay.
+-- Preserve real event-year distinctions while making NULL design-year rows idempotent.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_historical_map_index_nullsafe
+    ON tsm_flood_history.historical_map_index
+    (county_fips,source_id,quadrangle,mapped_flood_year) NULLS NOT DISTINCT;
+
 -- 1975 retrospective index of flood areas, NOT proof that the delineation
 -- existed or was used by an agency during the 1937 emergency.
