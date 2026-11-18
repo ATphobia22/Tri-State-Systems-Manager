@@ -136,6 +136,26 @@ class HistoricalFloodBundleTests(unittest.TestCase):
         self.assertFalse(records["MOUNT VERNON, IN-KY"]["map_geometry_attached"])
         self.assertEqual(records["MOUNT VERNON, IN-KY"]["publication_date"], "1975-03")
 
+    def test_usgs_1975_posey_index_matches_official_quadrangle_rows(self):
+        index_rows = self.catalog["historical_map_index_records"]
+        self.assertEqual(len(index_rows), 11)
+        rows = {x["quadrangle"]: x for x in index_rows}
+        self.assertEqual(len(rows), len(index_rows))
+        self.assertEqual(rows["SOLITUDE, IN-IL"]["qualitative_reliability"], "RECON")
+        self.assertEqual(rows["WABASH, IN"]["qualitative_reliability"], "HIGH")
+        self.assertEqual(rows["WEST FRANKLIN, IN-KY"]["qualitative_reliability"], "HIGH")
+        self.assertEqual(rows["CATHRYN, IN-KY"]["qualitative_reliability"], "HIGH")
+        self.assertEqual(rows["EVANSVILLE, IN"]["qualitative_reliability"], "RECON")
+        self.assertEqual(rows["KASSON, IN"]["flood_area_delineated"], "100-YR")
+        self.assertEqual(rows["NEW HARMONY, IN-IL"]["flood_area_delineated"], "100-YR")
+        self.assertEqual(
+            sum(x["flood_area_delineated"] == "1937" for x in index_rows), 7
+        )
+        self.assertEqual(
+            sum(x["flood_area_delineated"] == "100-YR" for x in index_rows), 4
+        )
+        self.assertFalse(any(x["agency_use_during_1937_verified"] for x in index_rows))
+
     def test_official_flood_event_years_are_retained_as_coarse_windows(self):
         ids = {e["id"]: e for e in self.catalog["events"]}
         self.assertEqual(ids["1913_wabash"]["date_precision"], "MONTH_RANGE")
