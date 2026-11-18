@@ -5,6 +5,14 @@
 #include "Engine/GameInstance.h"
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
+#include "Containers/StringConv.h"
+#include "Misc/FileHelper.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonValue.h"
+#include "Serialization/JsonWriter.h"
+#include "TsmSha256.h"
 #include "TSMEngineeringRuntimeSubsystem.h"
 #include "TSMExperienceSubsystem.h"
 #include "TSMSceneLayerSubsystem.h"
@@ -119,10 +127,15 @@ public:
                         SNew(SButton).Text(FText::FromString(TEXT("WEATHER & LIGHTING")))
                         .OnClicked(this, &STSMEngineeringDashboard::ShowWeatherSettings)
                     ]
-                    + SHorizontalBox::Slot().AutoWidth()
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 6, 0)
                     [
                         SNew(SButton).Text(FText::FromString(TEXT("EVIDENCE / GRANTS")))
                         .OnClicked(this, &STSMEngineeringDashboard::ShowEvidenceWorkflow)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth()
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("EXPORT PASSPORT JSON")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ExportCivicPassport)
                     ]
                 ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0, 8)
@@ -315,6 +328,357 @@ private:
                 "no forecast, flood depth or rainfall rate is implied. "
                 "This panel is a configuration guide; it does not change active GPU effects.")));
         }
+        return FReply::Handled();
+    }
+
+    FReply ExportCivicPassport()
+    {
+        // Explicit operator action only. No Python runtime, shell, WebView,
+        // network dependency or arbitrary third-party executable is started.
+        if (!ResultText.IsValid())
+            return FReply::Handled();
+
+        const FString Input = FPaths::Combine(FPaths::ProjectSavedDir(),
+            TEXT("PublicEvidence"), TEXT("parcel-evidence.json"));
+        const int64 ByteCount = IFileManager::Get().FileSize(*Input);
+        constexpr int64 MaxInputSize = 2LL * 1024LL * 1024LL;
+        if (ByteCount <= 0 || ByteCount > MaxInputSize)
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "PASSPORT // SOURCE_UNAVAILABLE\\n"
+                "Expected a bounded previously audited public passport at "
+                "Saved/PublicEvidence/parcel-evidence.json. No placeholder was exported.")));
+            return FReply::Handled();
+        }
+
+        TArray<uint8> Bytes;
+        if (!FFileHelper::LoadFileToArray(Bytes, *Input) ||
+            Bytes.Num() != ByteCount)
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // LOCAL SOURCE READ FAILED")));
+            return FReply::Handled();
+        }
+        // Decode *exactly* the bytes later hashed and exported. Reading the
+        // source a second time risks validating different content if the file
+        // is changed between reads.
+        const FUTF8ToTCHAR Decoder(reinterpret_cast<const ANSICHAR*>(Bytes.GetData()), Bytes.Num());
+        const FString JsonText(Decoder.Length(), Decoder.Get());
+        TSharedPtr<FJsonObject> Passport;
+        if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(JsonText), Passport)
+            || !Passport.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID JSON SOURCE")));
+            return FReply::Handled();
+        }
+        FString Schema;
+        bool bEngineering = true, bRegulatory = true, bSurvey = true;
+        FString DeclaredIntegrity;
+        const TArray<TSharedPtr<FJsonValue>>* Facts = nullptr;
+        if (!Passport->TryGetStringField(TEXT("schema"), Schema) ||
+            Schema != TEXT("tsm.public-evidence.passport.v1") ||
+            !Passport->TryGetBoolField(TEXT("engineeringUse"), bEngineering) || bEngineering ||
+            !Passport->TryGetBoolField(TEXT("regulatoryDetermination"), bRegulatory) || bRegulatory ||
+            !Passport->TryGetBoolField(TEXT("surveyCertification"), bSurvey) || bSurvey ||
+            !Passport->TryGetStringField(TEXT("integritySha256"), DeclaredIntegrity) ||
+            DeclaredIntegrity.Len() != 64 ||
+            !Passport->TryGetArrayField(TEXT("facts"), Facts) || !Facts || Facts->Num() > 500 ||
+            Passport->HasField(TEXT("owner")))
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "PASSPORT // UNVERIFIED OR RESTRICTED INPUT\\n"
+                "Only the bounded, public and explicitly non-regulatory passport format is exportable.")));
+            return FReply::Handled();
+        }
+        // The existing audited passport exporter emits only these
+        // public-facing fields. Reject unexpected owner/contact/private
+        // attributes instead of blindly copying an arbitrary JSON object.
+        const TArray<FString> AllowedPassportKeys = {
+            TEXT("schema"), TEXT("parcelId"), TEXT("countyFips"), TEXT("asOf"),
+            TEXT("snapshotId"), TEXT("facts"), TEXT("evidenceStateCounts"),
+            TEXT("engineeringUse"), TEXT("regulatoryDetermination"),
+            TEXT("surveyCertification"), TEXT("sourceBytesVerifiedNotSourceClaims"),
+            TEXT("notice"), TEXT("integritySha256")
+        };
+        const TArray<FString> AllowedFactKeys = {
+            TEXT("label"), TEXT("value"), TEXT("units"), TEXT("verticalDatum"),
+            TEXT("dataRole"), TEXT("sourceId"), TEXT("sourceSha256"),
+            TEXT("observedAt"), TEXT("evidenceState"), TEXT("reasons"),
+            TEXT("controlPointVerified"), TEXT("valueIndependentlyValidated")
+        };
+        for (const auto& Pair : Passport->Values)
+        {
+            if (!AllowedPassportKeys.Contains(Pair.Key))
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // UNEXPECTED PRIVATE OR UNSUPPORTED FIELD")));
+                return FReply::Handled();
+            }
+        }
+        FString ParcelId, CountyFips, SnapshotId, AsOf, Notice;
+        bool bSourceBytesVerifiedNotSourceClaims = false;
+        const TSharedPtr<FJsonValue>* EvidenceCounts = Passport->Values.Find(TEXT("evidenceStateCounts"));
+        if (!Passport->TryGetStringField(TEXT("parcelId"), ParcelId) ||
+            !Passport->TryGetStringField(TEXT("countyFips"), CountyFips) ||
+            !Passport->TryGetStringField(TEXT("snapshotId"), SnapshotId) ||
+            !Passport->TryGetStringField(TEXT("asOf"), AsOf) ||
+            !Passport->TryGetStringField(TEXT("notice"), Notice) ||
+            !Passport->TryGetBoolField(TEXT("sourceBytesVerifiedNotSourceClaims"),
+                                       bSourceBytesVerifiedNotSourceClaims) ||
+            !bSourceBytesVerifiedNotSourceClaims ||
+            ParcelId.IsEmpty() || ParcelId.Len() > 128 ||
+            CountyFips.Len() != 5 ||
+            SnapshotId.IsEmpty() || SnapshotId.Len() > 128 ||
+            AsOf.IsEmpty() || AsOf.Len() > 64 ||
+            Notice.IsEmpty() || Notice.Len() > 1024 ||
+            !EvidenceCounts || !EvidenceCounts->IsValid() ||
+            (*EvidenceCounts)->Type != EJson::Object)
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "PASSPORT // REQUIRED PUBLIC SOURCE METADATA MISSING OR MALFORMED")));
+            return FReply::Handled();
+        }
+        for (const TCHAR Digit : CountyFips)
+        {
+            if (Digit < TEXT('0') || Digit > TEXT('9'))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID COUNTY FIPS")));
+                return FReply::Handled();
+            }
+        }
+        for (const auto& Pair : (*EvidenceCounts)->AsObject()->Values)
+        {
+            if (!Pair.Value.IsValid() || Pair.Value->Type != EJson::Number ||
+                Pair.Value->AsNumber() < 0 || !FMath::IsFinite(Pair.Value->AsNumber()))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID EVIDENCE COUNTER")));
+                return FReply::Handled();
+            }
+        }
+        for (const TSharedPtr<FJsonValue>& FactValue : *Facts)
+        {
+            const TSharedPtr<FJsonObject> Fact =
+                FactValue.IsValid() ? FactValue->AsObject() : nullptr;
+            if (!Fact.IsValid())
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT RECORD")));
+                return FReply::Handled();
+            }
+            for (const auto& Pair : Fact->Values)
+            {
+                if (!AllowedFactKeys.Contains(Pair.Key))
+                {
+                    ResultText->SetText(FText::FromString(TEXT(
+                        "PASSPORT // RESTRICTED OR UNSUPPORTED FACT FIELD")));
+                    return FReply::Handled();
+                }
+            }
+            FString Label, SourceId, DataRole, EvidenceState;
+            bool bControlPointVerified = true;
+            const TArray<TSharedPtr<FJsonValue>>* Reasons = nullptr;
+            const TSharedPtr<FJsonValue>* FactPayload = Fact->Values.Find(TEXT("value"));
+            if (!Fact->TryGetStringField(TEXT("label"), Label) ||
+                !Fact->TryGetStringField(TEXT("sourceId"), SourceId) ||
+                !Fact->TryGetStringField(TEXT("dataRole"), DataRole) ||
+                !Fact->TryGetStringField(TEXT("evidenceState"), EvidenceState) ||
+                !Fact->TryGetBoolField(TEXT("controlPointVerified"), bControlPointVerified) ||
+                bControlPointVerified ||
+                !Fact->TryGetArrayField(TEXT("reasons"), Reasons) || !Reasons ||
+                Reasons->Num() > 32 ||
+                Label.IsEmpty() || Label.Len() > 120 ||
+                SourceId.IsEmpty() || SourceId.Len() > 128 ||
+                DataRole.IsEmpty() || DataRole.Len() > 64 ||
+                EvidenceState.IsEmpty() || EvidenceState.Len() > 64 ||
+                !FactPayload || !FactPayload->IsValid() ||
+                ((*FactPayload)->Type != EJson::String &&
+                 (*FactPayload)->Type != EJson::Number &&
+                 (*FactPayload)->Type != EJson::Null))
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // UNSUPPORTED FACT TYPES OR SCIENTIFIC CLAIMS")));
+                return FReply::Handled();
+            }
+            if (((*FactPayload)->Type == EJson::String &&
+                 (*FactPayload)->AsString().Len() > 200) ||
+                ((*FactPayload)->Type == EJson::Number &&
+                 !FMath::IsFinite((*FactPayload)->AsNumber())))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT VALUE")));
+                return FReply::Handled();
+            }
+            for (const TSharedPtr<FJsonValue>& Reason : *Reasons)
+            {
+                if (!Reason.IsValid() || Reason->Type != EJson::String ||
+                    Reason->AsString().Len() > 512)
+                {
+                    ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT REASON")));
+                    return FReply::Handled();
+                }
+            }
+            const TArray<FString> NullableTextFields = {
+                TEXT("units"), TEXT("verticalDatum"), TEXT("sourceSha256"),
+                TEXT("observedAt")
+            };
+            for (const FString& Key : NullableTextFields)
+            {
+                const TSharedPtr<FJsonValue>* OptionalValue = Fact->Values.Find(Key);
+                if (!OptionalValue || !OptionalValue->IsValid() ||
+                    ((*OptionalValue)->Type != EJson::Null &&
+                     (*OptionalValue)->Type != EJson::String) ||
+                    ((*OptionalValue)->Type == EJson::String &&
+                     (*OptionalValue)->AsString().Len() > 256))
+                {
+                    ResultText->SetText(FText::FromString(TEXT(
+                        "PASSPORT // UNEXPECTED NESTED OR OVERSIZED FACT METADATA")));
+                    return FReply::Handled();
+                }
+            }
+            bool bIndependentlyValidated = true;
+            if (!Fact->TryGetBoolField(TEXT("valueIndependentlyValidated"),
+                                       bIndependentlyValidated) ||
+                bIndependentlyValidated)
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // SCIENTIFIC VALUE CLAIM NOT VERIFIED HERE")));
+                return FReply::Handled();
+            }
+        }
+        for (const TCHAR Ch : DeclaredIntegrity)
+        {
+            if (!((Ch >= TEXT('0') && Ch <= TEXT('9')) ||
+                  (Ch >= TEXT('a') && Ch <= TEXT('f'))))
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // MALFORMED DECLARED HASH")));
+                return FReply::Handled();
+            }
+        }
+        // Re-serialize only the validated public JSON object. Copying raw
+        // bytes would preserve duplicate-key/hidden metadata that a JSON
+        // parser may ignore while enforcing the field allowlist.
+        FString SanitizedText;
+        TSharedRef<TJsonWriter<>> SanitizedWriter = TJsonWriterFactory<>::Create(&SanitizedText);
+        if (!FJsonSerializer::Serialize(Passport.ToSharedRef(), SanitizedWriter))
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // SANITIZED JSON SERIALIZATION FAILED")));
+            return FReply::Handled();
+        }
+        const FTCHARToUTF8 SanitizedUtf8(*SanitizedText);
+        TArray<uint8> ExportBytes;
+        ExportBytes.Append(reinterpret_cast<const uint8*>(SanitizedUtf8.Get()), SanitizedUtf8.Length());
+        // Hash the actual bytes intended for export. This does NOT recompute
+        // Python's sorted-key passport integrity digest; no false claim.
+        const std::string Digest = TsmSha256HexOfString(
+            reinterpret_cast<const char*>(ExportBytes.GetData()),
+            static_cast<size_t>(ExportBytes.Num()));
+        const FString FileSha256 = UTF8_TO_TCHAR(Digest.c_str());
+        const std::string SourceDigest = TsmSha256HexOfString(
+            reinterpret_cast<const char*>(Bytes.GetData()),
+            static_cast<size_t>(Bytes.Num()));
+        const FString SourceFileSha256 = UTF8_TO_TCHAR(SourceDigest.c_str());
+        const FString OutputDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("CivicExports"));
+        if (!IFileManager::Get().MakeDirectory(*OutputDir, true))
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT DIRECTORY UNAVAILABLE")));
+            return FReply::Handled();
+        }
+        const FString Stamp = FDateTime::UtcNow().ToString(TEXT("%Y%m%d-%H%M%S"));
+        const FString Base = FPaths::Combine(OutputDir, FString::Printf(TEXT("parcel-evidence-%s"), *Stamp));
+        const FString ExportJson = Base + TEXT(".json");
+        const FString ReceiptPath = Base + TEXT(".receipt.json");
+        if (IFileManager::Get().FileExists(*ExportJson) ||
+            IFileManager::Get().FileExists(*ReceiptPath))
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT EXISTS; WILL NOT REPLACE")));
+            return FReply::Handled();
+        }
+
+        TUniquePtr<FArchive> Output(IFileManager::Get().CreateFileWriter(
+            *ExportJson, FILEWRITE_NoReplaceExisting));
+        if (!Output)
+        {
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // CANNOT CREATE EXPORT FILE")));
+            return FReply::Handled();
+        }
+        Output->Serialize(ExportBytes.GetData(), ExportBytes.Num());
+        const bool bWritten = !Output->IsError();
+        Output.Reset();
+        if (!bWritten)
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT WRITE FAILED")));
+            return FReply::Handled();
+        }
+
+        // Hash the *written destination*, not just the source buffer,
+        // before asserting an exported-file SHA-256 in the receipt.
+        TArray<uint8> ExportReadback;
+        if (!FFileHelper::LoadFileToArray(ExportReadback, *ExportJson) ||
+            ExportReadback.Num() != ExportBytes.Num())
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT READBACK FAILED")));
+            return FReply::Handled();
+        }
+        const std::string ReadbackDigest = TsmSha256HexOfString(
+            reinterpret_cast<const char*>(ExportReadback.GetData()),
+            static_cast<size_t>(ExportReadback.Num()));
+        const FString ReadbackHash = UTF8_TO_TCHAR(ReadbackDigest.c_str());
+        if (ReadbackHash != FileSha256)
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT SHA-256 MISMATCH")));
+            return FReply::Handled();
+        }
+
+        TSharedRef<FJsonObject> Receipt = MakeShared<FJsonObject>();
+        Receipt->SetStringField(TEXT("schema"), TEXT("tsm.native.passport-json-export.v1"));
+        Receipt->SetStringField(TEXT("inputSource"), TEXT("Saved/PublicEvidence/parcel-evidence.json"));
+        Receipt->SetStringField(TEXT("exportedFile"), FPaths::GetCleanFilename(ExportJson));
+        Receipt->SetStringField(TEXT("exportedBytesSha256"), FileSha256);
+        Receipt->SetStringField(TEXT("originalSourceBytesSha256"), SourceFileSha256);
+        Receipt->SetStringField(TEXT("normalization"), TEXT("VALIDATED_PUBLIC_JSON_RESERIALIZED"));
+        Receipt->SetStringField(TEXT("passportDeclaredIntegritySha256"), DeclaredIntegrity);
+        Receipt->SetStringField(TEXT("passportIntegrityValidation"), TEXT("DECLARED_NOT_REVALIDATED"));
+        Receipt->SetBoolField(TEXT("sourceDataIndependentlyVerified"), false);
+        Receipt->SetBoolField(TEXT("regulatoryDetermination"), false);
+        Receipt->SetBoolField(TEXT("surveyCertification"), false);
+        Receipt->SetStringField(TEXT("notice"),
+            TEXT("This is a sanitized local JSON export from a supplied informational passport, "
+                 "not an independently validated parcel join or reviewed DOCX/XLSX packet."));
+        FString ReceiptText;
+        TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ReceiptText);
+        if (!FJsonSerializer::Serialize(Receipt, Writer))
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT SERIALIZATION FAILED")));
+            return FReply::Handled();
+        }
+        const FTCHARToUTF8 EncodedReceipt(*ReceiptText);
+        TArray<uint8> ReceiptBytes;
+        ReceiptBytes.Append(reinterpret_cast<const uint8*>(EncodedReceipt.Get()), EncodedReceipt.Length());
+        TUniquePtr<FArchive> ReceiptFile(IFileManager::Get().CreateFileWriter(
+            *ReceiptPath, FILEWRITE_NoReplaceExisting));
+        if (!ReceiptFile)
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT FILE EXISTS OR UNAVAILABLE")));
+            return FReply::Handled();
+        }
+        ReceiptFile->Serialize(ReceiptBytes.GetData(), ReceiptBytes.Num());
+        const bool bReceiptWritten = !ReceiptFile->IsError();
+        ReceiptFile.Reset();
+        if (!bReceiptWritten)
+        {
+            IFileManager::Get().Delete(*ReceiptPath);
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT WRITE FAILED")));
+            return FReply::Handled();
+        }
+        ResultText->SetText(FText::FromString(FString::Printf(
+            TEXT("PASSPORT // JSON EXPORTED OFFLINE\\n%s\\n")
+            TEXT("Actual-byte SHA-256: %s\\n")
+            TEXT("Local exported copy only. Canonical passport integrity NOT revalidated here; ")
+            TEXT("DOCX/XLSX generation remains a separate headless exporter."),
+            *ExportJson, *FileSha256)));
         return FReply::Handled();
     }
 

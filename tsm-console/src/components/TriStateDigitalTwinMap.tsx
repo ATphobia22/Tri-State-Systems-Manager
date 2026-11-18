@@ -6,6 +6,7 @@ import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { BuildingInspectionPanel } from './BuildingInspectionPanel';
+import GeoTruthLayerControl from './GeoTruthLayerControl';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
@@ -928,6 +929,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           {terrainEnabled ? '● TERRAIN-RGB ONLINE' : '● TERRAIN-RGB RESILIENT'}
         </div>
         <div role="status" aria-live="polite" style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>{status}</div>
+        <GeoTruthLayerControl map={mapReady ? mapRef.current : null} />
         <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
           {MAP_PLANE_FABRIC.map((item) => {
             const checked = Boolean(visible[item.id]);
@@ -978,6 +980,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           MapLibre renders in EPSG:3857. Engineering source products may be transformed to EPSG:2966 only inside the evidence/scientific pipeline with recorded transformation metadata; the browser plane does not silently relabel Web Mercator coordinates as EPSG:2966. Vertical datum is likewise provenance metadata, not a MapLibre CRS switch.
         </div>
       </aside>
+      )}
+      {props.hideSidebar && props.regionalAtlas && (
+        <div
+          aria-label="Atlas building quality controls"
+          style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 18,
+            width: 'min(310px, calc(100% - 24px))', maxHeight: '65%',
+            overflowY: 'auto', color: '#e2e8f0', background: 'rgba(15,23,42,.94)',
+            borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,.25)' }}>
+          <GeoTruthLayerControl map={mapReady ? mapRef.current : null} />
+        </div>
       )}
     </section>
   );

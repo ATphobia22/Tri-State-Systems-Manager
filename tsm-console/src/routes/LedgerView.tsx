@@ -10,6 +10,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { t } from '../lib/design-tokens';
 import { AuthorityBadge } from '../components/AuthorityBadge';
 import { HumanSignGatePanel } from '../components/HumanSignGatePanel';
+import FoundryLedgerReview from '../components/FoundryLedgerReview';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { LedgerLoaderData } from '../types/loaders';
 
@@ -130,6 +131,8 @@ export default function LedgerView() {
       <p style={{ fontSize: t.font.size.base, color: t.color.text.secondary, marginBottom: '1.25rem' }}>
         SHA-256 · Merkle · virtualized · directDomUpdates · React 19–safe scroll
       </p>
+
+      <FoundryLedgerReview />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
         <div style={{ minWidth: 0 }} aria-label="Human Authority Sign Gate">
