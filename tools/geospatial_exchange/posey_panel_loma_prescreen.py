@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -197,14 +198,19 @@ def screen(args) -> tuple[list[dict], dict]:
                 'dem_adjacent_min_navd88_ft': f'{minimum:.3f}' if minimum is not None else '',
                 'bfe_navd88_ft': f'{bfe:.3f}' if bfe is not None else '',
                 'freeboard_dem_minus_bfe_ft': f'{margin:.3f}' if margin is not None else '',
-                'sampled_dem_cells': cells, 'status': status, 'official_loma_eligible': 'NOT_DETERMINED',
+                'sampled_dem_cells': cells, 'status': status, 'official_loma_eligible': ''  # nullable/unknown; never an official FEMA determination,
             })
+        status_counts = Counter(row['status'] for row in rows)
         receipt = {
             'authority': 'FEMA NFHL source snapshot as supplied, not independently revalidated',
             'panel_id': args.panel_id, 'screening_only': True,
-            'official_loma_eligible_count': None, 'candidate_structures': None,
+            'official_loma_eligible_count': None, 'candidate_structures': len(rows),
             'screened_structure_rows': len(rows),
-            'count_state': 'UNKNOWN_MISSING_EVIDENCE_NOT_ZERO',
+            'candidate_structures_semantics': 'LEGACY_SCREENING_ROW_COUNT_NOT_FEMA_CANDIDATES',
+            'screening_status_counts': dict(sorted(status_counts.items())),
+            'diagnostic_above_bfe_review_rows': status_counts.get('DEM_ABOVE_BFE_REVIEW_SURVEY', 0),
+            'official_determination_state': 'NOT_DETERMINED',
+            'count_state': 'OFFICIAL_ELIGIBILITY_NOT_DETERMINED',
             'run_generated_at_utc': datetime.now(timezone.utc).isoformat(),
             'source_vintage_independently_verified': False,
             'sha256_inputs': {key: sha256(path) for key, path in paths.items()},
