@@ -5,6 +5,7 @@
 #include "Engine/GameInstance.h"
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
+#include "Containers/StringConv.h"
 #include "Misc/FileHelper.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
@@ -351,14 +352,17 @@ private:
         }
 
         TArray<uint8> Bytes;
-        FString JsonText;
         if (!FFileHelper::LoadFileToArray(Bytes, *Input) ||
-            !FFileHelper::LoadFileToString(JsonText, *Input) ||
             Bytes.Num() != ByteCount)
         {
             ResultText->SetText(FText::FromString(TEXT("PASSPORT // LOCAL SOURCE READ FAILED")));
             return FReply::Handled();
         }
+        // Decode *exactly* the bytes later hashed and exported. Reading the
+        // source a second time risks validating different content if the file
+        // is changed between reads.
+        const FUTF8ToTCHAR Decoder(reinterpret_cast<const ANSICHAR*>(Bytes.GetData()), Bytes.Num());
+        const FString JsonText(Decoder.Length(), Decoder.Get());
         TSharedPtr<FJsonObject> Passport;
         if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(JsonText), Passport)
             || !Passport.IsValid())
@@ -502,9 +506,29 @@ private:
                  "not an independently validated parcel join or reviewed DOCX/XLSX packet."));
         FString ReceiptText;
         TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ReceiptText);
-        if (!FJsonSerializer::Serialize(Receipt, Writer) ||
-            !FFileHelper::SaveStringToFile(ReceiptText, *ReceiptPath))
+        if (!FJsonSerializer::Serialize(Receipt, Writer))
         {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT SERIALIZATION FAILED")));
+            return FReply::Handled();
+        }
+        const FTCHARToUTF8 EncodedReceipt(*ReceiptText);
+        TArray<uint8> ReceiptBytes;
+        ReceiptBytes.Append(reinterpret_cast<const uint8*>(EncodedReceipt.Get()), EncodedReceipt.Length());
+        TUniquePtr<FArchive> ReceiptFile(IFileManager::Get().CreateFileWriter(
+            *ReceiptPath, FILEWRITE_NoReplaceExisting));
+        if (!ReceiptFile)
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT FILE EXISTS OR UNAVAILABLE")));
+            return FReply::Handled();
+        }
+        ReceiptFile->Serialize(ReceiptBytes.GetData(), ReceiptBytes.Num());
+        const bool bReceiptWritten = !ReceiptFile->IsError();
+        ReceiptFile.Reset();
+        if (!bReceiptWritten)
+        {
+            IFileManager::Get().Delete(*ReceiptPath);
             IFileManager::Get().Delete(*ExportJson);
             ResultText->SetText(FText::FromString(TEXT("PASSPORT // RECEIPT WRITE FAILED")));
             return FReply::Handled();
