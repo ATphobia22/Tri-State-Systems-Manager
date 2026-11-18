@@ -10,8 +10,9 @@ class NativePassportExportWiringTests(unittest.TestCase):
         code=SOURCE.read_text(encoding="utf-8")
         self.assertIn("EXPORT PASSPORT JSON",code)
         self.assertIn("ExportCivicPassport",code)
-        self.assertNotIn("WebView",code)
-        self.assertNotIn("localhost",code)
+        self.assertNotIn('#include "WebBrowser.h"',code)
+        self.assertNotIn("FPlatformProcess::CreateProc",code)
+        self.assertNotIn("FPlatformProcess::LaunchURL",code)
     def test_source_is_constrained_to_local_audited_passport(self):
         code=SOURCE.read_text(encoding="utf-8")
         self.assertIn("tsm.public-evidence.passport.v1",code)
