@@ -42,6 +42,7 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
     cy.contains('QA available: 3 published records').should('exist');
     cy.contains('Imported height estimates: 1').should('exist');
     cy.contains('Missing/invalid heights: 2').should('exist');
+    cy.screenshot('qa-map-fixture-enabled');
     cy.contains('button', 'Hide QA layer').click();
     cy.contains('button', 'Load QA layer (opt-in)').should('exist');
     cy.get('.maplibregl-canvas').should('exist');
@@ -58,6 +59,7 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
     cy.contains('button', 'Load QA layer (opt-in)').should('be.enabled').click();
     cy.wait('@qa');
     cy.contains('QA available: 3 published records').should('exist');
+    cy.screenshot('qa-atlas-fixture-enabled');
   });
 
   it('imports a bounded local Foundry report beside, not into, the immutable ledger', () => {
@@ -73,5 +75,6 @@ describe('GeoTruth and Foundry, actual browser integration', () => {
     cy.contains('IGIO-POSEY').should('exist');
     cy.contains('PENDING_HUMAN_REVIEW').should('exist');
     cy.contains('not a signed or accepted ledger block').should('exist');
+    cy.screenshot('foundry-ledger-review-fixture');
   });
 });
