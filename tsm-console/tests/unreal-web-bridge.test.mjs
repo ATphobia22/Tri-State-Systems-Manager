@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { UNREAL_WEB_BRIDGE, filterUnrealWebBridge } from '../src/lib/unreal-web-bridge.ts';
 const allowedBoundaries = new Set(['EDITOR_PIPELINE','NATIVE_RUNTIME','DEVELOPER_TEST','PUBLIC_WEB_ANALOG']);
 const allowedStatuses = new Set(['WEB_PRESENTATION','SOURCE_BOUND_PARTIAL','NATIVE_NOT_VERIFIED','TOOLCHAIN_ONLY']);
@@ -39,4 +41,18 @@ test('public platform guide uses a contrasting dark surface for its light-colore
   const route = readFileSync(new URL('../src/routes/PlatformCapabilitiesView.tsx', import.meta.url), 'utf8');
   assert.match(route, /<main style=\{\{[^}]*background: '#081728'/);
   assert.match(route, /<UnrealWebBridgePanel\s*\/>/);
+});
+
+test('public Pages manifest matches actual MapLibre and Cesium route boundaries', () => {
+  const manifest = JSON.parse(readFileSync(fileURLToPath(new URL('../public/platform-capabilities.json', import.meta.url)), 'utf8'));
+  const router = readFileSync(fileURLToPath(new URL('../src/lib/router.tsx', import.meta.url)), 'utf8');
+  const byRoute = Object.fromEntries(manifest.publicRoutes.map(row => [row.path, row]));
+  assert.match(byRoute['/globe/'].format, /MapLibre/);
+  assert.match(byRoute['/terrain-3d/'].format, /MapLibre/);
+  assert.match(byRoute['/cesium/'].format, /CesiumJS/);
+  assert.equal(manifest.unrealWebBridge.entryCount, UNREAL_WEB_BRIDGE.length);
+  assert.equal(manifest.unrealWebBridge.nativeShippingVerification, 'NOT_EVIDENCED');
+  assert.match(router, /path: 'terrain-3d'.*import\('\.\.\/routes\/GlobeView'\)/);
+  assert.match(router, /path: 'globe'.*import\('\.\.\/routes\/GlobeView'\)/);
+  assert.match(router, /path: 'cesium'.*import\('\.\.\/routes\/CesiumRegionalTwinView'\)/);
 });
