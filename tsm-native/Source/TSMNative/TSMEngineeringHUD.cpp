@@ -384,6 +384,59 @@ private:
                 "Only the bounded, public and explicitly non-regulatory passport format is exportable.")));
             return FReply::Handled();
         }
+        // The existing audited passport exporter emits only these
+        // public-facing fields. Reject unexpected owner/contact/private
+        // attributes instead of blindly copying an arbitrary JSON object.
+        const TArray<FString> AllowedPassportKeys = {
+            TEXT("schema"), TEXT("parcelId"), TEXT("countyFips"), TEXT("asOf"),
+            TEXT("snapshotId"), TEXT("facts"), TEXT("evidenceStateCounts"),
+            TEXT("engineeringUse"), TEXT("regulatoryDetermination"),
+            TEXT("surveyCertification"), TEXT("sourceBytesVerifiedNotSourceClaims"),
+            TEXT("notice"), TEXT("integritySha256")
+        };
+        const TArray<FString> AllowedFactKeys = {
+            TEXT("label"), TEXT("value"), TEXT("units"), TEXT("verticalDatum"),
+            TEXT("dataRole"), TEXT("sourceId"), TEXT("sourceSha256"),
+            TEXT("observedAt"), TEXT("evidenceState"), TEXT("reasons"),
+            TEXT("controlPointVerified"), TEXT("valueIndependentlyValidated")
+        };
+        for (const auto& Pair : Passport->Values)
+        {
+            if (!AllowedPassportKeys.Contains(Pair.Key))
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // UNEXPECTED PRIVATE OR UNSUPPORTED FIELD")));
+                return FReply::Handled();
+            }
+        }
+        for (const TSharedPtr<FJsonValue>& FactValue : *Facts)
+        {
+            const TSharedPtr<FJsonObject> Fact =
+                FactValue.IsValid() ? FactValue->AsObject() : nullptr;
+            if (!Fact.IsValid())
+            {
+                ResultText->SetText(FText::FromString(TEXT("PASSPORT // INVALID FACT RECORD")));
+                return FReply::Handled();
+            }
+            for (const auto& Pair : Fact->Values)
+            {
+                if (!AllowedFactKeys.Contains(Pair.Key))
+                {
+                    ResultText->SetText(FText::FromString(TEXT(
+                        "PASSPORT // RESTRICTED OR UNSUPPORTED FACT FIELD")));
+                    return FReply::Handled();
+                }
+            }
+            bool bIndependentlyValidated = true;
+            if (!Fact->TryGetBoolField(TEXT("valueIndependentlyValidated"),
+                                       bIndependentlyValidated) ||
+                bIndependentlyValidated)
+            {
+                ResultText->SetText(FText::FromString(TEXT(
+                    "PASSPORT // SCIENTIFIC VALUE CLAIM NOT VERIFIED HERE")));
+                return FReply::Handled();
+            }
+        }
         for (const TCHAR Ch : DeclaredIntegrity)
         {
             if (!((Ch >= TEXT('0') && Ch <= TEXT('9')) ||
