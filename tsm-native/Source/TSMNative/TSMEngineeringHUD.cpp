@@ -591,6 +591,27 @@ private:
             return FReply::Handled();
         }
 
+        // Hash the *written destination*, not just the source buffer,
+        // before asserting an exported-file SHA-256 in the receipt.
+        TArray<uint8> ExportReadback;
+        if (!FFileHelper::LoadFileToArray(ExportReadback, *ExportJson) ||
+            ExportReadback.Num() != Bytes.Num())
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT READBACK FAILED")));
+            return FReply::Handled();
+        }
+        const std::string ReadbackDigest = TsmSha256HexOfString(
+            reinterpret_cast<const char*>(ExportReadback.GetData()),
+            static_cast<size_t>(ExportReadback.Num()));
+        const FString ReadbackHash = UTF8_TO_TCHAR(ReadbackDigest.c_str());
+        if (ReadbackHash != FileSha256)
+        {
+            IFileManager::Get().Delete(*ExportJson);
+            ResultText->SetText(FText::FromString(TEXT("PASSPORT // EXPORT SHA-256 MISMATCH")));
+            return FReply::Handled();
+        }
+
         TSharedRef<FJsonObject> Receipt = MakeShared<FJsonObject>();
         Receipt->SetStringField(TEXT("schema"), TEXT("tsm.native.passport-json-export.v1"));
         Receipt->SetStringField(TEXT("inputSource"), TEXT("Saved/PublicEvidence/parcel-evidence.json"));
