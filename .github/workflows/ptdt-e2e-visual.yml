@@ -138,6 +138,15 @@ jobs:
           echo "Cypress failed after 3 attempts"
           exit 1
 
+      - name: Preserve headed GeoTruth and Foundry fixture screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: civic-evidence-headed-fixtures
+          path: tsm-console/cypress/screenshots/civic-evidence-integration.cy.ts/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload Cypress failure artifacts
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
