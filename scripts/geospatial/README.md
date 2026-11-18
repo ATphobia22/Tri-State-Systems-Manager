@@ -31,3 +31,22 @@ tile-fabric assembly.
   fabrics and `reassemble.sh` scripts.
 - Never fabricate measurements — missing data stays unavailable with
   honest provenance labels (VERIFIED / PROVISIONAL / ESTIMATED).
+
+## Projected Posey parcel geometry quality (review-only)
+
+For an actual staged offline parcel data root containing `layer-manifest.json`,
+run this headless audit. It verifies the existing source SHA-256 binding, parcel IDs,
+county FIPS and **EPSG:2966 projected polygon topology**:
+
+```bash
+python scripts/geospatial/audit_offline_parcel_manifest.py \
+  --root /path/to/staged/offline-parcels --require-parcels --check-geometry \
+  > parcel-topology-review.json
+```
+
+The source files are never mutated. A nonzero exit code means the result requires
+review. Diagnostic `make_valid` candidates and planar-area differences are **not**
+authorized replacement parcel geometries or FEMA flood-zone determinations. The
+optional flag is off for legacy calls; the output reports `geometry_quality: NOT_RUN`
+when topology was not inspected. CI tests use artificial fixtures only; a real
+accepted run must cite the staged source's actual hash and acquisition metadata.
