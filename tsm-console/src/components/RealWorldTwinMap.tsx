@@ -359,12 +359,42 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     setMultiBusy(true);
     setMultiError(null);
     try {
-      const snaps = await fetchAllLiveStations();
+      // An explicit user click may use official USGS OGC data when the
+      // optional same-origin TSM API is unavailable (e.g. GitHub Pages).
+      // Background observation/shadow paths do not opt into this fallback.
+      const snaps = await fetchAllLiveStations(undefined, { browserFallback: true });
       setMultiStations(snaps);
       const primary = snaps.find((s) => s.stationId === '03378500');
       if (primary && primary.stage_ft != null) {
-        const refreshed = await fetchLiveStage();
-        setLiveStage(refreshed);
+        if (primary.sourceUri?.startsWith('https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items')) {
+          // On public Pages, the optional server may be absent. Preserve the
+          // fetched source-matched stage instead of overwriting it with a
+          // second failing /api request. Never infer NAVD88 or a flood class.
+          setLiveStage((previous) => ({
+            ...previous,
+            source: 'USGS',
+            gaugeId: primary.stationId,
+            value_ft: primary.stage_ft,
+            timestamp: primary.observedAt,
+            retrievedAt: primary.retrievedAt,
+            status: primary.status,
+            qualifier: primary.qualifier,
+            discharge_cfs: primary.discharge_cfs,
+            discharge_observedAt: null,
+            discharge_status: null,
+            floodCategory: 'unknown',
+            vertical_reference: 'GAGE_DATUM',
+            wse_navd88_ft: null,
+            gage_zero_navd88_ft: null,
+            conversion_applied: false,
+            sourceUri: primary.sourceUri,
+            site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+            hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
+          }));
+        } else {
+          const refreshed = await fetchLiveStage();
+          setLiveStage(refreshed);
+        }
       }
       if (snaps.every((s) => s.status === 'unavailable')) {
         setMultiError('All stations unavailable. Observation cards show unavailable status; the map remains available.');

@@ -27,6 +27,42 @@ describe('Public gauge, memorial and unobstructed cinematic controls', () => {
     cy.contains('no NAVD88 conversion').should('exist');
   });
 
+  it('shows real-source USGS stage by explicit operator fallback when Pages has no API server', () => {
+    // All numeric readings here are TEST FIXTURES, not live authoritative data.
+    const fixtureObservedAt = new Date(Date.now() - 60_000).toISOString();
+    cy.intercept('GET', '**/api/hydrologic/community*', {statusCode:503, body:{error:'API unavailable in static public site'}}).as('noServer');
+    cy.intercept('GET', 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items*', (request) => {
+      const site = new URL(request.url).searchParams.get('monitoring_location_id');
+      const allowed = ['USGS-03378500','USGS-03322000','USGS-03322420'];
+      expect(allowed).to.include(site);
+      request.reply({statusCode:200, headers:{'access-control-allow-origin':'*'}, body: {
+        type:'FeatureCollection',
+        features:[
+          {type:'Feature',properties:{
+            monitoring_location_id:site, parameter_code:'00065',
+            time:fixtureObservedAt, unit_of_measure:'ft',
+            value:site === 'USGS-03378500' ? '13.25' : '8.15',
+            approval_status:'Provisional',
+          }},
+        ],
+      }});
+    }).as('directUSGS');
+    cy.visit('/map');
+    cy.get('details[aria-label="Map layers, data and engineering tools"] > summary').click();
+    cy.get('[role="region"][aria-label="Multi-station water levels"]')
+      .contains('button', 'Fetch all local water levels').click();
+    cy.wait('@noServer');
+    cy.wait(['@directUSGS','@directUSGS','@directUSGS']);
+    cy.get('[role="region"][aria-label="Multi-station water levels"]').within(() => {
+      cy.contains('13.25 ft').should('be.visible');
+      cy.contains('03322000').should('exist');
+      cy.contains('03322420').should('exist');
+      cy.contains('unavailable').should('exist'); // no invented NAVD88
+      cy.contains('All stations unavailable').should('not.exist');
+    });
+    cy.screenshot('usgs-direct-map-fallback-synthetic-observations');
+  });
+
   it('loads the Beverly Ann Tucker memorial directly and preserves its dedication', () => {
     cy.visit('/memorial');
     cy.contains('h1', 'In Memory of Beverly Ann Tucker').should('be.visible');
