@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { GeoJSONSource, Map } from 'maplibre-gl';
+import type { GeoJSONSource, Map, MapMouseEvent } from 'maplibre-gl';
 import {
   buildGeoTruthMapData,
   GEOTRUTH_SOURCE_ID, GEOTRUTH_FILL_ID, GEOTRUTH_OUTLINE_ID,
@@ -87,7 +87,7 @@ export default function GeoTruthLayerControl({ map }: { map: Map | null }): JSX.
     }
     let disposed = false;
     const abort = new AbortController();
-    const onClick = (event: { point: { x: number; y: number } }) => {
+    const onClick = (event: MapMouseEvent) => {
       if (!map.getLayer(GEOTRUTH_FILL_ID)) return;
       const found = map.queryRenderedFeatures(event.point, { layers: [GEOTRUTH_FILL_ID] });
       if (!found.length) return;
