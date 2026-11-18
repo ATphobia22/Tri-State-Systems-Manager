@@ -57,11 +57,13 @@ def _identifier(props: dict[str, Any]) -> int | None:
     return next(iter(candidates.values()), None)
 
 
-def _inventory(path: Path) -> dict[str, Any]:
+def _inventory(path: Path, *, file_bytes: bytes | None = None) -> dict[str, Any]:
+    """Audit the exact byte snapshot supplied by a caller, or read once locally."""
     if not path.is_file():
         raise ValueError(f"missing GeoJSON: {path}")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        raw = file_bytes if file_bytes is not None else path.read_bytes()
+        data = json.loads(raw)
     except (OSError, UnicodeError, ValueError) as exc:
         raise ValueError(f"cannot read GeoJSON {path}: {exc}") from exc
     if not isinstance(data, dict) or data.get("type") != "FeatureCollection" or not isinstance(data.get("features"), list):
@@ -83,7 +85,7 @@ def _inventory(path: Path) -> dict[str, Any]:
     counts = Counter(ids)
     return {
         "count": len(features),
-        "sha256": _sha256(path),
+        "sha256": hashlib.sha256(raw).hexdigest(),
         "ids": set(ids),
         "identified_count": len(ids),
         "without_id": no_id,
