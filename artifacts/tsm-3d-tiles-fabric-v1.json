@@ -85,15 +85,28 @@
     },
     {
       "id": "posey-buildings-3dtiles",
-      "description": "Posey County IGIO building footprints as 3D Tiles (23,082 source features, 4,121 GLBs)",
-      "uri": "3d-tiles/buildings/tileset.json",
+      "description": "Posey public 3D Tiles: 22,815 published GeoJSON screening footprints versus 23,082 archived IGIO-labeled source identities; 267 source identifiers unresolved. Current renderable LiDAR mesh subset is separate and is not independently census-complete.",
+      "uri": "3d-tiles/tileset.json",
       "format": "3D Tiles 1.1 + glTF",
       "sourceAuthority": "Indiana Geographic Information Office",
       "sourceDataset": "Indiana Building Footprints 2016-2020",
-      "featureCount": 23082,
-      "glbCount": 4121,
-      "tilesetSha256": "87b0e7057e2871e7f4eac011d08b071e946a0e929717f199b35c9744ec1542db",
-      "geometricError": 1000.0
+      "glbCount": null,
+      "tilesetSha256": null,
+      "geometricError": 1000,
+      "renderableMeshTileset": "3d-tiles/buildings-lidar-12450/tileset.json",
+      "sourceInventoryTargetCount": 23082,
+      "publishedScreeningFeatureCount": 22815,
+      "unresolvedSourceIdCount": 267,
+      "sourceInventoryVerified": false,
+      "sourceIdsReconciled": false,
+      "meshCoverageIndependentlyAccepted": false,
+      "geojsonCountIsNotMeshCount": true,
+      "status": "PARTIAL_SOURCE_UNVERIFIED",
+      "verificationSource": "tsm-console/public/3d-tiles/tileset.json",
+      "missingIdentitiesSource": "tsm-console/public/3d-tiles/posey-missing-objectids.json",
+      "reviewDate": "2026-11-18",
+      "previousReportedGlbCount": 4121,
+      "previousReportedGlbCountStatus": "LEGACY_UNVERIFIED_DO_NOT_USE_AS_PUBLISHED"
     }
   ]
 }
