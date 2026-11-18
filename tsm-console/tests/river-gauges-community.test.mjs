@@ -59,3 +59,11 @@ test('static gauge map layer matches active USGS station registry and has valid 
   assert.ok(!featureIds.includes('03293600'));
   assert.ok(!featureIds.includes('03381700'));
 });
+
+test('gauge board rejects malformed USGS/no-data stage and discharge at the display boundary', () => {
+  assert.match(board, /sanitizeGaugeValue\(observation\.value\)/);
+  assert.match(board, /sanitizeGaugeValue\(observation\.dischargeCfs\)/);
+  assert.match(source, /raw !== -9999/);
+  assert.match(source, /raw !== -8888/);
+  assert.match(source, /Number\.isFinite\(raw\)/);
+});
