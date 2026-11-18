@@ -10,6 +10,8 @@ from io import BytesIO
 import json
 from pathlib import Path
 import shutil
+import struct
+import zlib
 import tempfile
 import time
 import urllib.error
@@ -301,6 +303,35 @@ def river_access_elevation(terrain_m: np.ndarray, seeds: np.ndarray) -> np.ndarr
     return costs
 
 
+
+def write_screening_png(path: Path, connected: np.ndarray) -> None:
+    """Write a deterministic, pixel-faithful RGBA overlay for a 4-neighbor flood mask.
+
+    Geospatial bounds are stored in screening.json, not in this unreferenced PNG.
+    This is a hypothetical visual layer, never a hydraulic or regulatory output.
+    """
+    if connected.ndim != 2 or connected.dtype != np.bool_ or not connected.size:
+        raise ValueError("Screening raster requires a nonempty 2D boolean connected-cell mask")
+    rows, cols = connected.shape
+    rgba = np.empty((rows, cols, 4), dtype=np.uint8)
+    rgba[:, :, 0] = 35
+    rgba[:, :, 1] = 186
+    rgba[:, :, 2] = 242
+    rgba[:, :, 3] = np.where(connected, 136, 0).astype(np.uint8)
+
+    def chunk(kind: bytes, data: bytes) -> bytes:
+        return (struct.pack(">I", len(data)) + kind + data
+                + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff))
+
+    raw = b"".join(b"\x00" + rgba[row].tobytes() for row in range(rows))
+    png = (b"\x89PNG\r\n\x1a\n"
+           + chunk(b"IHDR", struct.pack(">IIBBBBB", cols, rows, 8, 6, 0, 0, 0))
+           + chunk(b"IDAT", zlib.compress(raw, level=9))
+           + chunk(b"IEND", b""))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(png)
+
+
 def build_city_screening(out: Path, rasters: list) -> None:
     west, south, east, north = CITY_BOUNDS
     rows, cols = 264, 360
@@ -333,8 +364,11 @@ def build_city_screening(out: Path, rasters: list) -> None:
                           "properties": {"levelMNavd88": level, "class": "SCENARIO"}}
                          for geometry, _ in shapes(mask, mask=connected, transform=grid_transform)],
         })
+        raster_path = f"screening/{level}.png"
+        write_screening_png(out / raster_path, connected)
         frames.append({"levelMNavd88": level, "connectedCells": int(connected.sum()),
-                       "connectedCityCells": int((connected & in_city).sum()), "path": path})
+                       "connectedCityCells": int((connected & in_city).sum()), "path": path,
+                       "raster": raster_path, "rasterSha256": sha256(out / raster_path)})
     write_json(out / "screening.json", {
         "classification": "SCENARIO", "method": "Four-neighbor connection to Census Ohio River surface polygons",
         "waterLevelSource": "Hypothetical fixed elevation", "verticalDatum": "NAVD88", "units": "m",

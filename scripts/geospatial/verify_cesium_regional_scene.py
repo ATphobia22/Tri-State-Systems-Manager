@@ -7,6 +7,7 @@ from collections import Counter
 from hashlib import sha256
 import json
 from pathlib import Path
+import rasterio
 import struct
 import sys
 
@@ -111,6 +112,21 @@ def verify(root: Path) -> None:
         need(bool(polygons) == bool(frame["connectedCells"]), "Screening geometry/cell mismatch")
         need(all(f["geometry"]["type"] in ("Polygon", "MultiPolygon") and f["properties"]["class"] == "SCENARIO"
                  for f in polygons), "Invalid screening geometry")
+        raster_path = root / data / frame["raster"]
+        need(frame["raster"] == f"screening/{frame['levelMNavd88']}.png",
+             "Frame raster path must match its selected level")
+        need(sha256(raster_path.read_bytes()).hexdigest() == frame["rasterSha256"],
+             "Screening raster checksum mismatch")
+        with rasterio.open(raster_path) as image:
+            need((image.driver, image.width, image.height, image.count) ==
+                 ("PNG", screening["cols"], screening["rows"], 4),
+                 "Screening raster must match the exact source cell grid")
+            r, g, b, alpha = image.read()
+            need((r == 35).all() and (g == 186).all() and (b == 242).all(),
+                 "Unexpected scenario raster colors")
+            need(((alpha == 0) | (alpha == 136)).all()
+                 and int((alpha == 136).sum()) == frame["connectedCells"],
+                 "Screening raster visible pixels must equal river-connected cells")
 
     raw = (root / "mount-vernon-scene/scene.json").read_bytes()
     city = json.loads(raw)
