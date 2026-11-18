@@ -104,7 +104,7 @@ SELECT
              THEN 'DEM_ABOVE_BFE_REVIEW_SURVEY'
         ELSE 'DEM_BELOW_BFE_REVIEW'
     END AS screening_status,
-    FALSE AS official_loma_eligible,
+    NULL::boolean AS official_loma_eligible, -- UNKNOWN, FEMA determination not performed
     bfe_source,
     dem_evidence_sha256,
     sampled_cells

@@ -56,9 +56,15 @@ def test_above_bfe_is_only_screening_and_offpanel_excluded(tmp_path):
     assert len(rows) == 1
     assert rows[0]['building_id'] == 'B01'
     assert rows[0]['status'] == 'DEM_ABOVE_BFE_REVIEW_SURVEY'
-    assert rows[0]['official_loma_eligible'] == 'false'
+    assert rows[0]['official_loma_eligible'] == ''  # unknown, not a false official determination
     assert float(rows[0]['dem_adjacent_min_navd88_ft']) > float(rows[0]['bfe_navd88_ft'])
-    assert receipt['screening_only'] is True and receipt['official_loma_eligible_count'] == 0
+    assert receipt['screening_only'] is True and receipt['official_loma_eligible_count'] is None
+    assert receipt['candidate_structures'] == 1
+    assert receipt['screened_structure_rows'] == 1
+    assert receipt['count_state'] == 'OFFICIAL_ELIGIBILITY_NOT_DETERMINED'
+    assert receipt['official_determination_state'] == 'NOT_DETERMINED'
+    assert receipt['diagnostic_above_bfe_review_rows'] == 1
+    assert receipt['screening_status_counts'] == {'DEM_ABOVE_BFE_REVIEW_SURVEY': 1}
     assert len(receipt['sha256_inputs']) == 6
 
 
