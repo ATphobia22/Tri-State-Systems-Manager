@@ -156,13 +156,13 @@ export function normalizeCommunityGaugeObservation(
   const value = sanitizeGaugeValue(payload.value) ?? sanitizeGaugeValue(payload.stage_ft);
   const dischargeCfs = sanitizeGaugeValue(payload.dischargeCfs) ??
     sanitizeGaugeValue(payload.discharge_cfs);
-  const freshnessStatus = isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale';
   const observedAt =
     typeof payload.observedAt === 'string'
       ? payload.observedAt
       : typeof payload.observation_time === 'string'
         ? payload.observation_time
         : null;
+  const freshnessStatus = isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale';
   const provider: GaugeProvider | 'UNKNOWN' =
     payload.provider === 'NOAA' || payload.provider === 'NOAA_NWS'
       ? 'NOAA_NWS'
