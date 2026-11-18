@@ -33,3 +33,7 @@ This is an **evaluation record**, not a claim that external code has been instal
 
 ## Release boundary
 No new runtime service, cloud requirement, login, web view, or mandatory external package is introduced. This inventory is non-executable until a separate reviewed implementation PR and its tests pass.
+
+## Main reconciliation note — 2026-11-18
+
+This is a backport of an older **reference-only** review branch, not evidence that its source evaluations were performed against current main, pinned upstream commits, or installed software. The current release architecture continues to require source-index/hashes, licensing and supply-chain review, IFC GlobalId/CRS/vertical-datum validation, and independent native artifact acceptance. Any underlying upstream license labels remain *reported/unreviewed* until source-controlled verification is recorded. No production integration or release gate is closed by merging this inventory.
