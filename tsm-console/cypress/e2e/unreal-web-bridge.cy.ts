@@ -10,8 +10,8 @@ describe('Unreal to public web capability guide', () => {
       cy.contains('Showing 1 capability comparisons').should('exist');
       cy.contains('summary', 'WorldPartitionEditor / World Partition HLOD Utilities').click();
       cy.contains('Published building inventory is partial').should('exist');
-      cy.contains('Inspect TSM source').should('have.attr', 'href').and('include', 'github.com/ATphobia22');
-      cy.contains('Epic documentation').should('have.attr', 'href').and('include', 'dev.epicgames.com');
+      cy.contains('a', 'Inspect TSM source').should('have.attr', 'href').and('include', 'github.com/ATphobia22');
+      cy.contains('a', 'Epic documentation').should('have.attr', 'href').and('include', 'dev.epicgames.com');
       cy.get('#tsm-unreal-boundary').select('NATIVE_RUNTIME');
       cy.contains('No matching technologies').should('exist');
       cy.get('#tsm-unreal-search').clear();
