@@ -28,8 +28,13 @@ CREATE TABLE IF NOT EXISTS tsm_flood_history.flood_events (
     CHECK (event_end >= event_start)
 );
 INSERT INTO tsm_flood_history.flood_events VALUES
+ ('1913_wabash','March 1913 Wabash River flood: New Harmony historical record',
+  '1913-03-01','1913-03-31','MONTH_RANGE',
+  'https://pubs.usgs.gov/wdr/2005/wdr-il-05/data/stag2005/03378500.htm'),
  ('1937_ohio_mississippi','1937 Ohio-Mississippi flood','1937-01-01','1937-02-28',
   'MONTH_RANGE','https://pubs.usgs.gov/publication/wsp838'),
+ ('2005_lower_wabash_ohio','January 2005 lower Wabash and Ohio flooding',
+  '2005-01-01','2005-01-31','MONTH_RANGE','https://www.weather.gov/pah/events'),
  ('2011_ohio_wabash','2011 Ohio-Wabash regional flood context','2011-01-01','2011-12-31',
   'YEAR_WINDOW_NOT_EVENT_START_END','https://apps.usgs.gov/fev/data-download-portal')
 ON CONFLICT (event_id) DO NOTHING;
@@ -221,3 +226,25 @@ CREATE TABLE IF NOT EXISTS tsm_flood_history.building_footprints (
 CREATE INDEX IF NOT EXISTS idx_flood_buildings_geo
     ON tsm_flood_history.building_footprints USING gist(footprint);
 -- No parcel keys, personal addresses, policy numbers or claim numbers in these tables.
+
+-- USGS WRI 48-74: historic flood-map index compiled Jan 1975, published Mar 1975.
+-- A qualitative HIGH rating is NOT a lidar QL, geospatial RMSE or an event-era product.
+CREATE TABLE IF NOT EXISTS tsm_flood_history.historical_map_index (
+    index_record_id bigserial PRIMARY KEY,
+    county_fips char(5) NOT NULL REFERENCES tsm_flood_history.counties(county_fips),
+    source_id text NOT NULL REFERENCES tsm_flood_history.sources(source_id),
+    original_report_url text NOT NULL,
+    quadrangle text NOT NULL,
+    mapped_flood_year integer,
+    mapping_reliability text NOT NULL
+       CHECK(mapping_reliability IN ('RECON','STANDARD','HIGH')),
+    index_compiled_on date,
+    report_published_month text,
+    original_map_geometry_verified boolean NOT NULL DEFAULT false,
+    demonstrated_used_in_1937 boolean NOT NULL DEFAULT false,
+    exact_source_map_asset_uri text,
+    notes text,
+    UNIQUE(county_fips,source_id,quadrangle,mapped_flood_year)
+);
+-- 1975 retrospective index of flood areas, NOT proof that the delineation
+-- existed or was used by an agency during the 1937 emergency.
