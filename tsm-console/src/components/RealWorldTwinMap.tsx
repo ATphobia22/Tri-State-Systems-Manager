@@ -17,6 +17,7 @@ import ScenarioStudioPanel from './ScenarioStudioPanel';
 import LiveShadowPanel from './LiveShadowPanel';
 import FacilityStatusDashboard from './FacilityStatusDashboard';
 import PublicEvidenceLens from './PublicEvidenceLens';
+import GeoTruthLayerControl from './GeoTruthLayerControl';
 import { SessionLiveShadow, type LiveShadowStatus } from '../lib/session-live-shadow';
 import { applyScenarioCascadeLayer } from '../lib/scenario-cascade-layer';
 import type { ScenarioStudioResult } from '../lib/scenario-studio';
@@ -641,6 +642,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
+        <GeoTruthLayerControl map={mapReady ? mapRef.current : null} />
         <div aria-live="polite" style={{ marginTop: 8, color: '#526879' }}>
           {(['parcels', 'roads', 'buildings'] as const).map(kind => (
             <div key={kind}>IGIO {kind}: {indianaStates[kind]?.status ?? 'DISABLED'}
