@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { UNREAL_WEB_BRIDGE, filterUnrealWebBridge } from '../src/lib/unreal-web-bridge.ts';
@@ -31,4 +32,11 @@ test('Movie Render Queue and editor modules never imply browser execution', () =
   assert.equal(mrq?.status, 'NATIVE_NOT_VERIFIED');
   assert.equal(world?.boundary, 'EDITOR_PIPELINE');
   assert.match(mrq?.evidenceCaveat ?? '', /Shipping|render/i);
+});
+
+
+test('public platform guide uses a contrasting dark surface for its light-colored text', () => {
+  const route = readFileSync(new URL('../src/routes/PlatformCapabilitiesView.tsx', import.meta.url), 'utf8');
+  assert.match(route, /<main style=\{\{[^}]*background: '#081728'/);
+  assert.match(route, /<UnrealWebBridgePanel\s*\/>/);
 });
