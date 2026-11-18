@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { filterUnrealWebBridge, type UnrealBridgeFilter } from '../lib/unreal-web-bridge';
 
 const groups = [
   {
@@ -49,6 +51,57 @@ const inventories = [
   { title: 'Repository engineering surfaces', pathPrefix: '', items: ['.github','.secrets','architecture','artifacts','backend','config','contracts','data','data-sources','database','db','deploy','docker','docs','evidence','frontend','infrastructure','integrations','native','offline_packages','ops','scripts','skills','tests','third_party','thirdparty','tools','tsm-console','tsm-native'] },
 ];
 
+/** This panel is client-side only and never loads native Unreal modules. */
+function UnrealWebBridgePanel(): JSX.Element {
+  const [query, setQuery] = useState('');
+  const [boundary, setBoundary] = useState<UnrealBridgeFilter>('all');
+  const records = useMemo(() => filterUnrealWebBridge(query, boundary), [query, boundary]);
+  const categories: { value: UnrealBridgeFilter; label: string }[] = [
+    { value: 'all', label: 'All capabilities' },
+    { value: 'PUBLIC_WEB_ANALOG', label: 'Web presentation analogs' },
+    { value: 'NATIVE_RUNTIME', label: 'Native runtime components' },
+    { value: 'EDITOR_PIPELINE', label: 'Unreal editor pipelines' },
+    { value: 'DEVELOPER_TEST', label: 'Developer test tools' },
+  ];
+  return (
+    <section id="unreal-web-bridge" aria-labelledby="unreal-web-bridge-title" style={{ marginTop: '1.4rem', border: '1px solid #31566b', background: '#091523', borderRadius: 12, padding: '1rem' }}>
+      <h2 id="unreal-web-bridge-title" style={{ marginTop: 0, color: '#70d6ff' }}>Unreal Engine → Public Digital Twin</h2>
+      <p style={{ lineHeight: 1.6, color: '#c1d0df' }}>
+        This searchable guide maps selected Unreal Engine 5.6 module and plugin terms to current TSM web and native code. It is a capability <strong>crosswalk</strong>, not a live Unreal Engine integration: GitHub Pages runs web JavaScript, not Unreal Editor, Python commandlets, SQLite, or native Movie Render Queue.
+      </p>
+      <p style={{ lineHeight: 1.5, color: '#a8bbcf', fontSize: '0.86rem' }}>
+        The uploaded 5.6 terms index is used for terminology; linked Epic documentation was checked against the current 5.8-oriented native architecture. All published scenes remain informational until independent source and datum evidence is accepted. Native Windows Shipping remains a separate release gate.
+      </p>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', margin: '1rem 0' }}>
+        <label htmlFor="tsm-unreal-search" style={{ display: 'grid', flex: '2 1 260px', gap: 5, fontSize: '0.85rem' }}>
+          Search technology or role
+          <input id="tsm-unreal-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="e.g. HLOD, terrain, cinematic" style={{ borderRadius: 7, border: '1px solid #486b7b', padding: '0.65rem', background: '#fff', color: '#17324d', minHeight: 44 }} />
+        </label>
+        <label htmlFor="tsm-unreal-boundary" style={{ display: 'grid', flex: '1 1 220px', gap: 5, fontSize: '0.85rem' }}>
+          Technology boundary
+          <select id="tsm-unreal-boundary" value={boundary} onChange={(event) => setBoundary(event.target.value as UnrealBridgeFilter)} style={{ borderRadius: 7, border: '1px solid #486b7b', padding: '0.65rem', background: '#fff', color: '#17324d', minHeight: 44 }}>
+            {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
+          </select>
+        </label>
+      </div>
+      <p aria-live="polite" role="status" style={{ color: '#c1d0df', fontSize: '0.85rem' }}>Showing {records.length} capability comparisons</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,360px),1fr))', gap: 12 }}>
+        {records.map((entry) => (
+          <details key={entry.id} style={{ background: '#0d1b2b', padding: '0.85rem', borderRadius: 10, border: '1px solid #284b60' }}>
+            <summary style={{ color: '#70d6ff', fontWeight: 700, cursor: 'pointer', minHeight: 44, lineHeight: 1.5 }}>{entry.unrealTerm}</summary>
+            <p style={{ color: '#c1d0df', fontSize: '0.78rem' }}><strong>Boundary:</strong> {entry.boundary.replaceAll('_', ' ')} · <strong>Status:</strong> {entry.status.replaceAll('_', ' ')}</p>
+            <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}><strong>Public website:</strong> {entry.browserRole}</p>
+            <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}><strong>Unreal/native:</strong> {entry.nativeRole}</p>
+            <p style={{ lineHeight: 1.55, color: '#f9c9ab', fontSize: '0.83rem' }}><strong>Evidence limitation:</strong> {entry.evidenceCaveat}</p>
+            <p style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}><a style={{ color: '#70d6ff' }} href={`https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/${entry.repositoryPath}`} target="_blank" rel="noopener noreferrer">Inspect TSM source</a> · <a style={{ color: '#70d6ff' }} href={entry.epicReference} target="_blank" rel="noopener noreferrer">Epic documentation</a></p>
+          </details>
+        ))}
+      </div>
+      {records.length === 0 && <p role="status" style={{ color: '#c1d0df' }}>No matching technologies. Clear the search or select another boundary.</p>}
+    </section>
+  );
+}
+
 export default function PlatformCapabilitiesView(): JSX.Element {
   return (
     <main style={{ maxWidth: 1180, margin: '0 auto', padding: '1.5rem', color: '#e7f0fa' }}>
@@ -59,6 +112,7 @@ export default function PlatformCapabilitiesView(): JSX.Element {
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <Link to="/terrain-3d" style={{ color: '#70d6ff' }}>Open 3D Terrain Viewer →</Link>
           <Link to="/twin" style={{ color: '#70d6ff' }}>Open Twin Canvas →</Link>
+          <a href="#unreal-web-bridge" style={{ color: '#70d6ff' }}>Unreal ↔ Browser crosswalk ↓</a>
           <a href="https://github.com/ATphobia22/Tri-State-Systems-Manager" style={{ color: '#70d6ff' }}>Repository →</a>
           <a href={`${import.meta.env.BASE_URL}platform-capabilities.json`} style={{ color: '#70d6ff' }}>Machine-readable manifest (JSON) →</a>
         </div>
@@ -75,6 +129,7 @@ export default function PlatformCapabilitiesView(): JSX.Element {
           </article>
         ))}
       </section>
+      <UnrealWebBridgePanel />
       <section style={{ marginTop: '1.25rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Repository inventory</h2>
         <p style={{ color: '#a8bbcf', lineHeight: 1.6 }}>Directory inventory from the platform development tree. Package and adapter presence identifies code locations; it does not mean every provider has credentials, every integration is enabled, or every package is independently production-certified.</p>
