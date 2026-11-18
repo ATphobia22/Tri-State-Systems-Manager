@@ -23,11 +23,12 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
         borderRadius: 8,
         border: '1px solid #1e3a5f',
         background: 'rgba(15,23,42,0.95)',
+        color: '#e2e8f0',
       }}
     >
       <div style={{ fontWeight: 700, color: '#f8fafc' }}>Live water levels (multi-station)</div>
       <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>
-        Button-only · parallel USGS OGC · each station reports its own availability · GAGE_DATUM until conversion is published
+        Button-only · TSM API preferred; official USGS OGC fallback on unavailable stations · readings are gage height, NOT NAVD88
       </div>
       <button
         type="button"
@@ -55,7 +56,7 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
         </div>
       )}
       {stations.length > 0 && (
-        <table style={{ width: '100%', marginTop: 8, borderCollapse: 'collapse', fontSize: 11 }}>
+        <table aria-label="Source-attributed river gauge observations" style={{ width: '100%', marginTop: 8, borderCollapse: 'collapse', fontSize: 11 }}>
           <thead>
             <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
               <th style={{ padding: '4px 2px' }}>Station</th>
@@ -69,11 +70,18 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
               <tr key={s.stationId} style={{ borderTop: '1px solid #1e293b' }}>
                 <td style={{ padding: '4px 2px', color: '#e2e8f0' }}>
                   <div>{s.name}</div>
-                  <div style={{ color: '#64748b' }}>{s.stationId}</div>
+                  <div style={{ color: '#cbd5e1' }}>{s.stationId}</div>
+                  {s.sourceUri?.startsWith('https://api.waterdata.usgs.gov/') && (
+                    <a href={s.sourceUri} target="_blank" rel="noopener noreferrer"
+                      style={{ color: '#7dd3fc' }}>USGS source</a>
+                  )}
                 </td>
-                <td style={{ padding: '4px 2px' }}>{fmt(s.stage_ft)}</td>
                 <td style={{ padding: '4px 2px' }}>
-                  {s.conversion_applied ? fmt(s.wse_navd88_ft) : <span title="A published, verified station gage-zero conversion is not available.">unavailable</span>}
+                  {fmt(s.stage_ft)}
+                  {s.observedAt && <div style={{ color: '#cbd5e1', fontSize: 10 }}>Observed {s.observedAt}</div>}
+                </td>
+                <td style={{ padding: '4px 2px' }}>
+                  {s.conversion_applied ? fmt(s.wse_navd88_ft) : <span title="A published, verified station gage-zero conversion is not available.">unavailable — GAGE_DATUM</span>}
                 </td>
                 <td style={{ padding: '4px 2px', color: s.error ? '#fca5a5' : '#86efac' }}>
                   {s.error ? s.error.slice(0, 40) : s.status}
