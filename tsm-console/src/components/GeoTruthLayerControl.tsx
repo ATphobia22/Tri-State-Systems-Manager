@@ -79,6 +79,14 @@ export default function GeoTruthLayerControl({ map }: { map: Map | null }): JSX.
   const [selected, setSelected] = useState<string | null>(null);
   const cached = useRef<GeoTruthData | null>(null);
 
+  function resetQaOverlay(): void {
+    setEnabled(false);
+    setStatus('OFF — published screening QA, source datum unverified');
+    setCounts(null);
+    setFeatureCount(null);
+    setSelected(null);
+  }
+
   useEffect(() => {
     if (!map) return;
     if (!enabled) {
@@ -129,7 +137,13 @@ export default function GeoTruthLayerControl({ map }: { map: Map | null }): JSX.
   }, [enabled, map]);
 
   return (
-    <details aria-label="GeoTruth building quality inspector" style={{
+    <details aria-label="GeoTruth building quality inspector"
+      onToggle={event => {
+        // A collapsed inspector must not leave an invisible active map layer.
+        // The enabled effect cleans up the source/layers and click listeners.
+        if (!event.currentTarget.open) resetQaOverlay();
+      }}
+      style={{
       marginTop: 10, border: '1px solid #94a3b8', borderRadius: 8,
       padding: 8, background: 'rgba(15,23,42,.08)', color: 'inherit',
     }}>
@@ -137,7 +151,10 @@ export default function GeoTruthLayerControl({ map }: { map: Map | null }): JSX.
         GeoTruth · Building QA (source-derived, not surveyed)
       </summary>
       <button type="button" disabled={!map} aria-pressed={enabled}
-        onClick={() => { setSelected(null); setEnabled(value => !value); }}
+        onClick={() => {
+          if (enabled) resetQaOverlay();
+          else { setSelected(null); setEnabled(true); }
+        }}
         style={{ marginTop: 9, minHeight: 44, padding: '8px 12px', borderRadius: 7,
           background: enabled ? '#065f46' : '#334155', color: '#fff', border: '1px solid #94a3b8',
           cursor: map ? 'pointer' : 'not-allowed' }}>
