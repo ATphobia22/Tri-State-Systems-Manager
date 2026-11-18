@@ -21,7 +21,10 @@ const LAYERS: { id: SceneLayer; title: string; initial: boolean }[] = [
 type Scene = ReturnType<typeof mountCesiumRegionalScene>;
 
 
-export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFlyover?: boolean } = {}) {
+export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverChange }: {
+  autoFlyover?: boolean;
+  onFlyoverChange?: (active: boolean) => void;
+} = {}) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<Scene | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -35,6 +38,12 @@ export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFl
   const [sceneVersion, setSceneVersion] = useState(0);
   const [place, setPlace] = useState(0);
   const [tour, setTour] = useState(false);
+  const previousTour = useRef(false);
+  useEffect(() => {
+    if (previousTour.current === tour) return;
+    previousTour.current = tour;
+    onFlyoverChange?.(tour);
+  }, [tour, onFlyoverChange]);
   const [shotId, setShotId] = useState('');
   const [shotFrame, setShotFrame] = useState(0);
   const [shotPlayStart, setShotPlayStart] = useState<number | null>(null);
@@ -150,6 +159,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFl
             }, 8000);
           }
         },
+        (message) => setScreeningStatus(message),
       );
       scene.current = next;
       restoreSceneSelections(next);
@@ -219,7 +229,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFl
     let current = true;
     const level = screeningOn && frame ? frame.levelMNavd88 : null;
     if (level !== null) setScreeningStatus('Loading screening extent…');
-    scene.current.setScreening(level).then(() => {
+    scene.current.setScreening(level, frame?.bounds, frame?.cols, frame?.rows).then(() => {
       if (current && level !== null) setScreeningStatus('Screening extent on map');
       if (current && level === null && screening.length) setScreeningStatus('');
     }).catch(() => {
@@ -328,7 +338,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false }: { autoFl
             onPointerDown={() => setShotPlayStart(null)} />
           <div className="tsm-cesium-place">
             <strong>{CESIUM_VIEWS[place]?.name}</strong>
-            <small>Posey building layer: {status.buildings?.state === 'unavailable' ? 'source unavailable' : visible.buildings ? 'requested · inspect status' : 'hidden'} · Online OSM: {ION_ENABLED ? 'opt-in' : 'token required'}</small>
+            <small>Posey building layer: {!visible.buildings ? 'hidden' : status.buildings?.state === 'ready' ? 'ready' : status.buildings?.state === 'loading' ? 'loading' : status.buildings?.state === 'unavailable' ? 'source unavailable' : 'awaiting status'} · Online OSM: {ION_ENABLED ? 'opt-in' : 'unavailable without ion token'}</small>
             {picked && <p>{picked.title}<small>{picked.detail}</small></p>}
           </div>
           <div className="tsm-cesium-map-shortcuts" aria-label="Visible Cesium scene shortcuts">
