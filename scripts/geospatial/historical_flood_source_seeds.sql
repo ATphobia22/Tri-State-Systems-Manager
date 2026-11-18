@@ -35,7 +35,12 @@ VALUES
  ('il_isws_firms','Illinois State Water Survey','FIRM_AND_FIS_DISCOVERY','https://www.illinoisfloodmaps.org/dfirm.aspx','Illinois mapping project, county FEMA effective FIRM and Flood Insurance Study discovery','Panel revision, FEMA MSC link, risk review status and evidence that map was effective for event'),
  ('usgs_floodprone_1975','USGS','1975_INDEX_OF_PRE1975_FLOOD_MAPS','https://pubs.usgs.gov/wri/1974/0048/report.pdf','1975 publication indexing USGS flood-prone area maps prepared through July 1974, listing quadrangle, actual flood year/design frequency, index reliability','Original March 1975 USGS WRI 74-48 index, compiled 1975-01-16; RECON=no detailed surveys/H&H; STANDARD=surveys and detailed H&H; HIGH=surveys/H&H plus observed flood evidence. This is retrospective map quality, not an accurate numerical RMSE or proof the 1975 map existed in 1937.'),
  ('usgs_new_harmony_archive','USGS','NEW_HARMONY_HISTORICAL_GAGE','https://pubs.usgs.gov/wdr/2005/wdr-il-05/data/stag2005/03378500.htm','USGS annual stage tables for 03378500 with historical extremes and site/relocation notes','Site-specific gage datum, observation date, old gage record and unit; remarks record March 1913 and Jan 31 1937, not NAVD88.'),
- ('nws_paducah_flood_events','NOAA/NWS','PADUCAH_REGION_HISTORIC_FLOOD_EVENTS','https://www.weather.gov/pah/events','NWS event descriptions and historical crest comparisons for western Kentucky/southern Illinois and Indiana','Regional flood episode timeline only; flood stage gage and actual county influence must be separately established.')
+ ('nws_paducah_flood_events','NOAA/NWS','PADUCAH_REGION_HISTORIC_FLOOD_EVENTS','https://www.weather.gov/pah/events','NWS event descriptions and historical crest comparisons for western Kentucky/southern Illinois and Indiana','Regional flood episode timeline only; flood stage gage and actual county influence must be separately established.'),
+ ('usgs_new_harmony_fim_2016','USGS','2016_GAGE_STAGE_BASED_INUNDATION_MAPS','https://pubs.usgs.gov/publication/sir20165119','One-dimensional step-backwater hydraulic model and GIS flood-inundation library at Wabash at New Harmony, gauge 03378500; calibrated with 2013 HWMs','Study geometry, rating curve, stage set, 2013 HWM elevation survey, model calibration and source DEM metadata must be inspected'),
+ ('usgs_grayville_fim_2018','USGS','2018_GRAYVILLE_I64_INUNDATION_MODEL','https://pubs.usgs.gov/publication/sir20175140','Hydraulic model calibrated against water-surface GPS measurements and current stage-discharge relations at Wabash at Mount Carmel 03377500 and New Harmony 03378500','USGS publication 2018-01-16; modelled stages, horizontal/vertical DEM accuracy, source survey dates and reach geometry require review'),
+ ('noaa_ncei_stormevents','NOAA NCEI','HISTORIC_REPORTED_STORM_FLOOD_EVENTS','https://www.ncei.noaa.gov/access/storm-events-database/','National Weather Service Storm Data event narratives and NOAA historical weather events; river flood reports and county zones','Event begin/end, event/episode IDs, county vs forecast zone, source reliability, narrative/economic losses; does not supply surveyed inundation polygons'),
+ ('usace_nld','USACE','NATIONAL_LEVEE_DATABASE_GIS','https://levees.sec.usace.army.mil/data-services/services/','National Levee Database line and protected area geometry, system/segment identifiers and partner-reported infrastructure details','Agency custodian, survey/snapshot dates, levee system/segment boundaries, accreditation; present NLD alone does not prove 1937 levee placement'),
+ ('openfema_nfip_community','FEMA OpenFEMA','NFIP_COMMUNITY_LAYER_GIS','https://www.fema.gov/api/open/v1/NfipCommunityLayerComprehensive','FEMA National Flood Insurance Program community boundaries and administrative community attributes; modern geography','Community ID, GIS effective/refresh dates, geometric completeness, program participation dates; cannot be treated as parcel-specific flood zone')
 ON CONFLICT(source_id) DO NOTHING;
 INSERT INTO tsm_flood_history.source_county_scope
 (source_id,county_fips,scope_status)
@@ -122,7 +127,28 @@ VALUES
  ('nws_paducah_flood_events','21225','DISCOVERY_SCOPE_ONLY'),
  ('nws_paducah_flood_events','17059','DISCOVERY_SCOPE_ONLY'),
  ('nws_paducah_flood_events','17185','DISCOVERY_SCOPE_ONLY'),
- ('nws_paducah_flood_events','17193','DISCOVERY_SCOPE_ONLY')
+ ('nws_paducah_flood_events','17193','DISCOVERY_SCOPE_ONLY'),
+ ('usgs_new_harmony_fim_2016','18129','DISCOVERY_SCOPE_ONLY'),
+ ('usgs_new_harmony_fim_2016','17193','DISCOVERY_SCOPE_ONLY'),
+ ('usgs_grayville_fim_2018','17193','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','18129','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','21101','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','21225','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','17059','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','17185','DISCOVERY_SCOPE_ONLY'),
+ ('noaa_ncei_stormevents','17193','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','18129','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','21101','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','21225','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','17059','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','17185','DISCOVERY_SCOPE_ONLY'),
+ ('usace_nld','17193','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','18129','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','21101','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','21225','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','17059','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','17185','DISCOVERY_SCOPE_ONLY'),
+ ('openfema_nfip_community','17193','DISCOVERY_SCOPE_ONLY')
 ON CONFLICT(source_id,county_fips) DO NOTHING;
 -- Backfill regional research contexts absent from base migration, keeping coarse dates.
 INSERT INTO tsm_flood_history.flood_events
@@ -177,7 +203,7 @@ VALUES
  ('18129','usgs_floodprone_1975','USGS_WRI_74_48_MARCH_1975','NEW HARMONY, IN-IL','100-YR','RECON','1975-03','1975-01-16','https://pubs.usgs.gov/wri/1974/0048/report.pdf',NULL)
 ON CONFLICT DO NOTHING;
 
--- Source registry rows: 20; county source discovery scopes: 83;
+-- Source registry rows: 25; county source discovery scopes: 104;
 -- regional event context rows: 4 events x 6 counties;
 -- indexed original USGS flood-map quadrangle records: 11.
 -- All numeric map accuracy, structure footprint vintage, BFE, and surveying remain
