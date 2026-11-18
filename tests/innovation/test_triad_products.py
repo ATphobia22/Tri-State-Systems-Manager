@@ -64,6 +64,20 @@ class GeoTruthTests(unittest.TestCase):
             "sourceObjectId", "qaStatus", "heightEstimateM",
             "verticalDatumVerified", "sourceLineageIndependentlyVerified"})
 
+    def test_published_inventory_hash_and_features_share_one_byte_snapshot(self):
+        from unittest.mock import patch
+        original_read_text = Path.read_text
+
+        def reject_reopening_published(path, *args, **kwargs):
+            if path == self.published:
+                raise AssertionError("Published GeoJSON was re-read after the integrity snapshot")
+            return original_read_text(path, *args, **kwargs)
+
+        with patch.object(Path, "read_text", new=reject_reopening_published):
+            report, _ = geo.inspect(self.published, self.pin)
+        self.assertEqual(report["publishedSha256"], sha256(self.published.read_bytes()).hexdigest())
+        self.assertEqual(report["publishedFeatureCount"], len(self.features))
+
     def test_published_mutation_disables_archived_missing_id_claims(self):
         self.features[0]["properties"]["height_m"] = 8
         self.published.write_text(json.dumps({"type": "FeatureCollection", "features": self.features}), encoding="utf-8")
