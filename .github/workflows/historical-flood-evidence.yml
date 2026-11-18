@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'scripts/government/historical_flood_bundles.py'
+      - 'scripts/government/openfema_tristate_declarations.py'
+      - 'tests/government/test_openfema_tristate_declarations.py'
       - 'tests/government/test_historical_flood_bundles.py'
       - 'data/historical-floods/tri-state-catalog-v1.json'
       - 'scripts/geospatial/historical_flood_evidence_schema.sql'
@@ -23,6 +25,8 @@ jobs:
           python-version: '3.12'
       - name: Verify offline historical flood bundle contracts
         run: python -m unittest discover -s tests/government -p 'test_historical_flood_bundles.py' -v
+      - name: Validate mocked six-county OpenFEMA administrative exports
+        run: python -m unittest discover -s tests/government -p 'test_openfema_tristate_declarations.py' -v
       - name: Generate review-only artifacts for all six counties
         run: |
           python scripts/government/historical_flood_bundles.py \
