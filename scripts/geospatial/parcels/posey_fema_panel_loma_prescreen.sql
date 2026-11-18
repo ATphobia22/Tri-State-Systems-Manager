@@ -43,7 +43,10 @@ in_panel_sfha AS (
           AND z.fld_zone = 'AE'
           AND z.sfha_tf = 'T'
           AND ST_Intersects(b.geom, z.geom)
-          AND ST_Area(ST_Intersection(b.geom, z.geom)) > 0
+          AND EXISTS (
+              SELECT 1 FROM panel AS f
+              WHERE ST_Area(ST_Intersection(ST_Intersection(b.geom, f.geom), z.geom)) > 0
+          )
     )
 ),
 parcel_matches AS (
