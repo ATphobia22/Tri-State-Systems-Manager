@@ -6,6 +6,7 @@
 
 import { tsmApiUrl } from './api-base';
 import { GAGE_DATUM_TABLE } from './gage-datums';
+import { fetchUsgsConstellation } from './usgs-constellation';
 
 export type StationLiveSnapshot = {
   stationId: string;
@@ -141,19 +142,36 @@ export async function fetchLiveStationSnapshot(stationId: string): Promise<Stati
  */
 export async function fetchAllLiveStations(
   stationIds: readonly string[] = LIVE_FETCH_STATIONS,
+  options: { browserFallback?: boolean; browserFetcher?: typeof fetch } = {},
 ): Promise<StationLiveSnapshot[]> {
+  let serverRows: StationLiveSnapshot[];
   try {
     const payload = await fetchSnapshotPayload(stationIds);
-    return stationIds.map((stationId) =>
+    serverRows = stationIds.map((stationId) =>
       toStationSnapshot(
         stationId,
         payload.observations?.find((observation) => observation.stationId === stationId),
       ),
     );
   } catch (error) {
-    return stationIds.map((stationId) => ({
+    serverRows = stationIds.map((stationId) => ({
       ...toStationSnapshot(stationId, undefined),
       error: error instanceof Error ? error.message : 'Hydrology source unavailable.',
     }));
   }
+
+  // Strictly explicit operator opt-in: background/Shadow callers omit this
+  // flag and retain the server-only path. Avoid replacing usable server
+  // observations, and never silently manufacture a station datum.
+  if (!options.browserFallback) return serverRows;
+  const missingIds = serverRows.filter((row) => row.status === 'unavailable').map((row) => row.stationId);
+  if (missingIds.length === 0) return serverRows;
+  const direct = await fetchUsgsConstellation(missingIds, options.browserFetcher);
+  const byId = new Map(direct.map((row) => [row.stationId, row]));
+  return serverRows.map((row) => {
+    if (row.status !== 'unavailable') return row;
+    const replacement = byId.get(row.stationId);
+    return replacement?.status !== 'unavailable' && replacement !== undefined ? replacement
+      : { ...row, error: replacement?.error ?? row.error };
+  });
 }
