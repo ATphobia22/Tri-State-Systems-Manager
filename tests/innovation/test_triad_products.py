@@ -159,6 +159,47 @@ class PassportExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "collision"):
             exporter.export(data, digest, self.root / "passport-package")
 
+    def test_dotted_export_prefix_preserves_full_filename_in_receipt(self):
+        data, digest = exporter.load_passport(self.path)
+        prefix = self.root / "parcel-v1.2"
+        receipt = exporter.export(data, digest, prefix)
+        for ext in ("docx", "xlsx"):
+            target = self.root / ("parcel-v1.2." + ext)
+            self.assertTrue(target.is_file())
+            self.assertEqual(receipt["outputs"][ext]["name"], target.name)
+            self.assertEqual(receipt["outputs"][ext]["sha256"], sha256(target.read_bytes()).hexdigest())
+        self.assertTrue((self.root / "parcel-v1.2.receipt.json").is_file())
+        self.assertEqual(exporter.main(["--passport", str(self.path),
+                                        "--out-prefix", str(self.root / "parcel-v1.3")]), 0)
+
+    def test_openxml_package_parts_use_standard_default_namespaces(self):
+        data, digest = exporter.load_passport(self.path)
+        exporter.export(data, digest, self.root / "namespace-test")
+        samples = {
+            ".docx": ["[Content_Types].xml", "_rels/.rels"],
+            ".xlsx": ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
+                       "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"],
+        }
+        for extension, parts in samples.items():
+            with ZipFile(self.root / ("namespace-test" + extension)) as archive:
+                for part in parts:
+                    body = archive.read(part)
+                    self.assertNotIn(b"ns0:", body, msg=part)
+                    ET.fromstring(body)
+
+    def test_civic_ci_watches_reused_sources_and_published_buildings(self):
+        workflow = (ROOT / ".github/workflows/tsm-civic-innovation-triad.yml").read_text()
+        for source in (
+            "scripts/geospatial/reconcile_published_buildings.py",
+            "scripts/government/source_contract_impact.py",
+            "scripts/public_interest/evidence_kit.py",
+            "data/schemas/tsm-indiana-data-catalog-v1.json",
+            "data/acquisitions/tsm-data-plane-integration-v1.json",
+            "data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json",
+            "tsm-console/public/3d-tiles/buildings-3d.json",
+        ):
+            self.assertIn("'" + source + "'", workflow)
+
     def test_tampering_with_fact_fails_integrity_validation(self):
         edited = deepcopy(self.parcel)
         edited["facts"][0]["value"] = "APPROVED"
