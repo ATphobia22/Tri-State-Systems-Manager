@@ -34,7 +34,14 @@ def _sha(path: Path, limit: int) -> str:
 
 
 def _json(path: Path) -> tuple[dict, str]:
-    digest = _sha(path, MAX_JSON_BYTES)
+    # The parsed object and receipt hash must describe exactly the same bytes.
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_JSON_BYTES:
+        raise ValueError("Evidence must be a bounded regular non-symlink JSON file")
+    with path.open("rb") as stream:
+        raw = stream.read(MAX_JSON_BYTES + 1)
+    if len(raw) > MAX_JSON_BYTES:
+        raise ValueError("Evidence file exceeded size bound")
+    digest = sha256(raw).hexdigest()
     def unique_pairs(pairs):
         out = {}
         for k, val in pairs:
@@ -42,7 +49,7 @@ def _json(path: Path) -> tuple[dict, str]:
                 raise ValueError("Duplicate JSON property: " + k)
             out[k] = val
         return out
-    data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs,
+    data = json.loads(raw, object_pairs_hook=unique_pairs,
                       parse_constant=lambda v: (_ for _ in ()).throw(ValueError("Nonfinite JSON")))
     if not isinstance(data, dict):
         raise ValueError("Evidence document root must be an object")
