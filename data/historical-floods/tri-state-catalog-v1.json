@@ -53,6 +53,16 @@
   ],
   "events": [
     {
+      "id": "1913_wabash",
+      "title": "March 1913 Wabash River flood: New Harmony historical record",
+      "start_date": "1913-03-01",
+      "end_date": "1913-03-31",
+      "date_precision": "MONTH_RANGE",
+      "source_id": "usgs_new_harmony_archive",
+      "county_impact_status": "NOT_COUNTY_VERIFIED",
+      "notice": "New Harmony historical gage extrema corroborate the March 1913 event; no flood extent, footprint or historic map use is inferred."
+    },
+    {
       "id": "1937_ohio_mississippi",
       "title": "January–February 1937 Ohio–Mississippi River flood",
       "start_date": "1937-01-01",
@@ -71,6 +81,16 @@
       "source_id": "usgs_fev",
       "county_impact_status": "NOT_COUNTY_VERIFIED",
       "notice": "2011 event window is for index/discovery only; exact local flood onset/crest and which agency maps were used must be independently documented."
+    },
+    {
+      "id": "2005_lower_wabash_ohio",
+      "title": "January 2005 Wabash and lower Ohio River flooding",
+      "start_date": "2005-01-01",
+      "end_date": "2005-01-31",
+      "date_precision": "MONTH_RANGE",
+      "source_id": "nws_paducah_flood_events",
+      "county_impact_status": "NOT_COUNTY_VERIFIED",
+      "notice": "USGS/NWS describe January 2005 regional flooding; affected county parcels and maps used must be independently sourced."
     }
   ],
   "map_editions": [
@@ -466,6 +486,71 @@
       "horizontal_accuracy": null,
       "vertical_accuracy": null,
       "metadata_evidence_status": "SOURCE_PORTAL_IDENTIFIED_ONLY"
+    },
+    {
+      "id": "usgs_floodprone_1975",
+      "authority": "USGS",
+      "product_kind": "1975_INDEX_OF_PRE1975_FLOOD_MAPS",
+      "url": "https://pubs.usgs.gov/wri/1974/0048/report.pdf",
+      "construction_method": "1975 publication indexing USGS flood-prone area maps prepared through July 1974, listing quadrangle, actual flood year/design frequency, index reliability",
+      "quality_basis": "RECON: no detailed field surveys/H&H; STANDARD: detailed field surveys/H&H; HIGH: detailed surveys+analyses supported by observed flood data at or adjacent reach. Categorical index labels, not m/numeric accuracy.",
+      "counties": [
+        "18129"
+      ],
+      "spatial_authority": "REQUIRES_PRODUCT_SPECIFIC_REVIEW",
+      "parcel_level_join_permitted": false,
+      "acquisition_date": null,
+      "published_date": null,
+      "retrieved_at_utc": null,
+      "horizontal_crs": null,
+      "vertical_datum": null,
+      "units": null,
+      "resolution": null,
+      "horizontal_accuracy": null,
+      "vertical_accuracy": null,
+      "metadata_evidence_status": "SOURCE_PORTAL_IDENTIFIED_ONLY"
+    },
+    {
+      "id": "usgs_new_harmony_archive",
+      "authority": "USGS",
+      "product_kind": "NEW_HARMONY_HISTORICAL_GAGE",
+      "url": "https://pubs.usgs.gov/wdr/2005/wdr-il-05/data/stag2005/03378500.htm",
+      "construction_method": "USGS annual stage tables for 03378500 with historical extremes and site/relocation notes",
+      "quality_basis": "Site-specific gage datum, observation date, old gage record and unit; remarks record March 1913 and Jan 31 1937, not NAVD88.",
+      "counties": [],
+      "spatial_authority": "REQUIRES_PRODUCT_SPECIFIC_REVIEW",
+      "parcel_level_join_permitted": false,
+      "acquisition_date": null,
+      "published_date": null,
+      "retrieved_at_utc": null,
+      "horizontal_crs": null,
+      "vertical_datum": null,
+      "units": null,
+      "resolution": null,
+      "horizontal_accuracy": null,
+      "vertical_accuracy": null,
+      "metadata_evidence_status": "SOURCE_PORTAL_IDENTIFIED_ONLY"
+    },
+    {
+      "id": "nws_paducah_flood_events",
+      "authority": "NOAA/NWS",
+      "product_kind": "PADUCAH_REGION_HISTORIC_FLOOD_EVENTS",
+      "url": "https://www.weather.gov/pah/events",
+      "construction_method": "NWS event descriptions and historical crest comparisons for western Kentucky/southern Illinois and Indiana",
+      "quality_basis": "Regional flood episode timeline only; flood stage gage and actual county influence must be separately established.",
+      "counties": [],
+      "spatial_authority": "REQUIRES_PRODUCT_SPECIFIC_REVIEW",
+      "parcel_level_join_permitted": false,
+      "acquisition_date": null,
+      "published_date": null,
+      "retrieved_at_utc": null,
+      "horizontal_crs": null,
+      "vertical_datum": null,
+      "units": null,
+      "resolution": null,
+      "horizontal_accuracy": null,
+      "vertical_accuracy": null,
+      "metadata_evidence_status": "SOURCE_PORTAL_IDENTIFIED_ONLY"
     }
   ],
   "limitations": [
@@ -474,6 +559,69 @@
     "USGS model-based inundation maps are not FEMA BFE determinations and do not by themselves prove maps used during an event.",
     "Modern 2012–2026 LiDAR and building footprints are post-event for 1937, often for 2011; preserve acquisition vintage.",
     "No 1937 parcel-level BFE or regulatory NFIP panel can have existed; FEMA/NFIP was established decades later.",
-    "No source tile checksum, digital map edition or asset geometry is attached to this inventory."
+    "No source tile checksum, digital map edition or asset geometry is attached to this inventory.",
+    "USGS 1975 index records cover historical inundation maps prepared after 1937; index HIGH/RECON is a qualitative reliability class, not numeric surveyed accuracy or proof of actual agency map use in 1937."
+  ],
+  "historical_map_index_records": [
+    {
+      "county_fips": "18129",
+      "document_id": "USGS_WRI_48_74_PUBLISHED_1975_03",
+      "publication_date": "1975-03",
+      "index_compiled_on": "1975-01-16",
+      "quadrangle": "MOUNT VERNON, IN-KY",
+      "mapped_flood_year": "1937",
+      "qualitative_reliability": "HIGH",
+      "source_pdf_page_zero_index": 23,
+      "construction_quality_interpretation": "Detailed survey/analyses supported by observed flood information within or immediately adjacent reach; does not specify numeric RMSE or prove use in 1937.",
+      "source_id": "usgs_floodprone_1975",
+      "map_geometry_attached": false,
+      "map_original_asset_verified": false,
+      "agency_use_during_1937_verified": false
+    },
+    {
+      "county_fips": "18129",
+      "document_id": "USGS_WRI_48_74_PUBLISHED_1975_03",
+      "publication_date": "1975-03",
+      "index_compiled_on": "1975-01-16",
+      "quadrangle": "CAHORN, IN-KY",
+      "mapped_flood_year": "1937",
+      "qualitative_reliability": "HIGH",
+      "source_pdf_page_zero_index": 23,
+      "construction_quality_interpretation": "USGS index category HIGH; numeric spatial accuracy unknown.",
+      "source_id": "usgs_floodprone_1975",
+      "map_geometry_attached": false,
+      "map_original_asset_verified": false,
+      "agency_use_during_1937_verified": false
+    },
+    {
+      "county_fips": "18129",
+      "document_id": "USGS_WRI_48_74_PUBLISHED_1975_03",
+      "publication_date": "1975-03",
+      "index_compiled_on": "1975-01-16",
+      "quadrangle": "UNIONTOWN, IN-KY",
+      "mapped_flood_year": "1937",
+      "qualitative_reliability": "RECON",
+      "source_pdf_page_zero_index": 23,
+      "construction_quality_interpretation": "Reconnaissance-level delineation; no detailed field survey/hydraulic analysis, based on USGS 1975 definition.",
+      "source_id": "usgs_floodprone_1975",
+      "map_geometry_attached": false,
+      "map_original_asset_verified": false,
+      "agency_use_during_1937_verified": false
+    },
+    {
+      "county_fips": "18129",
+      "document_id": "USGS_WRI_48_74_PUBLISHED_1975_03",
+      "publication_date": "1975-03",
+      "index_compiled_on": "1975-01-16",
+      "quadrangle": "SOLITUDE, IN-IL",
+      "mapped_flood_year": "1937",
+      "qualitative_reliability": "HIGH",
+      "source_pdf_page_zero_index": 23,
+      "construction_quality_interpretation": "USGS index category HIGH; original polygon and numeric accuracy not obtained.",
+      "source_id": "usgs_floodprone_1975",
+      "map_geometry_attached": false,
+      "map_original_asset_verified": false,
+      "agency_use_during_1937_verified": false
+    }
   ]
 }
