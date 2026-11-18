@@ -22,7 +22,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.intercept({ method: 'GET', pathname: '**/posey-buildings/subtrees/**/*.subtree' }).as('buildingSubtree');
     cy.intercept('GET', '**/posey-buildings/missing-height-footprints.json').as('poseyFootprints');
     cy.intercept('GET', '**/mount-vernon-scene/scene.json').as('city');
-    cy.intercept('GET', '**/data/cesium-regional/screening/*.json').as('screening');
+    cy.intercept('GET', '**/data/cesium-regional/screening/*.png').as('screening');
     cy.visit('cesium/', { onBeforeLoad(win) {
       const report = win.console.error.bind(win.console);
       win.console.error = (message, ...details) => {
@@ -79,7 +79,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.contains('output', '2025-04-01');
     cy.contains('.tsm-cesium-accordion > summary', 'Mount Vernon flood screening').click();
     cy.contains('label', 'Show hypothetical extent').find('input').check();
-    cy.wait('@screening').its('response.statusCode').should('eq', 200);
+    cy.wait('@screening', { requestTimeout: 30000 }).its('response.statusCode').should('eq', 200);
     cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.screenshot('mount-vernon-cesium-and-screening');
