@@ -43,6 +43,17 @@ test('Engineering cinema offers actual Cesium terrain/buildings with preserved M
   assert.match(cesium, /if \(ready && !error\) syncExternalFlyover\(autoFlyover\)/);
 });
 
+test('Engineering Cesium flyover synchronizes parent and does not regress raster screening evidence', () => {
+  const engine = read('src/routes/CinematicEngineeringExperienceView.tsx');
+  const cesium = read('src/routes/CesiumRegionalTwinView.tsx');
+  assert.match(engine, /onFlyoverChange=\{setPlaying\}/);
+  assert.match(cesium, /onFlyoverChange\?\.\(tour\)/);
+  assert.match(cesium, /setScreening\(level, frame\?\.bounds, frame\?\.cols, frame\?\.rows\)/);
+  assert.match(cesium, /\(message\) => setScreeningStatus\(message\)/);
+  assert.doesNotMatch(cesium, /requested · inspect status/);
+  assert.match(cesium, /status\.buildings\?\.state === 'ready'/);
+});
+
 test('Cinematic scene HUD defaults map-first and wires real camera tour', () => {
   const cinematic = read('src/routes/CinematicView.tsx');
   const hud = read('src/components/CinematicTwinHud.tsx');
