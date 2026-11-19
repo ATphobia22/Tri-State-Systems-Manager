@@ -90,3 +90,11 @@ test('Cinematic map-first HUD links directly to the Cesium 3D buildings and terr
   assert.match(hud, /Open Cesium 3D buildings and terrain/);
   assert.match(hud, /\[hudCollapsed, setHudCollapsed\] = useState\(true\)/);
 });
+
+
+test('Flood simulator exposes source-backed Cesium 3D without opening engineering settings', () => {
+  const flood = read('src/components/FloodSimulator.tsx');
+  assert.match(flood, /aria-label="Open source-backed Cesium 3D terrain and buildings"/);
+  assert.match(flood, /\$\{import\.meta\.env\.BASE_URL\}cesium\//);
+  assert.match(flood, /\[controlsOpen, setControlsOpen\] = useState\(false\)/);
+});
