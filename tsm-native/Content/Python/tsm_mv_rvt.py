@@ -95,8 +95,14 @@ def _blend(material, rvt, kind):
             blend, "", unreal.MaterialProperty.MP_BASE_COLOR):
         raise RuntimeError("Failed connecting " + kind + " BaseColor")
     rough = _param_scalar(material, kind.title() + "_Roughness", 0.72, -330, 150)
+    rough_blend = _node(material, unreal.MaterialExpressionLinearInterpolate, 90, 160)
+    # Match the road/foundation roughness transition to the same vertex alpha
+    # as its base-color transition (normal tangent-space QA remains a manual gate).
+    _connect(sample, "Roughness", rough_blend, "A")
+    _connect(rough, "", rough_blend, "B")
+    _connect(vertex, "A", rough_blend, "Alpha")
     if not unreal.MaterialEditingLibrary.connect_material_property(
-            rough, "", unreal.MaterialProperty.MP_ROUGHNESS):
+            rough_blend, "", unreal.MaterialProperty.MP_ROUGHNESS):
         raise RuntimeError("Failed connecting " + kind + " Roughness")
     _finish(material)
 

@@ -172,6 +172,12 @@ def inspect_package(path: str | Path):
             key = (kind, str(fid))
             _require(key not in seen_ids, ctx + ": duplicate source_id")
             seen_ids.add(key)
+            # Validate numeric attributes before any actors are spawned. Absent values remain
+            # unknown (zero metadata), never interpreted as surveyed measurements.
+            for field in ("height_cm", "eave_cm", "width_cm"):
+                if field in props and props[field] is not None:
+                    _require(_number(props[field], ctx + "." + field) >= 0,
+                             ctx + ": negative " + field)
             _require(isinstance(feature.get("geometry"), dict), ctx + ": missing geometry")
             for part, (points, closed) in enumerate(_geometries(kind, feature["geometry"], props, ctx)):
                 part_id = str(fid) + (":" + str(part) if part else "")

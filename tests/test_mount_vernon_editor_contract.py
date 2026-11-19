@@ -94,6 +94,26 @@ class MountVernonEditorContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "nonfinite"):
             inspect_package(self.persist())
 
+    def test_reject_negative_procedural_dimensions(self):
+        self.geo["features"][0]["properties"]["height_cm"] = -15.0
+        with self.assertRaisesRegex(ValueError, "negative height_cm"):
+            inspect_package(self.persist())
+
+    def test_3d_road_is_not_flattened(self):
+        road = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature", "properties": {"source_id": "ROAD-1", "width_cm": 650},
+                "geometry": {"type": "LineString",
+                             "coordinates": [[0, 0, 250], [100, 100, 310]]}
+            }]
+        }
+        self.geo = road
+        self.man["datasets"][0]["kind"] = "road"
+        package = inspect_package(self.persist())
+        self.assertEqual(package["features"][0].points[1][2], 310)
+        self.assertFalse(package["features"][0].closed)
+
     def test_missing_feature_identity(self):
         self.geo["features"][0]["properties"].pop("source_id")
         with self.assertRaisesRegex(ValueError, "stable source_id"):
