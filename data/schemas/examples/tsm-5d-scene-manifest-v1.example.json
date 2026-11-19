@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "tsm-5d-scene-manifest-v1",
+  "sceneId": "posey-hydrogeology-source-discovery-20261119",
+  "countyGeoids": [
+    "18129"
+  ],
+  "dimensions": {
+    "spatial": {
+      "horizontalCrs": "EPSG:2966",
+      "verticalDatum": "unknown",
+      "verticalUnits": "unknown",
+      "geoidModel": null,
+      "coordinateEpoch": null
+    },
+    "time": {
+      "instantUtc": "2026-11-19T00:00:00Z",
+      "observedAtUtc": null,
+      "validAtUtc": null
+    },
+    "scenario": {
+      "id": "baseline-source-catalog",
+      "kind": "observed",
+      "parameters": {
+        "note": "Source catalog only; no water elevation or physical simulation is asserted."
+      }
+    }
+  },
+  "layers": [
+    {
+      "id": "indiana-dnr-wells",
+      "kind": "well",
+      "state": "SOURCE_DISCOVERED",
+      "authority": "Indiana Department of Natural Resources Division of Water",
+      "sourceUrl": "https://www.in.gov/dnr/water/water-availability-use-rights/water-well-record-database/",
+      "retrievedAtUtc": null,
+      "publishedAtUtc": null,
+      "observedAtUtc": null,
+      "license": "VERIFY_SOURCE_TERMS",
+      "temporalClass": "snapshot",
+      "sourceHashSha256": null,
+      "nativeHorizontalCrs": "unknown",
+      "nativeVerticalDatum": "unknown",
+      "nativeVerticalUnits": "unknown",
+      "geoidModel": null,
+      "boundaryCheck": "NOT_CHECKED",
+      "validationEvidence": [],
+      "regulatoryStatus": "REFERENCE_ONLY"
+    },
+    {
+      "id": "indiana-dnr-doworc",
+      "kind": "floodHazard",
+      "state": "SOURCE_DISCOVERED",
+      "authority": "Indiana Department of Natural Resources Division of Water",
+      "sourceUrl": "https://www.in.gov/dnr/water/online-research-center",
+      "retrievedAtUtc": null,
+      "publishedAtUtc": null,
+      "observedAtUtc": null,
+      "license": "VERIFY_SOURCE_TERMS",
+      "temporalClass": "snapshot",
+      "sourceHashSha256": null,
+      "nativeHorizontalCrs": "unknown",
+      "nativeVerticalDatum": "unknown",
+      "nativeVerticalUnits": "unknown",
+      "geoidModel": null,
+      "boundaryCheck": "NOT_CHECKED",
+      "validationEvidence": [],
+      "regulatoryStatus": "SOURCE_EFFECTIVE_UNVERIFIED"
+    }
+  ],
+  "releaseGate": "NOT_VALIDATED"
+}
