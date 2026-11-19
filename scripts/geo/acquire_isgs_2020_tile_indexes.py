@@ -86,8 +86,6 @@ def validate_xml(data:bytes) -> str:
 
 
 def validate_index(path:Path) -> dict:
-    import shapefile
-    from pyproj import CRS
     with zipfile.ZipFile(path) as archive:
         entries=archive.infolist()
         names={}
@@ -111,6 +109,8 @@ def validate_index(path:Path) -> dict:
         bases={name[:-4] for name in names if name.endswith(".shp")}
         if not bases:
             raise ValueError("NO_INDEX_SHAPEFILES")
+        import shapefile
+        from pyproj import CRS
         total=0
         source_crs=[]
         for base in sorted(bases):
