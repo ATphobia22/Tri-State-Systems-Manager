@@ -1,0 +1,75 @@
+{
+  "schema": "tsm-indiana-dnr-original-source-download-v1",
+  "sourceDate": "2026-11-19",
+  "authority": "Indiana Department of Natural Resources Division of Water",
+  "scope": "Four Indiana engineering-eight counties (Posey, Gibson, Vanderburgh, Warrick); county maps are thematic references; no DoWORC individual permit records or FARA issued.",
+  "sourceLandingPages": [
+    "https://www.in.gov/dnr/water/online-research-center/",
+    "https://www.in.gov/dnr/water/ground-water-wells/assessment-maps-and-publications/potentiometric-surface-mapping-148000/",
+    "https://www.in.gov/dnr/water/ground-water-wells/assessment-maps-and-publications/aquifer-systems-mapping-148000/"
+  ],
+  "datasets": [
+    {
+      "county": "Posey",
+      "fips": "18129",
+      "kind": "potentiometric",
+      "url": "https://www.in.gov/dA/0d660373d7/80_Posey_County_PSM_shapefiles.zip?language_id=1"
+    },
+    {
+      "county": "Gibson",
+      "fips": "18051",
+      "kind": "potentiometric",
+      "url": "https://www.in.gov/dA/1ab27e9f7f/66_Gibson_County_PSM_shapefiles.zip?language_id=1"
+    },
+    {
+      "county": "Vanderburgh",
+      "fips": "18163",
+      "kind": "potentiometric",
+      "url": "https://www.in.gov/dA/c947d0d7d7/70_Vanderburgh_County_PSM_shapefiles.zip?language_id=1"
+    },
+    {
+      "county": "Warrick",
+      "fips": "18173",
+      "kind": "potentiometric",
+      "url": "https://www.in.gov/dA/5a1c99a481/83_Warrick_County_PSM_Shapefiles.zip?language_id=1"
+    },
+    {
+      "county": "Posey",
+      "fips": "18129",
+      "kind": "aquifer_system",
+      "url": "https://www.in.gov/dnr/static/water/aquifer/posey_shapefiles.zip"
+    },
+    {
+      "county": "Gibson",
+      "fips": "18051",
+      "kind": "aquifer_system",
+      "url": "https://www.in.gov/dnr/static/water/aquifer/gibson_shapefiles.zip"
+    },
+    {
+      "county": "Vanderburgh",
+      "fips": "18163",
+      "kind": "aquifer_system",
+      "url": "https://www.in.gov/dnr/static/water/aquifer/vanderburgh_shapefiles.zip"
+    },
+    {
+      "county": "Warrick",
+      "fips": "18173",
+      "kind": "aquifer_system",
+      "url": "https://www.in.gov/dA/c6e67a728f/warrick_shapefiles.zip?language_id=1"
+    }
+  ],
+  "metadata": [
+    {
+      "name": "doworc-webmap-item-data.json",
+      "url": "https://www.arcgis.com/sharing/rest/content/items/d0b1b480cb77454f92126b297ac42daf/data?f=json"
+    },
+    {
+      "name": "doworc-webmap-item-metadata.json",
+      "url": "https://www.arcgis.com/sharing/rest/content/items/d0b1b480cb77454f92126b297ac42daf?f=pjson"
+    },
+    {
+      "name": "aquifer-featureserver-metadata.json",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/AquiferData/FeatureServer?f=pjson"
+    }
+  ]
+}
