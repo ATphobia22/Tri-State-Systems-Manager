@@ -19,7 +19,7 @@
     },
     "scenario": {
       "id": "baseline-source-catalog",
-      "kind": "observed",
+      "kind": "reference",
       "parameters": {
         "note": "Source catalog only; no water elevation or physical simulation is asserted."
       }
