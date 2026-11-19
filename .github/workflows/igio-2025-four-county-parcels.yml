@@ -1,0 +1,116 @@
+name: Indiana 2025 Four County Official Parcel Geometry Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_igio_2025_parcels.py'
+      - 'backend/tests/test_igio_2025_parcel_acquisition.py'
+      - '.github/workflows/igio-2025-four-county-parcels.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_igio_2025_parcels.py'
+      - 'backend/tests/test_igio_2025_parcel_acquisition.py'
+      - '.github/workflows/igio-2025-four-county-parcels.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-parcel-county:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fips: "18129"
+            county: Posey
+          - fips: "18051"
+            county: Gibson
+          - fips: "18163"
+            county: Vanderburgh
+          - fips: "18173"
+            county: Warrick
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned, standalone tests
+        run: python -m pip install --disable-pip-version-check --no-input pytest==8.3.5
+      - name: Verify source URL, county filtering, identity, privacy and snapshot-drift gates
+        run: python -m pytest -q backend/tests/test_igio_2025_parcel_acquisition.py
+      - name: Acquire official 2025 parcel geometry for exact county_fips
+        run: |
+          python scripts/geo/acquire_igio_2025_parcels.py \
+            --county-fips ${{ matrix.fips }} \
+            --output igio-2025-parcels-${{ matrix.fips }} \
+            --chunk-size 250
+      - name: Require hash-checked complete county extract and no private attributes
+        env:
+          TSM_FIPS: ${{ matrix.fips }}
+        run: |
+          python - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          fips=os.environ['TSM_FIPS']
+          root=Path('igio-2025-parcels-'+fips)
+          manifest=json.loads((root/'source-acquisition-receipt.json').read_text())
+          assert manifest['county_fips']==fips and manifest['feature_count']>0
+          assert manifest['status']=='SOURCE_IDENTITY_AND_PAGE_HASHES_VERIFIED'
+          assert manifest['pages']==len(manifest['page_hashes'])
+          assert manifest['source_identities_stable_across_run']
+          assert manifest['engineering_approved'] is False
+          assert manifest['effective_fema_bfe_assigned'] is False
+          assert set(manifest['retained_fields'])=={'objectid','county_fips','state_parcel_id','parcel_id'}
+          total=0
+          oids=set()
+          for row in manifest['page_hashes']:
+              source=root/row['relative_path']
+              raw=source.read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==row['sha256']
+              assert len(raw)==row['bytes']
+              body=json.loads(raw)
+              assert len(body['features'])==row['feature_count']
+              for feature in body['features']:
+                  props=feature['properties']
+                  assert set(props)==set(manifest['retained_fields'])
+                  assert props['county_fips']==fips
+                  assert feature['geometry']['type'] in ('Polygon','MultiPolygon')
+                  oid=props['objectid']
+                  assert oid not in oids
+                  oids.add(oid)
+                  total+=1
+          assert total==manifest['feature_count']
+          assert len((root/'SHA256SUMS.txt').read_text().splitlines())==manifest['pages']
+          print({'county_fips':fips,'count':total,'sha256_pages':manifest['pages'],'status':'PASSED'})
+          PY
+      - name: Package private-storage county dataset with safe byte cap
+        env:
+          TSM_FIPS: ${{ matrix.fips }}
+        run: |
+          python - <<'PY'
+          import os,zipfile
+          from pathlib import Path
+          fips=os.environ['TSM_FIPS']
+          root=Path('igio-2025-parcels-'+fips)
+          target=Path('igio-parcels-'+fips+'-2025-private-source.zip')
+          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as dest:
+              for source in sorted(root.rglob('*')):
+                  if source.is_file():
+                      dest.write(source,source.relative_to(root))
+          assert target.stat().st_size < 90*1024*1024,'PARCEL_ARTIFACT_DRIVE_TRANSFER_BUDGET'
+          with zipfile.ZipFile(target) as inp:
+              assert inp.testzip() is None
+          print('PARCEL_ARCHIVE_BYTES',target.stat().st_size)
+          PY
+      - name: Publish source-verified county parcel archive for private Drive
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: igio-2025-parcel-geometry-${{ matrix.fips }}-${{ github.sha }}
+          path: igio-parcels-${{ matrix.fips }}-2025-private-source.zip
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error
