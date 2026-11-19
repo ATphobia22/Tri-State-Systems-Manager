@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "tsm.igio-acquisition-receipt.v1",
+  "asOf": "2026-11-19",
+  "sourceAuthority": "Indiana Geographic Information Office",
+  "sourceCatalog": "https://registry.opendata.aws/in-elevation/",
+  "sourceBucket": "giselevationingov",
+  "sourceRegion": "us-east-2",
+  "sourcePack": {
+    "driveFileId": "1wKyAwAHq_NuCZxwEgWnYNFFJn56aeUKu",
+    "sha256": "1bbbbd59876ea84d40842d8afe7d2f2affe9b69e17499f137a826f4ef04f5969",
+    "status": "UPLOADED_NOT_RASTER_DATA"
+  },
+  "rasterAcquisitionStatus": "NO_NEW_RASTER_BYTES",
+  "engineeringValidationStatus": "NOT_VALIDATED",
+  "verticalDatumStatus": "REQUIRES_ARTIFACT_VERIFICATION",
+  "existingDriveRasters": [
+    {
+      "name": "IN2020_26700930_12.tif",
+      "id": "1Y2LVtr2uVP0EjmaMziOyUe0n6PLp5gdj"
+    },
+    {
+      "name": "IN2020_26850945_12.tiff",
+      "id": "1op0lCq_09E7x79d52ScTGXl1Fb-wcYmr"
+    },
+    {
+      "name": "IN2020_26700930_12.tiff",
+      "id": "1QTV2kulVc7D61L-kjZ7qkcvf68SzD8CB"
+    }
+  ],
+  "checks": {
+    "contentSha256": false,
+    "crsWkt": false,
+    "verticalDatum": false,
+    "units": false,
+    "nodata": false,
+    "geometryCoverage": false,
+    "surveyControl": false,
+    "engineeringAccepted": false
+  },
+  "regulatoryUse": false
+}
