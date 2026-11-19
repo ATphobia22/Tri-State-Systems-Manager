@@ -1,0 +1,60 @@
+name: 2026 Census TIGER Exact County Boundary Source Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_tiger2026_exact_counties.py'
+      - 'backend/tests/test_tiger2026_county_source_acquisition.py'
+      - '.github/workflows/census-tiger2026-exact-counties-acquisition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_tiger2026_exact_counties.py'
+      - 'backend/tests/test_tiger2026_county_source_acquisition.py'
+      - '.github/workflows/census-tiger2026-exact-counties-acquisition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-census-tiger2026-exact-county-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned Census shape inspector and test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            pyshp==2.3.1 pyproj==3.7.2 shapely==2.1.2 pytest==8.3.5
+      - name: Test source allowlist, 9 exact FIPS, transformation and archive safety
+        run: python -m pytest -q backend/tests/test_tiger2026_county_source_acquisition.py
+      - name: Download official 2026 US county national ZIP and derive exact nine polygons
+        run: python scripts/geo/acquire_tiger2026_exact_counties.py --output tiger2026-nine-county-boundaries
+      - name: Verify source and transformed output hashes
+        run: |
+          cd tiger2026-nine-county-boundaries
+          sha256sum --check SHA256SUMS.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('acquisition-receipt.json').read_text())
+          geo=json.loads(Path(r['derived_geojson_file']).read_text())
+          assert r['exact_county_features_found'] == 9
+          assert r['source_crs_epsg'] == 4269 and r['derived_crs_epsg'] == 4326
+          assert set(f['properties']['GEOID'] for f in geo['features']) == \
+            {'18129','18163','18051','18173','17193','17059','21101','21225','17185'}
+          assert sum(f['properties']['scope'] == 'engineering-eight' for f in geo['features']) == 8
+          assert sum(f['properties']['scope'] == 'additional-regional' for f in geo['features']) == 1
+          assert r['engineering_or_regulatory_approved'] is False
+          PY
+      - name: Preserve official ZIP, derived exact polygons, and receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-census-tiger2026-nine-county-boundaries-${{ github.sha }}
+          path: tiger2026-nine-county-boundaries/
+          retention-days: 30
+          if-no-files-found: error
