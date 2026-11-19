@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import EngineeringSectionCutaway, {
   type EngineeringSectionModel,
 } from './EngineeringSectionCutaway';
@@ -129,6 +130,13 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 EPSG:2966 · NAVD88 · FIS 18129CV000A Table 9 · BFE 369.1 ft
               </div>
             </div>
+            <Link to="/cesium" aria-label="Open Cesium 3D buildings and terrain"
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minHeight: 44, padding: '8px 11px', background: '#164e63',
+                border: '1px solid #22d3ee', borderRadius: 8,
+                color: '#e0f2fe', fontWeight: 750, fontSize: 12, textDecoration: 'none' }}>
+              Cesium 3D buildings
+            </Link>
             <button type="button" onClick={props.onToggleTour}
               aria-pressed={props.tourActive}
               style={{ background: '#0f766e', color: 'white', padding: '9px 11px', minHeight: 44, borderRadius: 8, border: '1px solid #14b8a6', cursor: 'pointer', fontWeight: 750 }}>

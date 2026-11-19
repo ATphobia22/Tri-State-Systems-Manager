@@ -751,6 +751,12 @@ export default function FloodSimulator(): React.JSX.Element {
           {playingTour ? 'Replay cinematic flythrough' : 'Play cinematic flythrough'}
         </button>
         <a href={`${import.meta.env.BASE_URL}river-watch/`} style={{ alignSelf: 'center', color: '#a5e9ff', padding: 8 }}>River gauges</a>
+        <a href={`${import.meta.env.BASE_URL}cesium/`}
+          aria-label="Open source-backed Cesium 3D terrain and buildings"
+          style={{ alignSelf: 'center', display: 'inline-flex', alignItems: 'center', minHeight: 44,
+            padding: '8px 12px', color: '#a5e9ff', fontWeight: 750 }}>
+          Source-backed Cesium 3D
+        </a>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minHeight: 0 }}>
         {/* 3D viewport */}

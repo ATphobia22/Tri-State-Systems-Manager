@@ -81,3 +81,20 @@ test('Local cinematic map keeps its source-derived terrain while moving the real
  assert.doesNotMatch(cinematic, /hideSidebar\s*\n\s*regionalAtlas/);
  assert.match(map, /if \(!mapReady \|\| !map \|\| !props.cinematicTour\) return;/);
 });
+
+
+test('Cinematic map-first HUD links directly to the Cesium 3D buildings and terrain viewer', () => {
+  const hud = read('src/components/CinematicTwinHud.tsx');
+  assert.match(hud, /import \{ Link \} from 'react-router'/);
+  assert.match(hud, /<Link to="\/cesium"/);
+  assert.match(hud, /Open Cesium 3D buildings and terrain/);
+  assert.match(hud, /\[hudCollapsed, setHudCollapsed\] = useState\(true\)/);
+});
+
+
+test('Flood simulator exposes source-backed Cesium 3D without opening engineering settings', () => {
+  const flood = read('src/components/FloodSimulator.tsx');
+  assert.match(flood, /aria-label="Open source-backed Cesium 3D terrain and buildings"/);
+  assert.match(flood, /\$\{import\.meta\.env\.BASE_URL\}cesium\//);
+  assert.match(flood, /\[controlsOpen, setControlsOpen\] = useState\(false\)/);
+});
