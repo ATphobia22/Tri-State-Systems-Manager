@@ -23,8 +23,8 @@ import type { RootLoaderData, MemorialLoaderData, ArchitectureLoaderData, NeedsL
 
 let interventions: InterventionRecord[] = [];
 let contracts: DataContractSummary[] = [
-  { id: 'tsm-hydro-001', title: 'Tri-State River Stage Observations', owner: 'USGS / NOAA NWS', classification: 'public', jurisdiction: 'Federal', validation_status: 'validated', content_hash: 'sha256:pending' },
-  { id: 'tsm-fema-posey-001', title: 'Posey County FIS / FIRM Reference', owner: 'FEMA', classification: 'public', jurisdiction: 'Federal', validation_status: 'validated', content_hash: 'sha256:pending' },
+  { id: 'tsm-hydro-001', title: 'Tri-State River Stage Observations', owner: 'USGS / NOAA NWS', classification: 'public', jurisdiction: 'Federal', validation_status: 'review_required', content_hash: 'sha256:pending' },
+  { id: 'tsm-fema-posey-001', title: 'Posey County FIS / FIRM Reference', owner: 'FEMA', classification: 'public', jurisdiction: 'Federal', validation_status: 'review_required', content_hash: 'sha256:pending' },
   { id: 'tsm-engineering-community-001', title: 'Community Engineering Evidence', owner: 'TSM Engineering Evidence', classification: 'internal', jurisdiction: 'Indiana', validation_status: 'review_required', content_hash: 'sha256:pending' },
 ];
 
