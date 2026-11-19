@@ -17,7 +17,7 @@ export function validate5dManifest(manifest) {
     fail('3D spatial, UTC time and scenario dimensions are mandatory');
   } else {
     if (typeof dims.spatial.horizontalCrs !== 'string' || !dims.spatial.horizontalCrs || typeof dims.spatial.verticalDatum !== 'string' || !dims.spatial.verticalDatum || !['m','ftUS','unknown'].includes(dims.spatial.verticalUnits)) fail('scene CRS/vertical metadata incomplete');
-    if (typeof dims.time.instantUtc !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\\.\d+)?Z$/.test(dims.time.instantUtc) || Number.isNaN(Date.parse(dims.time.instantUtc))) fail('scene time must be real ISO UTC instant');
+    if (typeof dims.time.instantUtc !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(dims.time.instantUtc) || Number.isNaN(Date.parse(dims.time.instantUtc))) fail('scene time must be real ISO UTC instant');
     if (!dims.scenario.id || !['reference', 'observed', 'historical', 'hypothetical', 'derived'].includes(dims.scenario.kind)) fail('scenario identity/kind is mandatory');
   }
   if (!Array.isArray(manifest.layers)) fail('layers must be an array');
