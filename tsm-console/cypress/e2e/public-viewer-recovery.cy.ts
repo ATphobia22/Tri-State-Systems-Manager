@@ -1,5 +1,12 @@
 /** Browser acceptance with stubbed USGS response: no fabricated live observations. */
 describe('Public gauge, memorial and unobstructed cinematic controls', () => {
+  it('explains initial global telemetry separately from manual station snapshots', () => {
+    cy.visit('/map');
+    cy.contains('No river observation is preloaded in the global status context.').should('exist');
+    cy.contains('Use the River Watch or map gauge controls to request official USGS snapshots').should('exist');
+    cy.contains('Live hydrologic telemetry unavailable.').should('not.exist');
+  });
+
   it('shows a source-labeled USGS stage from the official OGC request shape', () => {
     cy.intercept('GET', '**/data/tsm-river-gauge-locations.geojson').as('stations');
     cy.intercept('GET', 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items*', (request) => {
