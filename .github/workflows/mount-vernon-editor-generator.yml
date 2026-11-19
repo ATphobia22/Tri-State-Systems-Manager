@@ -36,6 +36,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_tsm_mv_scene_contract.py' -v
       - name: Validate RVT height and edge math
         run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_contract.py' -v
+      - name: Verify RVT starter graph pin topology with strict fake Editor
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_builder.py' -v
       - name: Validate DST-aware cinematic environment presets
         run: python -m unittest discover -s tests -p 'test_tsm_mv_environment_contract.py' -v
       - name: Disclose missing native gates
