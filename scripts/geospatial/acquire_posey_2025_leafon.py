@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded, source-verified Posey 2025 leaf-on imagery + DSM downloader.
+"""Bounded, source-verified Indiana 2025 leaf-on imagery + DSM downloader.
 
 Defaults to downloading just the official county CSV indexes. 2025 DSM is NOT
 bare-earth terrain. Matching tile names do not establish incorporated-city
@@ -28,6 +28,15 @@ SOURCES = {
         "giselevationingov.s3.amazonaws.com", "dsmoptimized/statewide/2025/SPW/1ft/"
     ),
 }
+COUNTY_FIPS = {"Posey": "18129", "Gibson": "18051", "Vanderburgh": "18163", "Warrick": "18173"}
+
+def sources_for_county(county: str) -> dict[str, tuple[str, str, str]]:
+    """Construct only exact official GIO CSV source URLs for an allowlisted county."""
+    if county not in COUNTY_FIPS:
+        raise ValueError("COUNTY_NOT_ALLOWLISTED")
+    return {name: (url.replace("Posey2025", f"{county}2025"), host, prefix)
+            for name, (url, host, prefix) in SOURCES.items()}
+
 STEM = re.compile(r"^in2025_[0-9]{8}_06$")
 MAX_CSV_BYTES = 2_000_000
 
@@ -185,6 +194,7 @@ def require_raster_footprint_overlap(a: dict, b: dict) -> bool:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--output", type=Path, default=Path("posey-2025-official"))
+    p.add_argument("--county", choices=sorted(COUNTY_FIPS), default="Posey")
     p.add_argument("--tile-stem", action="append", default=[])
     p.add_argument("--max-tiles", type=int, default=2)
     p.add_argument("--max-total-mib", type=int, default=260)
@@ -202,9 +212,10 @@ def main() -> None:
     root.mkdir(parents=True, exist_ok=True)
     inventories = {}
     objects = []
+    source_specs = sources_for_county(args.county)
     remaining = args.max_total_mib * 1024 * 1024
-    for name, (url, host, _) in SOURCES.items():
-        path = root / (name + "-posey-manifest.csv")
+    for name, (url, host, _) in source_specs.items():
+        path = root / (name + f"-{args.county.lower()}-manifest.csv")
         record = download(url, path, max_bytes=MAX_CSV_BYTES, allowed_hostname=urlparse(url).hostname or "")
         objects.append(dict(record, role="county_inventory"))
         inventories[name], raw_count = read_inventory(name, path.read_bytes())
@@ -212,21 +223,21 @@ def main() -> None:
         record["tif_count"] = len(inventories[name])
         remaining -= record["bytes"]
     if set(inventories["imagery2025"]) != set(inventories["dsm2025"]):
-        raise ValueError("POSEY_IMAGERY_DSM_TILE_STEMS_DIVERGE")
+        raise ValueError("COUNTY_IMAGERY_DSM_TILE_STEMS_DIVERGE")
     available = sorted(inventories["imagery2025"])
     if not set(stems) <= set(available):
-        raise ValueError("REQUESTED_TILE_NOT_IN_BOTH_OFFICIAL_POSEY_MANIFESTS")
+        raise ValueError("REQUESTED_TILE_NOT_IN_BOTH_OFFICIAL_COUNTY_MANIFESTS")
     (root / "paired-tile-stems.txt").write_text("\n".join(available)+"\n", encoding="utf-8")
     raster_info = {}
     horizontal_alignment = {}
     for stem in stems:
-        for name in SOURCES:
+        for name in source_specs:
             target = root / name / (stem + ".tif")
             if remaining <= 0:
                 raise ValueError("TOTAL_DOWNLOAD_BUDGET_EXHAUSTED")
             record = download(inventories[name][stem], target,
                               max_bytes=min(remaining, args.max_file_mib * 1024 * 1024),
-                              allowed_hostname=SOURCES[name][1])
+                              allowed_hostname=source_specs[name][1])
             objects.append(dict(record, role=name, tile_stem=stem))
             remaining -= record["bytes"]
             if args.raster_inspect:
@@ -238,7 +249,9 @@ def main() -> None:
             if not horizontal_alignment[stem]["overlap"]:
                 raise ValueError("MATCHING_TILE_STEMS_WITHOUT_RASTER_SPATIAL_OVERLAP")
     receipt = {
-        "schema": "tsm.posey-2025-imagery-dsm-acquisition.v1",
+        "schema": "tsm.indiana-2025-imagery-dsm-acquisition.v1" if args.county != "Posey" else "tsm.posey-2025-imagery-dsm-acquisition.v1",
+        "county": args.county,
+        "county_fips": COUNTY_FIPS[args.county],
         "publisher": "Indiana Geographic Information Office",
         "license": "CC0 per official AWS registry",
         "data_year": 2025,
