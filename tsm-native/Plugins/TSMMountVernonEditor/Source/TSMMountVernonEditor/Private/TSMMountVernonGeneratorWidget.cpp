@@ -3,6 +3,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
+#include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "HAL/FileManager.h"
@@ -13,11 +14,28 @@
 TSharedRef<SWidget> UTSMMountVernonGeneratorWidget::RebuildWidget()
 {
     // Build WidgetTree BEFORE UUserWidget constructs its Slate representation.
-    if (WidgetTree && !WidgetTree->RootWidget)
+    if (WidgetTree && !WidgetTree->FindWidget(TEXT("MVRoot")))
     {
         UVerticalBox* Root = WidgetTree->ConstructWidget<UVerticalBox>(
             UVerticalBox::StaticClass(), TEXT("MVRoot"));
-        WidgetTree->RootWidget = Root;
+        if (!WidgetTree->RootWidget)
+        {
+            WidgetTree->RootWidget = Root;
+        }
+        else if (UPanelWidget* ExistingPanel = Cast<UPanelWidget>(WidgetTree->RootWidget))
+        {
+            if (!ExistingPanel->CanAddMoreChildren())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Mount Vernon widget: existing root cannot accept controls."));
+                return Super::RebuildWidget();
+            }
+            ExistingPanel->AddChild(Root);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Mount Vernon widget: existing root is not a panel."));
+            return Super::RebuildWidget();
+        }
 
         UTextBlock* Header = WidgetTree->ConstructWidget<UTextBlock>(
             UTextBlock::StaticClass(), TEXT("MVHeader"));
@@ -49,6 +67,15 @@ TSharedRef<SWidget> UTSMMountVernonGeneratorWidget::RebuildWidget()
         StatusText->SetText(FText::FromString(
             TEXT("No data loaded. Review Output Log and generation receipts.")));
         Root->AddChildToVerticalBox(StatusText);
+    }
+    // Rebinding is needed when a designer-saved Blueprint widget tree is reconstructed.
+    if (WidgetTree)
+    {
+        ManifestInput = Cast<UEditableTextBox>(WidgetTree->FindWidget(TEXT("MVManifestPath")));
+        StatusText = Cast<UTextBlock>(WidgetTree->FindWidget(TEXT("MVStatus")));
+        ValidateButton = Cast<UButton>(WidgetTree->FindWidget(TEXT("MVValidate")));
+        GenerateButton = Cast<UButton>(WidgetTree->FindWidget(TEXT("MVGenerate")));
+        RvtButton = Cast<UButton>(WidgetTree->FindWidget(TEXT("MVRvt")));
     }
     return Super::RebuildWidget();
 }
