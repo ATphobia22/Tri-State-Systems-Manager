@@ -55,6 +55,78 @@ jobs:
           assert r['source_authenticity_independently_attested'] is False
           assert len(r['raster_metadata']['in2025_27179775_06'])==2
           PY
+
+      - name: Acquire IGIO four-county 2025 imagery and DSM source inventories
+        run: |
+          python - <<'PY'
+          import hashlib, importlib.util, json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          source = Path("scripts/geospatial/acquire_posey_2025_leafon.py")
+          spec = importlib.util.spec_from_file_location("tsm_igio_2025", source)
+          if spec is None or spec.loader is None:
+              raise RuntimeError("EXISTING_OFFICIAL_DOWNLOADER_MISSING")
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          root = Path("igio-2025-four-county-source-index")
+          root.mkdir(parents=True, exist_ok=True)
+          host = "gisimageryleafoningov.s3.amazonaws.com"
+          counties = {"Gibson":"18051", "Posey":"18129", "Vanderburgh":"18163", "Warrick":"18173"}
+          receipt = {"schema":"tsm-igio-2025-four-county-source-inventory-v1",
+                     "source":"Indiana Geographic Information Office, official public S3 county CSV indexes",
+                     "acquiredAtUtc":datetime.now(timezone.utc).isoformat(),
+                     "scope":"Inventory discovery only: no exact county-polygon raster clip, engineering approval, or vertical-datum certification",
+                     "completeRasterCoverageVerified":False,
+                     "verticalDatumVerified":False,
+                     "counties":[]}
+          failures=[]
+          for county, fips in counties.items():
+              index = {"county":county,"geoid":fips,"products":[],"status":"UNVERIFIED"}
+              receipt["counties"].append(index)
+              stems={}
+              for kind, url_suffix, host_expected, prefix in (
+                  ("imagery2025","tif","gisimageryleafoningov.s3.amazonaws.com","imageryoptimized/2025/SPW/06in/"),
+                  ("dsm2025","dsm","giselevationingov.s3.amazonaws.com","dsmoptimized/statewide/2025/SPW/1ft/")
+              ):
+                  url=f"https://{host}/scripts/2025/{url_suffix}/{county}2025{url_suffix}.csv"
+                  dest=root/county/(county+"2025"+url_suffix+".csv")
+                  try:
+                      mod.SOURCES[kind]=(url,host_expected,prefix)
+                      obj=mod.download(url,dest,max_bytes=mod.MAX_CSV_BYTES,allowed_hostname=host)
+                      tiles,rows=mod.read_inventory(kind,dest.read_bytes())
+                      stems[kind]=set(tiles)
+                      index["products"].append({"kind":kind,"indexUrl":url,
+                          "sha256":obj["sha256"],"bytes":obj["bytes"],
+                          "rawRows":rows,"tifTiles":len(tiles),
+                          "status":"INDEX_BYTES_SHA256_VERIFIED"})
+                  except Exception as exc:
+                      index["products"].append({"kind":kind,"indexUrl":url,
+                          "status":"SOURCE_UNAVAILABLE_OR_INVALID","reason":str(exc)[:400]})
+                      failures.append(county+":"+kind+":"+type(exc).__name__)
+              if len(stems)==2 and stems["imagery2025"]==stems["dsm2025"]:
+                  index["status"]="BOTH_INDEXES_VERIFIED_PAIR_IDENTIFIERS"
+                  index["pairedTileCount"]=len(stems["imagery2025"])
+              else:
+                  index["status"]="INCOMPLETE_OR_DIVERGENT_INDEXES"
+                  failures.append(county+":pair_index_mismatch")
+              (root/"receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          (root/"receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          print(json.dumps({"countyStatuses":[(x["geoid"],x["status"]) for x in receipt["counties"]],
+                            "failures":failures},sort_keys=True))
+          if failures:
+              raise RuntimeError("OFFICIAL_COUNTY_INVENTORY_PARTIAL_OR_INVALID")
+          PY
+
+      - name: Upload four-county official IGIO index bytes and receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: igio-2025-four-county-source-index
+          path: igio-2025-four-county-source-index/
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: Upload official raster pair and SHA256 receipts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
