@@ -81,7 +81,7 @@ def test_source_url_host_and_path_are_fixed():
     assert m.allow_source_url(m.SOURCE_URL)
     assert not m.allow_source_url(m.SOURCE_URL.replace('www2.census.gov','evil.example'))
     assert not m.allow_source_url(m.SOURCE_URL+'?url=https://evil.example')
-    assert not m.allow_source_url(m.SOURCE_URL.replace('https:','http:')
+    assert not m.allow_source_url(m.SOURCE_URL.replace('https:','http:'))
 
 
 def test_download_rejects_oversized_response(tmp_path):
