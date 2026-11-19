@@ -109,6 +109,10 @@ def validate_index(path:Path) -> dict:
         bases={name[:-4] for name in names if name.endswith(".shp")}
         if not bases:
             raise ValueError("NO_INDEX_SHAPEFILES")
+        for base in sorted(bases):
+            needed={base+ext for ext in (".shp",".shx",".dbf",".prj")}
+            if not needed<=set(names):
+                raise ValueError("MISSING_SHAPEFILE_SIDECAR")
         import shapefile
         from pyproj import CRS
         total=0
