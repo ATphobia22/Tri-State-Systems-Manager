@@ -77,7 +77,7 @@ def main():
         destination.parent.mkdir(parents=True, exist_ok=True)
         try:
             data,actual,mime=fetch(url)
-            if not data.startswith(b"PK\\x03\\x04"):
+            if not data.startswith(b"PK\x03\x04"):
                 raise ValueError("NOT_A_ZIP_FILE")
             destination.write_bytes(data)
             zip_details=verify_shapefile_zip(destination)
