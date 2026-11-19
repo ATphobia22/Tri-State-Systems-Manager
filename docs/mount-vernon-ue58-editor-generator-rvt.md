@@ -51,3 +51,12 @@ https://dev.epicgames.com/documentation/en-us/unreal-engine/runtime-virtual-text
 https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/RuntimeVirtualTextureMaterialType
 https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/EditorUtilityLibrary
 https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/MaterialEditingLibrary
+
+
+## Cinematic Material Parameter Collection & five editor presets
+
+The Editor Utility Widget also offers Prepare Environment MPC and five **visual-only** preset buttons. The code constructs and saves MPC_MountVernon_Environment containing scalar SeasonProgress (default 0.35), SurfaceWetness (0.0), RiverMistDensity (0.25) and vector WindDirectionAndSpeed (normalized XY 0.85/0.52, A=0.35). Each preset button applies these parameter values to the open Editor world using KismetMaterialLibrary; it does NOT animate the weather, wind WPO, Niagara, Lumen, lighting, traffic or river levels until corresponding materials and controller assets are authored.
+
+The five presets are RiverMist_Dawn, Summer_HighNoon, Autumn_GoldenHour, StormFront_Dusk and Winter_BlueHour. All have weather_provenance=CINEMATIC_NOT_OBSERVED, no claimed solar elevation or measured lux. Mount Vernon observes America/Chicago; January is UTC-6, July is UTC-5. Before capturing a geographically accurate sun position, bind SunSky/Sun Position Calculator to the source location, local date/time, DST flag and reviewed world-north orientation. The existing user's quoted sun elevations are illustrative and cannot substitute ephemeris output.
+
+Material graphs must import the MPC parameters into real foliage, brick/road wetness, fog and water shaders to make them visually functional. For foliage WPO/TSR/VSM performance, profile disabling WPO after a selected distance rather than assuming a fixed 85m threshold or claiming 60 FPS. Runtime UMG camera/weather controls, traffic, crowds, soundscapes and barge effects remain future native work.

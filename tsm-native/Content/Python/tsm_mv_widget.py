@@ -34,6 +34,12 @@ def _create_widget(unreal):
         ("Validate", "1 | Validate Inputs"),
         ("Generate", "2 | Generate Town + RVT"),
         ("RVT", "3 | Set Up RVT Materials"),
+        ("Environment", "4 | Prepare Environment MPC"),
+        ("Preset_RiverMist_Dawn", "5 | River Mist Dawn"),
+        ("Preset_Summer_HighNoon", "6 | Summer High Noon"),
+        ("Preset_Autumn_GoldenHour", "7 | Autumn Golden Hour"),
+        ("Preset_StormFront_Dusk", "8 | Storm Front Dusk"),
+        ("Preset_Winter_BlueHour", "9 | Winter Blue Hour"),
     ):
         add(asset, unreal.Button, unreal.Name(name), unreal.Name("Root"))
         label = add(asset, unreal.TextBlock, unreal.Name(name + "Label"), unreal.Name(name))
@@ -71,6 +77,13 @@ def open_panel():
             if action == "RVT":
                 import tsm_mv_rvt
                 result = tsm_mv_rvt.setup()
+            elif action == "Environment":
+                import tsm_mv_environment
+                asset, created = tsm_mv_environment.setup()
+                result = {"asset": asset.get_path_name(), "created": created}
+            elif action.startswith("Preset_"):
+                import tsm_mv_environment
+                result = tsm_mv_environment.apply_preset(action[len("Preset_"):])
             else:
                 import tsm_mv_import
                 path = os.environ.get("TSM_MV_SCENE_DIR", "")
@@ -83,6 +96,8 @@ def open_panel():
                     tsm_mv_import.run(path, dry_run=True)
                     import tsm_mv_rvt
                     tsm_mv_rvt.setup()
+                    import tsm_mv_environment
+                    tsm_mv_environment.setup()
                     result = tsm_mv_import.run(path, save_map=True)
                 else:
                     raise RuntimeError("Unknown action")
@@ -94,7 +109,10 @@ def open_panel():
     key = instance.get_path_name()
     if key not in _ACTIVE_BINDINGS:
         callbacks = []
-        for name in ("Validate", "Generate", "RVT"):
+        for name in ("Validate", "Generate", "RVT", "Environment",
+                     "Preset_RiverMist_Dawn", "Preset_Summer_HighNoon",
+                     "Preset_Autumn_GoldenHour", "Preset_StormFront_Dusk",
+                     "Preset_Winter_BlueHour"):
             button = instance.get_widget_from_name(name)
             if button is None:
                 raise RuntimeError("Missing EUW button: " + name)

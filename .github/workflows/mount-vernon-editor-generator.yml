@@ -31,10 +31,12 @@ jobs:
         with:
           python-version: '3.11'
       - name: Parse UE Editor and headless manifest scripts
-        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_rvt_contract.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py scripts/geospatial/tsm_mv_scene_manifest.py
+        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_rvt_contract.py tsm-native/Content/Python/tsm_mv_environment_contract.py tsm-native/Content/Python/tsm_mv_environment.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py scripts/geospatial/tsm_mv_scene_manifest.py
       - name: Validate immutable GIS source contracts
         run: python -m unittest discover -s tests -p 'test_tsm_mv_scene_contract.py' -v
       - name: Validate RVT height and edge math
         run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_contract.py' -v
+      - name: Validate DST-aware cinematic environment presets
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_environment_contract.py' -v
       - name: Disclose missing native gates
         run: echo "Headless contracts only; UE5.8 Editor, RVT shader, PCG, HLOD and Win64 Shipping remain NOT_EVIDENCED."
