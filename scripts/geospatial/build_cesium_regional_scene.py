@@ -8,6 +8,7 @@ from contextlib import ExitStack
 import heapq
 from io import BytesIO
 import json
+import math
 from pathlib import Path
 import shutil
 import struct
@@ -91,7 +92,8 @@ def acquire_dem(cache: Path, cell: str, version: str, digest: str) -> tuple[Path
     return target, url
 
 
-def build_roads(out: Path) -> None:
+def read_road_rows() -> tuple[list, list]:
+    """Read the nine-county TIGER/Line 2024 road rows once for roads.json and road-names.json."""
     sources = []
     features = []
     for county, (state, _) in sorted({**COUNTIES, "17185": ("IL", "Wabash")}.items()):
@@ -106,11 +108,145 @@ def build_roads(out: Path) -> None:
                         "url": f"https://www2.census.gov/geo/tiger/TIGER2024/ROADS/{name}"})
     if len({f["id"] for f in features}) != len(features):
         raise ValueError("Duplicate TIGER/Line road identities")
+    return features, sources
+
+
+def build_roads(out: Path) -> None:
+    features, sources = read_road_rows()
     write_json(out / "roads.json", {
         "type": "FeatureCollection", "metadata": {
             "authority": "U.S. Census Bureau TIGER/Line 2024", "crs": "EPSG:4326",
             "featureCount": len(features), "countyCount": len(sources), "sources": sources, "engineeringUse": False,
         }, "features": features,
+    })
+
+
+# One label per named-road cluster: greedy midpoint clustering keeps a
+# single label for short streets and repeats labels along long roads.
+ROAD_NAME_CLUSTER_DEGREES = 0.05
+ROAD_NAME_MAJOR_MTFCC = frozenset({"S1100", "S1200"})
+
+# Display-name overrides decided by the user 2026-11-19: where OpenStreetMap
+# AND IndianaMap Road Centerlines of Indiana Current both agree against the
+# TIGER/Line 2024 FULLNAME, the agreed name is displayed instead. TIGER is
+# kept everywhere else, including the four split conflicts ('Blaylock Rd'
+# and 'Gum St' in Posey, where IndianaMap agrees with TIGER; 'Big Barn Rd'
+# in Gallatin IL and 'Co Rd 10' in White IL, where OSM is the only other
+# source). Keys are (county GEOID, TIGER FULLNAME); Posey County is 18129.
+# The TIGER source data is never edited; the override applies at
+# label-generation time and each overridden label keeps its TIGER name in
+# the "tiger_name" property for traceability.
+ROAD_NAME_DISPLAY_OVERRIDES = {
+    ("18129", "Co Rd 400 E"): "Lamont Road",
+    ("18129", "Co Rd 500 E"): "Pumpkin Run Road",
+    ("18129", "W 2nd St"): "Pearl Street",
+}
+
+
+def _path_length_degrees(coords: list) -> float:
+    total = 0.0
+    for (x1, y1), (x2, y2) in zip(coords, coords[1:]):
+        total += math.hypot((x2 - x1) * math.cos(math.radians((y1 + y2) / 2.0)), y2 - y1)
+    return total
+
+
+def road_name_labels(features: list) -> list[dict]:
+    """Label points from TIGER road rows. Unnamed centerlines are never
+    labeled and no name is invented: a label exists only where TIGER
+    records a FULLNAME, placed at the midpoint vertex of the longest
+    segment in its cluster. The displayed name is the TIGER FULLNAME
+    except for ROAD_NAME_DISPLAY_OVERRIDES, where the agreed name is
+    shown and the TIGER name is kept in the label's "tiger_name"."""
+    grouped: dict[tuple[str, str], list[dict]] = {}
+    for feature in features:
+        props = feature["properties"]
+        name = (props.get("name") or "").strip()
+        if not name:
+            continue
+        county = str(props["county_geoid"])
+        display = ROAD_NAME_DISPLAY_OVERRIDES.get((county, name), name)
+        geometry = feature["geometry"]
+        paths = geometry["coordinates"] if geometry["type"] == "MultiLineString" else [geometry["coordinates"]]
+        longest = max(paths, key=_path_length_degrees)
+        if len(longest) < 2:
+            continue
+        midpoint = longest[len(longest) // 2]
+        lon, lat = midpoint[0], midpoint[1]
+        if not (math.isfinite(lon) and math.isfinite(lat)):
+            continue
+        grouped.setdefault((county, display), []).append({
+            "length": _path_length_degrees(longest), "lon": lon, "lat": lat,
+            "mtfcc": props.get("mtfcc"), "tiger_name": name,
+        })
+    labels = []
+    for (county, name), members in sorted(grouped.items()):
+        members.sort(key=lambda m: (-m["length"], m["lon"], m["lat"]))
+        remaining = list(members)
+        while remaining:
+            seed = remaining.pop(0)
+            cluster = [seed]
+            kept = []
+            for member in remaining:
+                if math.hypot(member["lon"] - seed["lon"], member["lat"] - seed["lat"]) <= ROAD_NAME_CLUSTER_DEGREES:
+                    cluster.append(member)
+                else:
+                    kept.append(member)
+            remaining = kept
+            label = {
+                "name": name, "county_geoid": county,
+                "lon": seed["lon"], "lat": seed["lat"],
+                "tier": "major" if seed["mtfcc"] in ROAD_NAME_MAJOR_MTFCC else "local",
+                "segments": len(cluster), "mtfcc": seed["mtfcc"],
+            }
+            if seed["tiger_name"] != name:
+                label["tiger_name"] = seed["tiger_name"]
+            labels.append(label)
+    labels.sort(key=lambda label: (0 if label["tier"] == "major" else 1,
+                                   label["county_geoid"], label["name"], label["lon"], label["lat"]))
+    for index, label in enumerate(labels):
+        label["id"] = f"TIGER2024:roadname:{label['county_geoid']}:{index:05d}"
+    return labels
+
+
+def build_road_names(out: Path) -> None:
+    features, sources = read_road_rows()
+    labels = road_name_labels(features)
+    named_segments = sum(1 for f in features if (f["properties"].get("name") or "").strip())
+    unique_names = len({(f["properties"]["name"], f["properties"]["county_geoid"]) for f in features
+                        if (f["properties"].get("name") or "").strip()})
+    road_name_features = []
+    for label in labels:
+        properties = {"name": label["name"], "county_geoid": label["county_geoid"],
+                      "tier": label["tier"], "segments": label["segments"],
+                      "mtfcc": label["mtfcc"]}
+        if "tiger_name" in label:
+            properties["tiger_name"] = label["tiger_name"]
+        road_name_features.append({
+            "type": "Feature", "id": label["id"],
+            "geometry": {"type": "Point", "coordinates": [label["lon"], label["lat"]]},
+            "properties": properties,
+        })
+    write_json(out / "road-names.json", {
+        "type": "FeatureCollection", "metadata": {
+            "authority": "U.S. Census Bureau TIGER/Line 2024", "crs": "EPSG:4326",
+            "labelCount": len(labels),
+            "majorCount": sum(1 for label in labels if label["tier"] == "major"),
+            "localCount": sum(1 for label in labels if label["tier"] == "local"),
+            "uniqueNames": unique_names, "namedSegments": named_segments,
+            "method": ("One label per (county, name) midpoint cluster (0.05 degree radius); "
+                       "tier major = MTFCC S1100/S1200 on the seed segment; "
+                       "unnamed centerlines are never labeled and no name is invented; "
+                       "display names follow ROAD_NAME_DISPLAY_OVERRIDES (user decision 2026-11-19), "
+                       "with the TIGER FULLNAME kept in each overridden label's tiger_name."),
+            "overrides": [
+                {"county_geoid": county, "tiger_name": tiger, "display_name": display,
+                 "decided": "2026-11-19",
+                 "basis": ("OpenStreetMap and IndianaMap Road Centerlines of Indiana Current "
+                           "agree against the TIGER/Line 2024 FULLNAME")}
+                for (county, tiger), display in sorted(ROAD_NAME_DISPLAY_OVERRIDES.items())
+            ],
+            "sources": sources, "engineeringUse": False,
+        }, "features": road_name_features,
     })
 
 
@@ -391,6 +527,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(dir=args.output.parent) as temporary:
         output = Path(temporary)
         build_roads(output)
+        build_road_names(output)
         build_replay(output)
         build_terrain(output, args.cache, args.max_level)
         shutil.copytree(output, args.output, dirs_exist_ok=True)

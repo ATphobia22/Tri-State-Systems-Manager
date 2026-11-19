@@ -3,13 +3,14 @@ import {
   Color, ColorGeometryInstanceAttribute, createOsmBuildingsAsync, Credit, EllipsoidTerrainProvider, GeometryInstance,
   Ion, IonImageryProvider, ImageryLayer,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
-  LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
+  LabelStyle, Math as CesiumMath, NearFarScalar, PolylineColorAppearance, ScreenSpaceEventHandler,
   ScreenSpaceEventType, UrlTemplateImageryProvider, Rectangle, SingleTileImageryProvider,
   TextureMagnificationFilter, TextureMinificationFilter,
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
+import { parseRoadNames } from './cesium-road-names';
 import { BUILDING_SCREEN_SPACE_ERROR, ION_CATALOG, ION_IMAGERY_ASSETS, type BuildingPreviewDetail, type IonImageryPreset, type TerrainPreviewSource } from './cesium-ion-assets';
 
 export const CESIUM_VIEWS = [
@@ -35,7 +36,7 @@ const BASE = import.meta.env.BASE_URL;
 const VECTORS = `${BASE}data/cesium-regional/`;
 const BUILDINGS = `${VECTORS}posey-buildings/`;
 const IMAGERY = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer';
-export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city' | 'osmContext';
+export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city' | 'osmContext' | 'roadNames';
 export type LayerState = { state: 'loading' | 'ready' | 'unavailable'; detail: string };
 export type PickedFeature = { title: string; detail: string };
 type LineItems = { features: GeoJSON.Feature[]; metadata: { featureCount: number; countyCount: number } };
@@ -172,8 +173,9 @@ export function mountCesiumRegionalScene(
   scene.verticalExaggeration = 1;
   widget.resolutionScale = Math.min(1, 1.5 / (window.devicePixelRatio || 1));
   const labels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
+  const roadNameLabels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
   const graphics = new Map<SceneLayer, GroundPolylinePrimitive[]>();
-  const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false };
+  const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false, roadNames: true };
   let terrain: CesiumTerrainProvider | undefined;
   let worldTerrain: CesiumTerrainProvider | undefined;
   let candidateTerrain: CesiumTerrainProvider | undefined;
@@ -184,6 +186,7 @@ export function mountCesiumRegionalScene(
   let osmBuildings: Cesium3DTileset | undefined;
   let osmOriginalStyle: Cesium3DTileStyle | undefined;
   let osmRequested = false;
+  let roadNamesStarted = false;
   let imageryRequest = 0;
   let ionImagery: ImageryLayer | undefined;
   let imageryShown = true;
@@ -316,6 +319,47 @@ export function mountCesiumRegionalScene(
     }
   };
 
+  const loadRoadNames = async () => {
+    if (roadNamesStarted) return;
+    roadNamesStarted = true;
+    update('roadNames', 'loading', 'Road names are loading');
+    try {
+      const response = await fetch(`${VECTORS}road-names.json`, { signal: abort.signal });
+      if (!response.ok) throw new Error('Road-name archive unavailable');
+      const parsed = parseRoadNames(await response.json());
+      if (stopped) return;
+      for (const label of parsed) {
+        const major = label.tier === 'major';
+        roadNameLabels.add({
+          position: Cartesian3.fromDegrees(label.lon, label.lat),
+          heightReference: HeightReference.CLAMP_TO_GROUND,
+          text: label.name,
+          font: major ? '600 13px system-ui' : '11px system-ui',
+          style: LabelStyle.FILL_AND_OUTLINE,
+          fillColor: Color.fromCssColorString('#20292f'),
+          outlineColor: Color.WHITE,
+          outlineWidth: 3,
+          showBackground: false,
+          // Major routes stay readable at regional range; local names only
+          // appear when the camera is close enough to read them.
+          scaleByDistance: major
+            ? new NearFarScalar(500, 1.0, 60000, 0.85)
+            : new NearFarScalar(500, 1.0, 9000, 0.0),
+          translucencyByDistance: major
+            ? new NearFarScalar(60000, 1.0, 90000, 0.0)
+            : new NearFarScalar(6000, 1.0, 9000, 0.0),
+        });
+      }
+      roadNameLabels.show = visibility.roadNames;
+      const majors = parsed.filter((label) => label.tier === 'major').length;
+      update('roadNames', 'ready', `${parsed.length.toLocaleString()} labels (${majors} major) · Census TIGER/Line 2024 names`);
+      scene.requestRender();
+    } catch {
+      roadNamesStarted = false;
+      update('roadNames', 'unavailable', 'Road names unavailable');
+    }
+  };
+
   const loadCity = async () => {
     cityStarted = true;
     update('city', 'loading', 'Checking Indiana GIO city archive');
@@ -365,6 +409,7 @@ export function mountCesiumRegionalScene(
   void loadTerrain();
   void loadBuildings();
   void loadRoads();
+  void loadRoadNames();
 
   return {
     fly,
@@ -397,6 +442,10 @@ export function mountCesiumRegionalScene(
         else if (show) void loadOsmBuildings();
       }
       if (layer === 'city' && show && !cityStarted) void loadCity();
+      if (layer === 'roadNames') {
+        roadNameLabels.show = show;
+        if (show && !roadNamesStarted) void loadRoadNames();
+      }
       for (const primitive of graphics.get(layer) ?? []) primitive.show = show;
       scene.requestRender();
     },
