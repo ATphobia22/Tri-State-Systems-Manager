@@ -60,3 +60,15 @@ The Editor Utility Widget also offers Prepare Environment MPC and five **visual-
 The five presets are RiverMist_Dawn, Summer_HighNoon, Autumn_GoldenHour, StormFront_Dusk and Winter_BlueHour. All have weather_provenance=CINEMATIC_NOT_OBSERVED, no claimed solar elevation or measured lux. Mount Vernon observes America/Chicago; January is UTC-6, July is UTC-5. Before capturing a geographically accurate sun position, bind SunSky/Sun Position Calculator to the source location, local date/time, DST flag and reviewed world-north orientation. The existing user's quoted sun elevations are illustrative and cannot substitute ephemeris output.
 
 Material graphs must import the MPC parameters into real foliage, brick/road wetness, fog and water shaders to make them visually functional. For foliage WPO/TSR/VSM performance, profile disabling WPO after a selected distance rather than assuming a fixed 85m threshold or claiming 60 FPS. Runtime UMG camera/weather controls, traffic, crowds, soundscapes and barge effects remain future native work.
+
+
+## Reusable MaterialFunctions for final production materials
+
+The RVT setup also creates two reusable editor-authored MaterialFunction assets:
+
+- MF_RVT_FoundationBlend — inputs TerrainColor, ObjectColor, TerrainRoughness, ObjectRoughness, PixelWorldZCm, LandscapeWorldZCm, BlendHeightCm, BlendExponent, ContactDarken; outputs BlendedBaseColor, BlendedRoughness and BlendAlpha.
+- MF_RVT_RoadEdgeBlend — inputs TerrainColor, RoadColor, TerrainRoughness, RoadRoughness, EdgeCoverage, PixelWorldZCm, LandscapeWorldZCm, MaxContactDeltaCm; same outputs.
+
+Use FunctionCall expressions inside final brick/asphalt/sidewalk master materials; wire TWO correctly typed RVT samples externally (Material+WorldHeight), project world-height samples in cm and connect full MaterialAttributes after integrating the final PBR normal maps. For the road, input EdgeCoverage comes from red vertex colors produced by a reviewed road mesh or spline builder; do not assume UV U necessarily spans road width. Do not bind function outputs as authoritatively surveyed geometry or automatically enable WPO.
+
+The functions are generated as local .uasset assets only during a headed Unreal Editor run. Their correct shader compilation and pixel appearance remain unverified by the fake-graph CI tests.

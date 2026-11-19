@@ -272,7 +272,7 @@ def _place_volumes(unreal, surface_rvt, height_rvt):
     return count
 
 
-def setup(*, create_volumes=True):
+def setup(*, create_volumes=True, create_functions=True):
     """Create idempotent starter materials + both RVT assets in an open editor level.
 
     No auto-merge or replacement of existing user-created assets.
@@ -296,6 +296,10 @@ def setup(*, create_volumes=True):
                 builder(unreal, mat, surface_rvt, height_rvt)
             created.append(name)
     volumes = _place_volumes(unreal, surface_rvt, height_rvt) if create_volumes else 0
+    reusable_functions = []
+    if create_functions:
+        import tsm_mv_rvt_functions
+        reusable_functions = tsm_mv_rvt_functions.setup()
     unreal.log_warning(
         "Created two Mount Vernon RVTs and starter materials; landscape components "
         "still need BOTH RVTs in Render to Virtual Textures; volumes need manually "
@@ -305,7 +309,8 @@ def setup(*, create_volumes=True):
     return {
         "surface_rvt": ROOT + "/" + SURFACE, "height_rvt": ROOT + "/" + HEIGHT,
         "new_surface_rvt": new_surface, "new_height_rvt": new_height,
-        "new_materials": created, "new_volumes": volumes, "bounds_verified": False,
+        "new_materials": created, "new_volumes": volumes,
+        "new_material_functions": reusable_functions, "bounds_verified": False,
     }
 
 
