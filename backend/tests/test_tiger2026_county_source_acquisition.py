@@ -6,8 +6,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from pyproj import CRS
-import shapefile
 
 SCRIPT = Path(__file__).resolve().parents[2] / 'scripts/geo/acquire_tiger2026_exact_counties.py'
 spec = importlib.util.spec_from_file_location('tiger2026', SCRIPT)
@@ -17,6 +15,9 @@ spec.loader.exec_module(m)
 
 
 def synthetic_zip(counties):
+    shapefile = pytest.importorskip('shapefile', reason='pyshp required for shape-fixture tests')
+    CRS = pytest.importorskip('pyproj', reason='pyproj required for shape-fixture tests').CRS
+    pytest.importorskip('shapely', reason='shapely required for geometry validation')
     shp, shx, dbf = io.BytesIO(), io.BytesIO(), io.BytesIO()
     with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as w:
         w.field('STATEFP', 'C', size=2)
