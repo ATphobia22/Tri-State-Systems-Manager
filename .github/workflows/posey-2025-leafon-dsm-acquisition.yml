@@ -128,6 +128,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload official raster pair and SHA256 receipts
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: posey-2025-official-imagery-and-dsm-one-tile
