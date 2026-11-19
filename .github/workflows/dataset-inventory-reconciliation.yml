@@ -1,0 +1,33 @@
+name: TSM Dataset Inventory Reconciliation
+on:
+  pull_request:
+    paths:
+      - 'backend/evidence/dataset_inventory_gate.py'
+      - 'backend/tests/test_dataset_inventory_gate.py'
+      - 'docs/engineering/DATASET-INVENTORY-CONSUMPTION-GATE.md'
+      - '.github/workflows/dataset-inventory-reconciliation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/evidence/dataset_inventory_gate.py'
+      - 'backend/tests/test_dataset_inventory_gate.py'
+      - 'docs/engineering/DATASET-INVENTORY-CONSUMPTION-GATE.md'
+      - '.github/workflows/dataset-inventory-reconciliation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reconcile-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # pinned
+        with:
+          python-version: '3.12'
+      - name: Compile inventory preflight
+        run: python -m py_compile backend/evidence/dataset_inventory_gate.py backend/tests/test_dataset_inventory_gate.py
+      - name: Verify source, feature, coverage, datum, authority and safety contracts
+        run: python -m unittest backend.tests.test_dataset_inventory_gate -v
