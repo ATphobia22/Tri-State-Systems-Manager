@@ -1,0 +1,31 @@
+name: 5D Scene Manifest Evidence Gate
+on:
+  pull_request:
+    paths:
+      - 'contracts/schemas/tsm-5d-scene-manifest-v1.schema.json'
+      - 'data/schemas/examples/tsm-5d-scene-manifest-v1.example.json'
+      - 'scripts/ci/validate-5d-scene-manifest.mjs'
+      - 'tests/contracts/5d-scene-manifest.test.mjs'
+      - '.github/workflows/5d-scene-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/schemas/tsm-5d-scene-manifest-v1.schema.json'
+      - 'data/schemas/examples/tsm-5d-scene-manifest-v1.example.json'
+      - 'scripts/ci/validate-5d-scene-manifest.mjs'
+      - 'tests/contracts/5d-scene-manifest.test.mjs'
+      - '.github/workflows/5d-scene-contract.yml'
+permissions:
+  contents: read
+jobs:
+  evidence-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout immutable workflow SHA
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Inspect runner Node runtime
+        run: node --version
+      - name: Validate example 5D source-discovery manifest
+        run: node scripts/ci/validate-5d-scene-manifest.mjs data/schemas/examples/tsm-5d-scene-manifest-v1.example.json
+      - name: Exercise fail-safe evidence promotion tests
+        run: node --test tests/contracts/5d-scene-manifest.test.mjs
