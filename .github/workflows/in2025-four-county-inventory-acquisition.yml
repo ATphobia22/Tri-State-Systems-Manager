@@ -1,0 +1,67 @@
+name: Indiana 2025 Four County Official Imagery DSM Index Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/acquire_in2025_four_county_inventories.py'
+      - 'backend/tests/test_in2025_four_county_inventories.py'
+      - '.github/workflows/in2025-four-county-inventory-acquisition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/acquire_in2025_four_county_inventories.py'
+      - 'backend/tests/test_in2025_four_county_inventories.py'
+      - '.github/workflows/in2025-four-county-inventory-acquisition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-official-four-county-imagery-dsm-indexes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact requested revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned tests
+        run: python -m pip install --disable-pip-version-check --no-input pytest==8.3.5
+      - name: Validate official URL and receipt security contracts offline
+        run: python -m pytest -q backend/tests/test_in2025_four_county_inventories.py
+      - name: Acquire all four official imagery and DSM county CSV manifests
+        run: |
+          python scripts/geospatial/acquire_in2025_four_county_inventories.py \
+            --output in2025-four-county-official
+      - name: Verify all acquired CSV bytes and county pair inventories
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          root = Path('in2025-four-county-official')
+          receipt = json.loads((root/'acquisition-receipt.json').read_text())
+          assert {x['county_fips'] for x in receipt['entries']} == {'18129', '18051', '18163', '18173'}
+          assert receipt['tile_download_status'] == 'NOT_DOWNLOADED_BY_THIS_WORKFLOW'
+          assert receipt['engineering_certification'] is False
+          assert all(x['inventory_tile_sets_agree'] for x in receipt['entries'])
+          assert all(x['paired_tile_inventory_count'] > 0 for x in receipt['entries'])
+          hashes = (root/'SHA256SUMS.txt').read_text().splitlines()
+          assert len(hashes) == 8
+          for line in hashes:
+              expected, relative = line.split('  ', 1)
+              path = root / relative
+              assert path.exists() and path.stat().st_size > 0
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == expected
+          print({x['county_fips']: x['paired_tile_inventory_count'] for x in receipt['entries']})
+          PY
+      - name: Archive official CSV source bytes and SHA256 acquisition receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-in2025-four-county-official-inventory-${{ github.sha }}
+          path: in2025-four-county-official/
+          retention-days: 30
+          if-no-files-found: error
