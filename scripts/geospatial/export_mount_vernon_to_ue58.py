@@ -164,6 +164,9 @@ def run(args):
     if not all(math.isfinite(v) for v in (args.anchor_x, args.anchor_y)):
         raise ValueError("Survey anchor must be finite")
     meters_per_unit = float(target.axis_info[0].unit_conversion_factor)
+    if not (abs(meters_per_unit - 1.0) < 1e-9 or
+            abs(meters_per_unit - 1200.0 / 3937.0) < 1e-9):
+        raise ValueError("Only meter and US survey foot projected CRS units are supported")
     src = Path(args.scene).resolve(strict=True)
     output = Path(args.output).resolve()
     if output.exists() and any(output.iterdir()):
@@ -173,6 +176,16 @@ def run(args):
         raise ValueError("Expected provenance-bound TSM source scene in EPSG:4326")
     layers, source_counts = make_local_scene(
         scene, target.to_string(), args.anchor_x, args.anchor_y, meters_per_unit)
+    # Validate DEM coverage before any outputs are created, so missing survey
+    # evidence never leaves an apparently complete scene directory.
+    height = None
+    if args.dem:
+        if not args.vertical_unit:
+            raise ValueError("DEM needs explicit --vertical-unit")
+        values, _ = reproject_dem(
+            args.dem, args.anchor_x, args.anchor_y,
+            target.to_string(), args.size_m, args.resolution)
+        height = encoded_heightmap(values, UNIT_TO_CM[args.vertical_unit])
     output.mkdir(parents=True, exist_ok=True)
     hashes = {}
     for role in ("buildings", "roads", "trees"):
@@ -191,13 +204,7 @@ def run(args):
         "source_scene_sha256": sha_file(src), "source_counts": source_counts,
         "files": hashes}
     if args.dem:
-        if not args.vertical_unit:
-            raise ValueError("DEM needs explicit --vertical-unit")
-        values, _ = reproject_dem(
-            args.dem, args.anchor_x, args.anchor_y,
-            target.to_string(), args.size_m, args.resolution)
-        pixels, z_scale, midpoint = encoded_heightmap(
-            values, UNIT_TO_CM[args.vertical_unit])
+        pixels, z_scale, midpoint = height
         from PIL import Image
         height_path = output / ("Heightmap_" + str(args.resolution) + ".png")
         Image.fromarray(pixels).save(height_path)

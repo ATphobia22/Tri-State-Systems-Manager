@@ -143,10 +143,15 @@ def setup(*, create_volume=True):
     for name, builder in zip(MAT_NAMES, material_builders):
         mat, created = _create(unreal, name, unreal.Material, unreal.MaterialFactoryNew())
         if created:
-            if builder is _make_landscape:
-                builder(unreal, mat)
-            else:
-                builder(unreal, mat, rvt)
+            try:
+                if builder is _make_landscape:
+                    builder(unreal, mat)
+                else:
+                    builder(unreal, mat, rvt)
+            except Exception:
+                # Do not leave an incomplete material that a retry would silently skip.
+                unreal.EditorAssetLibrary.delete_asset(ROOT + "/" + name)
+                raise
             new_names.append(name)
     if create_volume:
         actor_subsystem = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)

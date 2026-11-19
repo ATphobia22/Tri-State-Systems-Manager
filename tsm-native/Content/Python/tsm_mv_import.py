@@ -63,27 +63,31 @@ def _spawn_spline(unreal, editor, actor_class, role, feature, sha, manifest_sha)
     actor = editor.spawn_actor_from_class(actor_class, origin, unreal.Rotator(0.0, 0.0, 0.0))
     if actor is None:
         raise RuntimeError("EditorActorSubsystem.spawn_actor_from_class returned null")
-    props = feature["properties"]
-    uid = _uid(role, feature["id"])
-    actor.set_actor_label("MV_" + role[:-1].upper() + "_" + uid[:16])
-    actor.set_folder_path("MountVernon/" + role.title())
-    actor.set_editor_property("tags", [unreal.Name(x) for x in _tags(role, uid, manifest_sha)])
-    actor.set_editor_property("feature_id", feature["id"])
-    actor.set_editor_property("feature_kind", role)
-    actor.set_editor_property("source_sha256", sha)
-    actor.set_editor_property("evidence_status", "PENDING_EVIDENCE")
-    actor.set_editor_property("height_cm", float(props.get("height_cm", 0)))
-    actor.set_editor_property("eave_cm", float(props.get("eave_cm", 0)))
-    actor.set_editor_property("width_cm", float(props.get("width_cm", 0)))
-    actor.set_editor_property("roof_type", str(props.get("roof_type", "unknown")))
-    spline = actor.get_editor_property("geometry_spline")
-    spline.clear_spline_points(update_spline=False)
-    for i, point in enumerate(points):
-        z = point[2] if len(point) == 3 else 0.0
-        delta = unreal.Vector(point[0] - position[0], point[1] - position[1], z - base_z)
-        spline.add_spline_point(delta, unreal.SplineCoordinateSpace.LOCAL, False)
-        spline.set_spline_point_type(i, unreal.SplinePointType.LINEAR, False)
-    spline.set_closed_loop(feature["closed"], update_spline=True)
+    try:
+        props = feature["properties"]
+        uid = _uid(role, feature["id"])
+        actor.set_actor_label("MV_" + role[:-1].upper() + "_" + uid[:16])
+        actor.set_folder_path("MountVernon/" + role.title())
+        actor.set_editor_property("tags", [unreal.Name(x) for x in _tags(role, uid, manifest_sha)])
+        actor.set_editor_property("feature_id", feature["id"])
+        actor.set_editor_property("feature_kind", role)
+        actor.set_editor_property("source_sha256", sha)
+        actor.set_editor_property("evidence_status", "PENDING_EVIDENCE")
+        actor.set_editor_property("height_cm", float(props.get("height_cm", 0)))
+        actor.set_editor_property("eave_cm", float(props.get("eave_cm", 0)))
+        actor.set_editor_property("width_cm", float(props.get("width_cm", 0)))
+        actor.set_editor_property("roof_type", str(props.get("roof_type", "unknown")))
+        spline = actor.get_editor_property("geometry_spline")
+        spline.clear_spline_points(update_spline=False)
+        for i, point in enumerate(points):
+            z = point[2] if len(point) == 3 else 0.0
+            delta = unreal.Vector(point[0] - position[0], point[1] - position[1], z - base_z)
+            spline.add_spline_point(delta, unreal.SplineCoordinateSpace.LOCAL, False)
+            spline.set_spline_point_type(i, unreal.SplinePointType.LINEAR, False)
+        spline.set_closed_loop(feature["closed"], update_spline=True)
+    except Exception:
+        editor.destroy_actor(actor)
+        raise
     return actor
 
 
