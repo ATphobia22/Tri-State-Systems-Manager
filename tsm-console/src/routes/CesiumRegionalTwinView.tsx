@@ -14,6 +14,7 @@ const LAYERS: { id: SceneLayer; title: string; initial: boolean }[] = [
   { id: 'terrain', title: 'USGS terrain', initial: true },
   { id: 'buildings', title: 'Posey 3D buildings', initial: true },
   { id: 'roads', title: 'Regional roads', initial: true },
+  { id: 'roadNames', title: 'Road names (TIGER/Line 2024)', initial: true },
   { id: 'city', title: 'Mount Vernon detail', initial: false },
   { id: 'osmContext', title: 'Cesium OSM buildings (online context)', initial: false },
 ];
@@ -553,7 +554,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
         </aside>
       </div>
       <footer className="tsm-cesium-note">
-        Screening visualization. Roads are approximate centerlines. Posey buildings without preview heights are shown as outlines. The river replay displays station measurements.
+        Screening visualization. Roads are approximate centerlines. Road names are Census TIGER/Line 2024 FULLNAME values, except three Posey County roads where OpenStreetMap and IndianaMap agree on a different name (Lamont Road, Pumpkin Run Road, Pearl Street); unnamed centerlines stay unlabeled and no name is invented. Posey buildings without preview heights are shown as outlines. The river replay displays station measurements.
       </footer>
     </article>
   );

@@ -71,6 +71,36 @@ def verify(root: Path) -> None:
     for source in roads["metadata"]["sources"]:
         need(by_county[source["county"]] == source["featureCount"], "TIGER county counts")
 
+    names = read(data + "road-names.json")
+    need(names["metadata"]["labelCount"] == len(names["features"]), "Road-name label count")
+    need(names["metadata"]["authority"].startswith("U.S. Census Bureau TIGER/Line 2024"), "Road-name authority")
+    need(names["metadata"]["majorCount"] + names["metadata"]["localCount"] == len(names["features"]), "Road-name tier counts")
+    label_ids = [f["id"] for f in names["features"]]
+    need(len(label_ids) == len(set(label_ids)), "Road-name label identity")
+    need(all(f["geometry"]["type"] == "Point" for f in names["features"]), "Road-name geometry")
+    need(all((f["properties"]["name"] or "").strip() for f in names["features"]), "Road-name text")
+    need(all(f["properties"]["tier"] in ("major", "local") for f in names["features"]), "Road-name tiers")
+    road_named = {(f["properties"]["name"], f["properties"]["county_geoid"]) for f in roads["features"] if (f["properties"]["name"] or "").strip()}
+    label_named = {(f["properties"]["name"], f["properties"]["county_geoid"]) for f in names["features"]}
+    # Overridden labels carry their TIGER FULLNAME in tiger_name; the
+    # subset checks run against TIGER names so the display overrides do
+    # not read as labels without a source segment.
+    label_tiger_named = {(f["properties"].get("tiger_name") or f["properties"]["name"], f["properties"]["county_geoid"]) for f in names["features"]}
+    major_named = {(f["properties"]["name"], f["properties"]["county_geoid"]) for f in roads["features"] if (f["properties"]["name"] or "").strip() and f["properties"]["mtfcc"] in ("S1100", "S1200")}
+    need(major_named <= label_tiger_named, "Major road names without labels")
+    need(label_tiger_named <= road_named, "Road-name labels without a TIGER source segment")
+    # User decision 2026-11-19: where OSM + IndianaMap both agree against
+    # TIGER, the agreed name is displayed; TIGER is kept everywhere else.
+    need({("Lamont Road", "18129"), ("Pumpkin Run Road", "18129"), ("Pearl Street", "18129")} <= label_named,
+         "Agreed display names missing")
+    need(not {("Co Rd 400 E", "18129"), ("Co Rd 500 E", "18129"), ("W 2nd St", "18129")} & label_named,
+         "Overridden TIGER names still displayed")
+    need({("Blaylock Rd", "18129"), ("Gum St", "18129"), ("Big Barn Rd", "17059"), ("Co Rd 10", "17193")} <= label_named,
+         "Split-conflict roads lost their TIGER names")
+    need({(o["display_name"], o["county_geoid"]) for o in names["metadata"].get("overrides", [])} ==
+         {("Lamont Road", "18129"), ("Pumpkin Run Road", "18129"), ("Pearl Street", "18129")},
+         "Road-name override metadata")
+
     replay = read(data + "replay.json")
     need(replay["classification"] == "OBSERVED" and len(replay["series"]) == len(REPLAY), "USGS archive")
     for actual, (station, _, _, _, _, _) in zip(replay["series"], REPLAY):
@@ -164,7 +194,7 @@ def verify(root: Path) -> None:
     for name in ("Workers/createVerticesFromHeightmap.js", "Workers/createGroundPolylineGeometry.js",
                  "Assets/approximateTerrainHeights.json", "LICENSE.md"):
         need((root / "vendor/cesium" / name).stat().st_size > 0, f"Cesium runtime asset {name}")
-    print(f"Cesium build verified: {len(road_ids)} road segments, {len(expected_files)} terrain tiles, {shared_edges} shared terrain edges, "
+    print(f"Cesium build verified: {len(road_ids)} road segments, {len(names['features'])} road-name labels, {len(expected_files)} terrain tiles, {shared_edges} shared terrain edges, "
           f"{sum(len(s['rows']) for s in replay['series'])} observations, {len(counts)} screening frames, "
           f"{len(visual_ids)} Posey meshes and {len(outline_ids)} footprint-only IDs")
 
