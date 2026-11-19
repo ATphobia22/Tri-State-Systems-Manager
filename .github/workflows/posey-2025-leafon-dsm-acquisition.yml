@@ -7,12 +7,16 @@ on:
       - 'scripts/geospatial/acquire_posey_2025_leafon.py'
       - 'backend/tests/test_posey_2025_leafon_acquisition.py'
       - '.github/workflows/posey-2025-leafon-dsm-acquisition.yml'
+      - 'scripts/geospatial/chunk_igio_tiff_for_drive.py'
+      - 'backend/tests/test_chunk_igio_tiff_for_drive.py'
   push:
     branches: [main]
     paths:
       - 'scripts/geospatial/acquire_posey_2025_leafon.py'
       - 'backend/tests/test_posey_2025_leafon_acquisition.py'
       - '.github/workflows/posey-2025-leafon-dsm-acquisition.yml'
+      - 'scripts/geospatial/chunk_igio_tiff_for_drive.py'
+      - 'backend/tests/test_chunk_igio_tiff_for_drive.py'
 
 permissions:
   contents: read
@@ -50,7 +54,7 @@ jobs:
       - name: Install GIS inspector and pinned unit tests
         run: python -m pip install --disable-pip-version-check rasterio==1.4.3 pytest==8.3.5
       - name: Verify official source allowlisting and raster horizontal CRS tests
-        run: python -m pytest -q backend/tests/test_posey_2025_leafon_acquisition.py
+        run: python -m pytest -q backend/tests/test_posey_2025_leafon_acquisition.py backend/tests/test_chunk_igio_tiff_for_drive.py
       - name: Download and inspect one actual official imagery/DSM TIFF pair
         run: |
           python scripts/geospatial/acquire_posey_2025_leafon.py \
@@ -96,11 +100,58 @@ jobs:
                  'bytes':sum(item['bytes'] for item in r['downloaded_objects']),
                  'engineering_approved':False})
           PY
-      - name: Archive one source-original imagery/DSM TIFF pair and receipts per county
+      - name: Split original imagery TIFF into two Drive-safe SHA256 chunks
+        run: |
+          python scripts/geospatial/chunk_igio_tiff_for_drive.py \
+            --source-dir in2025-${{ matrix.fips }} \
+            --output in2025-chunks-${{ matrix.fips }} \
+            --chunk-mib 60
+      - name: Verify reassembly byte integrity and metadata preservation
+        env:
+          TSM_FIPS: ${{ matrix.fips }}
+        run: |
+          python - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          root=Path('in2025-chunks-'+os.environ['TSM_FIPS'])
+          m=json.loads((root/'metadata'/'part-manifest.json').read_text())
+          assert m['original_county_fips']==os.environ['TSM_FIPS']
+          assert len(m['image_parts'])==2
+          assert not m['engineering_approved']
+          d=hashlib.sha256()
+          n=0
+          for part in m['image_parts']:
+              p=root/part['relative_path']
+              assert p.is_file() and p.stat().st_size==part['bytes']
+              raw=p.read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==part['sha256']
+              n+=len(raw)
+              d.update(raw)
+          assert d.hexdigest()==m['original_image_sha256']
+          assert n==m['original_image_bytes']
+          assert len(list((root/'metadata'/'dsm2025').glob('*.tif')))==1
+          PY
+      - name: Publish original DSM, inventory CSVs, source receipts and image-parts manifest
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: in2025-original-imagery-dsm-${{ matrix.fips }}-${{ github.sha }}
-          path: in2025-${{ matrix.fips }}/
+          name: in2025-source-evidence-${{ matrix.fips }}-${{ github.sha }}
+          path: in2025-chunks-${{ matrix.fips }}/metadata/
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error
+      - name: Publish orthoimage part 00 (60 MiB max)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: in2025-ortho-part00-${{ matrix.fips }}-${{ github.sha }}
+          path: in2025-chunks-${{ matrix.fips }}/part00/
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error
+      - name: Publish orthoimage part 01 (60 MiB max)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: in2025-ortho-part01-${{ matrix.fips }}-${{ github.sha }}
+          path: in2025-chunks-${{ matrix.fips }}/part01/
           retention-days: 14
           compression-level: 0
           if-no-files-found: error
