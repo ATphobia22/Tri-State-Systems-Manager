@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/contracts/schemas/tsm-5d-scene-manifest-v1.schema.json",
+  "title": "TSM 5D scene manifest (3D + UTC time + explicit scenario)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sceneId",
+    "countyGeoids",
+    "dimensions",
+    "layers",
+    "releaseGate"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "tsm-5d-scene-manifest-v1"
+    },
+    "sceneId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+    },
+    "countyGeoids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "18129",
+          "18163",
+          "18051",
+          "18173",
+          "17193",
+          "17059",
+          "21101",
+          "21225"
+        ]
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spatial",
+        "time",
+        "scenario"
+      ],
+      "properties": {
+        "spatial": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "horizontalCrs",
+            "verticalDatum",
+            "verticalUnits"
+          ],
+          "properties": {
+            "horizontalCrs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "verticalDatum": {
+              "type": "string",
+              "minLength": 1
+            },
+            "verticalUnits": {
+              "enum": [
+                "m",
+                "ftUS",
+                "unknown"
+              ]
+            },
+            "geoidModel": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "coordinateEpoch": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "time": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "instantUtc"
+          ],
+          "properties": {
+            "instantUtc": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "observedAtUtc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "validAtUtc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          }
+        },
+        "scenario": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "enum": [
+                "observed",
+                "historical",
+                "hypothetical",
+                "derived"
+              ]
+            },
+            "parameters": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/layer"
+      }
+    },
+    "releaseGate": {
+      "enum": [
+        "NOT_VALIDATED",
+        "PARTIAL",
+        "ENGINEERING_VALIDATED"
+      ]
+    }
+  },
+  "$defs": {
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "state",
+        "authority",
+        "sourceUrl",
+        "retrievedAtUtc",
+        "license",
+        "temporalClass",
+        "sourceHashSha256",
+        "nativeHorizontalCrs",
+        "nativeVerticalDatum",
+        "nativeVerticalUnits",
+        "boundaryCheck",
+        "validationEvidence",
+        "regulatoryStatus"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "terrain",
+            "imagery",
+            "parcels",
+            "buildings",
+            "road",
+            "hydrography",
+            "well",
+            "waterLevel",
+            "floodHazard",
+            "modelOutput",
+            "cinematicOverlay"
+          ]
+        },
+        "state": {
+          "enum": [
+            "SOURCE_DISCOVERED",
+            "ACQUIRED",
+            "QC_FAILED",
+            "ENGINEERING_VALIDATED"
+          ]
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "retrievedAtUtc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "publishedAtUtc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "observedAtUtc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporalClass": {
+          "enum": [
+            "static",
+            "snapshot",
+            "observation",
+            "forecast",
+            "simulation"
+          ]
+        },
+        "sourceHashSha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "nativeHorizontalCrs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nativeVerticalDatum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nativeVerticalUnits": {
+          "enum": [
+            "m",
+            "ftUS",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "geoidModel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "boundaryCheck": {
+          "enum": [
+            "NOT_CHECKED",
+            "INTERSECTS_EXACT_COUNTY",
+            "WITHIN_EXACT_COUNTY",
+            "FAILED"
+          ]
+        },
+        "validationEvidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "regulatoryStatus": {
+          "enum": [
+            "NOT_REGULATORY",
+            "REFERENCE_ONLY",
+            "SOURCE_EFFECTIVE_UNVERIFIED",
+            "VERIFIED_EFFECTIVE"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "ENGINEERING_VALIDATED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "sourceHashSha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "retrievedAtUtc": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "nativeVerticalDatum": {
+                "not": {
+                  "const": "unknown"
+                }
+              },
+              "nativeVerticalUnits": {
+                "not": {
+                  "const": "unknown"
+                }
+              },
+              "boundaryCheck": {
+                "enum": [
+                  "INTERSECTS_EXACT_COUNTY",
+                  "WITHIN_EXACT_COUNTY"
+                ]
+              },
+              "validationEvidence": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
