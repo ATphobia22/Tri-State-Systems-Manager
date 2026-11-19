@@ -61,6 +61,17 @@
       "TargetAllowList": [
         "Editor"
       ]
+    },
+    {
+      "Name": "PCG",
+      "Enabled": true
+    },
+    {
+      "Name": "Blutility",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
     }
   ]
 }
