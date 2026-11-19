@@ -1,0 +1,83 @@
+name: Kentucky Official KyFromAbove Henderson Union DEM COG Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_kyfromabove_dem_samples.py'
+      - 'backend/tests/test_kyfromabove_dem_acquisition.py'
+      - '.github/workflows/kyfromabove-henderson-union-dem-samples.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_kyfromabove_dem_samples.py'
+      - 'backend/tests/test_kyfromabove_dem_acquisition.py'
+      - '.github/workflows/kyfromabove-henderson-union-dem-samples.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-authoritative-kentucky-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fips: "21101"
+            county: Henderson
+            collection: dem-phase2
+          - fips: "21225"
+            county: Union
+            collection: dem-phase1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned raster inspector, projection and test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            rasterio==1.4.3 pytest==8.3.5
+      - name: Test STAC source allowlist, exact asset, privacy, raster validation
+        run: python -m pytest -q backend/tests/test_kyfromabove_dem_acquisition.py
+      - name: Download official source STAC item and original DEM COG
+        run: |
+          python scripts/geo/acquire_kyfromabove_dem_samples.py \
+            --county-fips ${{ matrix.fips }} \
+            --output kyfromabove-${{ matrix.fips }}
+      - name: Verify original bytes, SHA256 and bounded sample raster
+        env:
+          TSM_FIPS: ${{ matrix.fips }}
+          TSM_COLLECTION: ${{ matrix.collection }}
+        run: |
+          python - <<'PY'
+          import os,json,hashlib
+          from pathlib import Path
+          fips=os.environ["TSM_FIPS"]
+          root=Path("kyfromabove-"+fips)
+          r=json.loads((root/"acquisition-receipt.json").read_text())
+          assert r["fips"]==fips
+          assert r["stac_provenance"]["collection"]==os.environ["TSM_COLLECTION"]
+          assert r["stac_provenance"]["source_horizontal_epsg"]==3089
+          assert r["raster_source_metadata"]["source_crs_epsg"]==3089
+          assert r["raster_source_metadata"]["sample_pixel_is_valid"]
+          assert r["sample_only_not_full_county_coverage"] is True
+          assert not r["vertical_datum_and_geoid_transform_certified"]
+          assert not r["engineering_approved"]
+          for role in ("original_stac_item","original_dem_cog"):
+            obj=r[role]; f=root/obj["relative_path"]
+            assert f.is_file() and f.stat().st_size==obj["bytes"]
+            assert hashlib.sha256(f.read_bytes()).hexdigest()==obj["sha256"]
+          assert len((root/"SHA256SUMS.txt").read_text().splitlines())==2
+          print("KY_DEM_ORIGINAL_SOURCE_HASHES_VERIFIED",fips)
+          PY
+      - name: Upload public-domain-access original Kentucky source data for private Drive
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-kyfromabove-original-dem-sample-${{ matrix.fips }}-${{ github.sha }}
+          path: kyfromabove-${{ matrix.fips }}/
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
