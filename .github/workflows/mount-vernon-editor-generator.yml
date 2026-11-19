@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'scripts/geospatial/export_mount_vernon_to_ue58.py'
       - 'tsm-native/Content/Python/init_unreal.py'
       - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
       - 'tests/test_tsm_mv_scene_contract.py'
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'scripts/geospatial/export_mount_vernon_to_ue58.py'
       - 'tsm-native/Content/Python/init_unreal.py'
       - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
       - 'tests/test_tsm_mv_scene_contract.py'
@@ -29,7 +31,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Syntax check Editor automation
-        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py
+        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py scripts/geospatial/export_mount_vernon_to_ue58.py
       - name: Check manifest and vector integrity
         run: python -m unittest discover -s tests -p test_tsm_mv_scene_contract.py -v
       - name: Record native gate limitation

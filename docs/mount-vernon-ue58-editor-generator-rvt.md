@@ -30,6 +30,16 @@ Create manifest after export (example, replace anchor values with surveyed numbe
 
 The manifest generator refuses overwrite and validates all three payloads and hashes; anchor values above are EXAMPLES, not Mount Vernon control coordinates.
 
+### Existing source-scene adapter (checked and repeatable)
+
+The repository already provides scripts/geospatial/build_mount_vernon_scene.py, which retrieves bounded IGIO building footprints and road centerlines and outputs WGS84 scene.json with source-provenance hashes. Rather than duplicating its acquisition code, convert that existing output directly to the EUW contract with:
+
+    python scripts/geospatial/export_mount_vernon_to_ue58.py C:\TSMData\SourceScene\scene.json --output C:\TSMData\MountVernonScene --target-crs EPSG:2968 --anchor-x SURVEY_EASTING --anchor-y SURVEY_NORTHING --vertical-datum UNVERIFIED
+
+Use numeric surveyed coordinates in place of placeholders. This outputs manifest.json and three checked local-coordinate GeoJSON layers; trees.geojson will be empty until a real canopy candidate layer is produced. The source scene has no authoritative roof height unless separately enriched. The adapter does not invent buildings, heights, roads, sidewalks or canopy points.
+
+An optional 16-bit Landscape heightmap is emitted with --dem complete_reviewed_mosaic.tif --vertical-unit us_survey_foot (or meter). It requires contiguous coverage over the entire --size-m AOI, maps pixel centers to Landscape vertices, and writes heightmap-metadata.json with world Z zero at the actual DEM min/max midpoint. **Do not pass the existing two-TIFF partial preview as an 8 km complete DEM.** The adapter fails rather than filling NoData. Laspy is used by the existing scripts/geospatial/extract_lidar_heights.py workflow; any roof-height enrichment must be reviewed for class-6 returns, within-footprint tests, sufficient point counts and vertical datum compatibility before data is promoted. Do not mix source vertical units from one pipeline into another without verification.
+
 ## 2. Build the one-click Editor Utility Widget
 
 1. Run python scripts/configure_unreal_tools.py tsm-native/TSMNative.uproject if required, compile TSMNativeEditor in UE5.8 with MSVC and restart. Enable Blutility and PCG (new project descriptors include both).
