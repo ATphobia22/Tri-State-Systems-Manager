@@ -1,0 +1,88 @@
+name: Kentucky 2026 Exact County KyFromAbove DEM Catalog Harvest
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_kyfromabove_county_stac_catalog.py'
+      - 'backend/tests/test_kyfromabove_county_stac_catalog.py'
+      - '.github/workflows/kyfromabove-exact-county-dem-catalog.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_kyfromabove_county_stac_catalog.py'
+      - 'backend/tests/test_kyfromabove_county_stac_catalog.py'
+      - '.github/workflows/kyfromabove-exact-county-dem-catalog.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-exact-county-dem-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned county projection and STAC geometry validators
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            pytest==8.3.5 shapely==2.1.2 pyproj==3.7.2 pyshp==2.3.1
+      - name: Test pagination, source authority, exact polygon matching and duplicate rejection
+        run: python -m pytest -q backend/tests/test_kyfromabove_county_stac_catalog.py
+      - name: Acquire official Census 2026 county polygons and original source ZIP
+        run: |
+          python scripts/geo/acquire_tiger2026_exact_counties.py \
+            --output tiger2026-exact-counties
+      - name: Validate original Census reference integrity
+        run: |
+          cd tiger2026-exact-counties
+          sha256sum --check SHA256SUMS.txt
+      - name: Harvest original KyFromAbove Phase1 and Phase2 search response pages
+        run: |
+          python scripts/geo/acquire_kyfromabove_county_stac_catalog.py \
+            --boundary-geojson tiger2026-exact-counties/tsm-2026-eight-plus-wabash-wgs84.geojson \
+            --output kyfromabove-exact-county-catalog
+      - name: Verify every source STAC page SHA and exact FIPS/inventory evidence
+        run: |
+          cd kyfromabove-exact-county-catalog
+          sha256sum --check SHA256SUMS.txt
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('.')
+          r=json.loads((root/'kyfromabove-catalog-receipt.json').read_text())
+          assert r['county_fips']==['21101','21225']
+          assert set(r['source_dem_phases'])=={'dem-phase1','dem-phase2'}
+          assert len(r['per_collection'])==4
+          assert r['metadata_only_not_dem_tiffs'] is True
+          assert r['engineering_approved'] is False
+          assert r['source_raster_vertical_datum_verified'] is False
+          page_count=0
+          for group in r['per_collection']:
+              assert group['pages_received']>0
+              assert group['unique_features_intersecting_exact_county']==len(group['items'])
+              ids=[item['source_item_id'] for item in group['items']]
+              assert len(ids)==len(set(ids))
+              for item in group['items']:
+                  assert item['asset_bytes_downloaded'] is False
+                  assert item['geom_intersects_exact_2026_census_county'] is True
+                  assert item['source_horizontal_epsg']==3089
+                  assert item['source_license']=='CC-BY-4.0'
+              for p in group['page_receipts']:
+                  raw=(root/p['relative_path']).read_bytes()
+                  assert len(raw)==p['bytes']
+                  assert hashlib.sha256(raw).hexdigest()==p['sha256']
+                  page_count+=1
+          assert page_count==len((root/'SHA256SUMS.txt').read_text().splitlines())
+          print({'stac_pages':page_count,'groups':[{'fips':g['county_fips'],'phase':g['collection'],'count':len(g['items'])} for g in r['per_collection']]})
+          PY
+      - name: Preserve original STAC pages and exact-county metadata without raster pixels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-kyfromabove-henderson-union-exact-county-dem-catalog-${{ github.sha }}
+          path: kyfromabove-exact-county-catalog/
+          retention-days: 30
+          if-no-files-found: error
