@@ -1,0 +1,63 @@
+name: Illinois 2020 White and Gallatin Official LiDAR Tile Index Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_isgs_2020_tile_indexes.py'
+      - 'backend/tests/test_isgs_il2020_tile_index_acquisition.py'
+      - '.github/workflows/isgs-il2020-white-gallatin-tile-index.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_isgs_2020_tile_indexes.py'
+      - 'backend/tests/test_isgs_il2020_tile_index_acquisition.py'
+      - '.github/workflows/isgs-il2020-white-gallatin-tile-index.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-official-illinois-lidar-indexes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install pinned XML/index inspector tests
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            pytest==8.3.5 pyshp==2.3.1 pyproj==3.7.2
+      - name: Test exact ISGS official URLs, XML, ZIP, features and CRC
+        run: python -m pytest -q backend/tests/test_isgs_il2020_tile_index_acquisition.py
+      - name: Download authoritative Gallatin and White 2020 LiDAR tile index and metadata
+        run: python scripts/geo/acquire_isgs_2020_tile_indexes.py --output isgs-il2020-tile-indexes
+      - name: Verify all original source file SHA256 values and tile index evidence labels
+        run: |
+          cd isgs-il2020-tile-indexes
+          sha256sum --check SHA256SUMS.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('.')
+          r=json.loads((root/'source-acquisition-receipt.json').read_text())
+          assert r['source_objects']==4
+          assert {s['county_fips'] for s in r['sources']}=={'17193','17059'}
+          assert {s['role'] for s in r['sources']}=={'tile_index','metadata'}
+          assert len((root/'SHA256SUMS.txt').read_text().splitlines())==4
+          assert all(x['bytes']>0 for x in r['sources'])
+          assert all(x.get('zip_crc_verified') for x in r['sources'] if x['role']=='tile_index')
+          assert all(x.get('shapefile_count',0)>0 for x in r['sources'] if x['role']=='tile_index')
+          assert not r['navd88_and_geoid_transfer_verified']
+          assert not r['engineering_approved']
+          assert not r['original_las_dtm_dem_dsm_rasters_downloaded']
+          PY
+      - name: Preserve original state metadata, tile index shapefiles and SHA256 receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-isgs-2020-white-gallatin-tile-index-${{ github.sha }}
+          path: isgs-il2020-tile-indexes/
+          retention-days: 30
+          if-no-files-found: error
