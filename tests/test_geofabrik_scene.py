@@ -58,3 +58,19 @@ class GeofabrikTests(unittest.TestCase):
                 module.to_local_geojson(src,root/"output",crs="EPSG:2966",
                                         easting=x,northing=y,units="us_survey_foot",
                                         bounds=(-87.942,37.896,-87.849,37.969))
+
+
+class GeofabrikDownloadSafetyTests(unittest.TestCase):
+    def test_bad_snapshot_rejected_before_network(self):
+        path = Path("/nonexistent/aoi")
+        spec = importlib.util.spec_from_file_location(
+            "geofabrik_download",
+            Path(__file__).resolve().parents[1] / "scripts/geospatial/fetch_geofabrik_osm_aoi.py")
+        downloader = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(downloader)
+        with self.assertRaisesRegex(ValueError, "six-digit"):
+            downloader.prepare(path, snapshot="latest", bounds="-88,37,-87,38",
+                               regions=("indiana", "kentucky"))
+        with self.assertRaisesRegex(ValueError, "bounding box"):
+            downloader.prepare(path, snapshot="261117", bounds="-87,38,-88,37",
+                               regions=("indiana", "kentucky"))

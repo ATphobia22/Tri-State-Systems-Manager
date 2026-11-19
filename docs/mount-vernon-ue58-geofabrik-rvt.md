@@ -12,6 +12,9 @@ Source PR: experimental editor-only source code; native/headed UE5.8 Editor and 
 
 ## Offline-headless ingestion on GIS build host (osmium / pyproj)
 
+**Cross-border completeness:** the Mount Vernon AOI may cross into Kentucky, and the broader Tri-State area includes Illinois. Indiana-only PBF is insufficient wherever the AOI intersects state boundaries. An additional headless helper, scripts/geospatial/fetch_geofabrik_osm_aoi.py, downloads equal-date Indiana/Kentucky/Illinois PBFs and MD5 checksums, verifies them, clips, merges, exports OSM IDs, and creates a source hash/attribution manifest. Example: python scripts/geospatial/fetch_geofabrik_osm_aoi.py --output /private/TSMData/OSM-261117 --snapshot 261117 --bbox=-87.942,37.896,-87.849,37.969. This AOI is an illustrative rectangle, NOT survey reviewed. The current execution environment could not reach the source host, so downloaded bytes and checksums are not claimed here.
+
+
 Download the dated PBF and matching MD5 file from the official Indiana index, validate MD5 and compute sha256sum. This execution session could not download files due to DNS network failure; no claim of complete snapshot download is made.
 
 1. Set a Mount Vernon bounds box in WGS84 after reviewing the actual AOI (approximate illustration, not surveyed): -87.942,37.896,-87.849,37.969.
