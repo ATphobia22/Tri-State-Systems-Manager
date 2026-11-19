@@ -125,6 +125,7 @@
             },
             "kind": {
               "enum": [
+                "reference",
                 "observed",
                 "historical",
                 "hypothetical",
