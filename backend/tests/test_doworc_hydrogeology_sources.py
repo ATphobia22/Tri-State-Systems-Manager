@@ -49,3 +49,15 @@ def test_verified_county_catalog_has_eight_unique_download_urls():
     assert {item["kind"] for item in items} == {"aquifer_system", "potentiometric"}
     assert len({item["url"] for item in items}) == 8
     assert all(m.validate_url(item["url"]) for item in items)
+
+
+def test_redirect_handler_rejects_off_authority_destination_before_request():
+    from urllib.request import Request
+    redirect = m.AllowlistedHTTPSRedirectHandler()
+    original = Request("https://www.in.gov/sources/data.zip")
+    with pytest.raises(ValueError, match="SOURCE_HOST"):
+        redirect.redirect_request(original, None, 302, "Found", {}, "https://evil.example/source.zip")
+    with pytest.raises(ValueError, match="SOURCE_HOST"):
+        redirect.redirect_request(original, None, 302, "Found", {}, "http://www.in.gov/source.zip")
+    allowed = redirect.redirect_request(original, None, 302, "Found", {}, "https://www.in.gov/official.zip")
+    assert allowed.full_url == "https://www.in.gov/official.zip"
