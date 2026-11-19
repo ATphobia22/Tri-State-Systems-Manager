@@ -1,0 +1,58 @@
+name: Indiana DNR DoWORC County Hydrogeology Original Source Acquisition
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_doworc_hydrogeology_sources.py'
+      - 'data/authorities/indiana-dnr/doworc-hydrogeology-source-urls-20261119.json'
+      - 'backend/tests/test_doworc_hydrogeology_sources.py'
+      - '.github/workflows/doworc-hydrogeology-originals.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_doworc_hydrogeology_sources.py'
+      - 'data/authorities/indiana-dnr/doworc-hydrogeology-source-urls-20261119.json'
+      - 'backend/tests/test_doworc_hydrogeology_sources.py'
+      - '.github/workflows/doworc-hydrogeology-originals.yml'
+permissions:
+  contents: read
+jobs:
+  acquire-county-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable PR revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Python 3.12
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Unit-test source boundaries and ZIP safety
+        run: |
+          python -m pip install --disable-pip-version-check --no-input pytest==8.3.5
+          python -m pytest -q backend/tests/test_doworc_hydrogeology_sources.py
+      - name: Download eight official Indiana DNR source ZIPs and public map metadata
+        run: python scripts/geo/acquire_doworc_hydrogeology_sources.py --output dnr-water-originals
+      - name: Verify all downloaded source SHA256 bytes
+        run: |
+          cd dnr-water-originals
+          sha256sum --check SHA256SUMS.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('source-acquisition-receipt.json').read_text())
+          assert r['sourceZipCount']==8
+          assert len({(x['fips'],x['kind']) for x in r['records']})==8
+          assert all(x['sizeBytes']>0 and x['shapefiles'] and x['engineeringValidated'] is False for x in r['records'])
+          assert r['regulatoryDetermination'] is False
+          assert r['countyExactPolygonValidated'] is False
+          print('Source originals transport and ZIP-CRC verified: 8 distinct county/kind archives')
+          PY
+      - name: Archive source originals and evidence for authenticated Drive transfer
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: indnr-doworc-hydrogeology-originals
+          path: dnr-water-originals/
+          if-no-files-found: warn
+          retention-days: 30
