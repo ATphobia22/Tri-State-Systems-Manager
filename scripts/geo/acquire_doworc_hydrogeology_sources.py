@@ -10,7 +10,7 @@ import json
 import os
 from pathlib import Path
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import Request, build_opener, HTTPRedirectHandler
 from datetime import datetime, timezone
 import zipfile
 
@@ -22,12 +22,20 @@ def validate_url(url):
     parsed = urlparse(url)
     if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS or parsed.username or parsed.password:
         raise ValueError("SOURCE_HOST_NOT_ALLOWLISTED")
+    if parsed.port not in (None, 443):
+        raise ValueError("SOURCE_HOST_NOT_ALLOWLISTED")
     return url
+
+class AllowlistedHTTPSRedirectHandler(HTTPRedirectHandler):
+    """Reject redirect hops before connecting outside the source allowlist."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 def fetch(url):
     validate_url(url)
     req = Request(url, headers={"User-Agent":"TSM-open-data-acquisition/1.0 (+public-source-citation)", "Accept":"*/*"})
-    with urlopen(req, timeout=90) as response:
+    with build_opener(AllowlistedHTTPSRedirectHandler()).open(req, timeout=90) as response:
         actual_url = response.geturl()
         validate_url(actual_url)
         content_type = response.headers.get("Content-Type", "")
