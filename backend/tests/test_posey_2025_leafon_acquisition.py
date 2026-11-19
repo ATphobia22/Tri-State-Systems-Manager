@@ -126,3 +126,24 @@ def test_manifest_host_is_imagery_bucket_for_both_products():
     assert all(urlparse(source[0]).hostname == "gisimageryleafoningov.s3.amazonaws.com"
                for source in m.SOURCES.values())
     assert m.SOURCES["dsm2025"][1] == "giselevationingov.s3.amazonaws.com"
+
+
+def test_four_county_official_source_selection_preserves_default_posey():
+    assert m.sources_for_county("Posey") == m.SOURCES
+    expected={
+        "Posey":"18129","Gibson":"18051","Vanderburgh":"18163","Warrick":"18173"
+    }
+    assert m.COUNTY_FIPS==expected
+    for county in expected:
+        sources=m.sources_for_county(county)
+        assert set(sources)==set(m.SOURCES)
+        assert sources["imagery2025"][0].endswith(f"/{county}2025tif.csv")
+        assert sources["dsm2025"][0].endswith(f"/{county}2025dsm.csv")
+        assert sources["imagery2025"][1]=="gisimageryleafoningov.s3.amazonaws.com"
+        assert sources["dsm2025"][1]=="giselevationingov.s3.amazonaws.com"
+
+
+def test_four_county_source_selection_blocks_unknown_counties_and_traversal():
+    for county in ("Illegitimate","../Posey","Posey%2F",""):
+        with pytest.raises(ValueError, match="COUNTY_NOT_ALLOWLISTED"):
+            m.sources_for_county(county)
