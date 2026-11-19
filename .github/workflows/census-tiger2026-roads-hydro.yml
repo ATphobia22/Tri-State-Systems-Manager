@@ -1,0 +1,64 @@
+name: Census 2026 Nine County Roads And Hydro Source Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geo/acquire_tiger2026_roads_hydro.py'
+      - 'backend/tests/test_tiger2026_roads_hydro_acquisition.py'
+      - '.github/workflows/census-tiger2026-roads-hydro.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geo/acquire_tiger2026_roads_hydro.py'
+      - 'backend/tests/test_tiger2026_roads_hydro_acquisition.py'
+      - '.github/workflows/census-tiger2026-roads-hydro.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  source-road-water-nine-counties:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install bounded shapefile inspector dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            pyshp==2.3.1 pyproj==3.7.2 pytest==8.3.5
+      - name: Run source host, payload, Zip Slip, and EPSG tests
+        run: python -m pytest -q backend/tests/test_tiger2026_roads_hydro_acquisition.py
+      - name: Acquire all 2026 roads and hydro county ZIPs directly from US Census
+        run: python scripts/geo/acquire_tiger2026_roads_hydro.py --output tiger2026-nine-county-roads-hydro
+      - name: Verify all 27 archived sources and SHA256
+        run: |
+          cd tiger2026-nine-county-roads-hydro
+          sha256sum --check SHA256SUMS.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('.')
+          r=json.loads((root/'acquisition-receipt.json').read_text())
+          assert r['record_count']==27
+          assert len(r['datasets'])==27
+          assert len(set((d['fips'],d['kind']) for d in r['datasets']))==27
+          assert set(d['fips'] for d in r['datasets'])==set(r['engineering_fips']+r['separate_regional_fips'])
+          assert {d['kind'] for d in r['datasets']}=={'roads','linearwater','areawater'}
+          assert all(d['source_crs_epsg']==4269 for d in r['datasets'])
+          assert all(d['bytes']>0 for d in r['datasets'])
+          assert not r['engineering_or_regulatory_approved']
+          assert not r['spatial_coverage_against_exact_county_polygon_verified']
+          assert len((root/'SHA256SUMS.txt').read_text().splitlines())==27
+          print({'records':r['record_count'],'bytes':r['total_source_bytes']})
+          PY
+      - name: Preserve source-original roads and water ZIPs and checksum receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-census-tiger2026-roads-hydro-nine-counties-${{ github.sha }}
+          path: tiger2026-nine-county-roads-hydro/
+          retention-days: 30
+          if-no-files-found: error
