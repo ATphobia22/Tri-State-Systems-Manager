@@ -25,9 +25,9 @@ def test_query_url_validates_bbox_collection_token_and_host():
     assert m.validate_page_url(url,bbox,"dem-phase1",100)
     with pytest.raises(ValueError,match="SOURCE_URL"):
         m.validate_page_url(url.replace(m.STAC_ROOT,"https://evil.example"),bbox,"dem-phase1",100)
-    with pytest.raises(ValueError,match="SOURCE_QUERY"):
+    with pytest.raises(ValueError,match="SOURCE_URL_OR_QUERY_NOT_ALLOWLISTED"):
         m.validate_page_url(url.replace("dem-phase1","dem-phase2"),bbox,"dem-phase1",100)
-    with pytest.raises(ValueError,match="SOURCE_QUERY"):
+    with pytest.raises(ValueError,match="SOURCE_URL_OR_QUERY_NOT_ALLOWLISTED"):
         m.validate_page_url(url+"&extra=evil",bbox,"dem-phase1",100)
     assert m.validate_page_url(url+"&token=next%3Atest",bbox,"dem-phase1",100)
 
@@ -90,6 +90,7 @@ def test_pagination_tracks_checksum_and_rejects_duplicate_item(tmp_path):
     assert all((tmp_path/x["relative_path"]).is_file() for x in report["page_receipts"])
     # Source pagination cannot silently accept the same item twice.
     pages[second]["features"]=[item]
+    pages[second]["numberReturned"]=1
     with patch.object(m,"fetch_source_bytes",side_effect=fake_bytes):
         with pytest.raises(ValueError,match="DUPLICATE"):
             m.collect_collection("21225",geom,"dem-phase1",tmp_path,limit=100)
