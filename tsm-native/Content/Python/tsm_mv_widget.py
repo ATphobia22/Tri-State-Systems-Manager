@@ -25,7 +25,7 @@ def _create_widget(unreal):
     if asset is None:
         raise RuntimeError("Unable to create Editor Utility Widget Blueprint")
     add = unreal.EditorUtilityLibrary.add_source_widget
-    add(asset, unreal.VerticalBox, unreal.Name("Root"), unreal.Name("None"))
+    root = add(asset, unreal.VerticalBox, unreal.Name("Root"), unreal.Name("None"))
     heading = add(asset, unreal.TextBlock, unreal.Name("Heading"), unreal.Name("Root"))
     heading.set_text(unreal.Text("Mount Vernon 47620 | TSM source scene"))
     hint = add(asset, unreal.TextBlock, unreal.Name("Hint"), unreal.Name("Root"))
@@ -35,9 +35,12 @@ def _create_widget(unreal):
         ("Generate", "2 | Generate Town + RVT"),
         ("RVT", "3 | Set Up RVT Materials"),
     ):
-        add(asset, unreal.Button, unreal.Name(name), unreal.Name("Root"))
-        label = add(asset, unreal.TextBlock, unreal.Name(name + "Label"), unreal.Name(name))
+        button = add(asset, unreal.Button, unreal.Name(name), unreal.Name("Root"))
+        label = add(asset, unreal.TextBlock, unreal.Name(name + "Label"), unreal.Name("Root"))
         label.set_text(unreal.Text(title))
+        if not root.remove_child(label):
+            raise RuntimeError("Unable to move button text into content slot")
+        button.set_content(label)
     status = add(asset, unreal.TextBlock, unreal.Name("Status"), unreal.Name("Root"))
     status.set_text(unreal.Text("Idle | No source evidence has been verified"))
     unreal.BlueprintEditorLibrary.compile_blueprint(asset)
