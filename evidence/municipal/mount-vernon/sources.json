@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "collection_id": "tsm:municipal:in:posey:mount-vernon",
   "jurisdiction": "Mount Vernon, Posey County, Indiana, USA",
-  "reviewed_utc": "2026-11-20T00:00:00Z",
+  "reviewed_utc": "2026-11-20T05:27:00Z",
   "sources": [
     {
       "id": "mount-vernon-comprehensive-plan-2023",
@@ -12,14 +12,17 @@
       "published_or_adopted": "2023-03-09",
       "date_basis": "PDF cover identifies ADOPTED MARCH 9 2023",
       "kind": "policy_document",
-      "verification": "OFFICIAL_DOCUMENT_CONFIRMED_BINARY_NOT_STAGED",
+      "verification": "OFFICIAL_DOCUMENT_BYTES_SHA256_VERIFIED_PRIVATE_ARCHIVE",
       "authority": "adopted_policy_not_zoning",
       "crs": null,
       "crs_status": "UNVERIFIED_DOCUMENT_MAPS",
       "vertical_datum": null,
-      "sha256": null,
+      "sha256": "64cf65b02140967c8993e82b8d5a2ed48065fc88270b28a5d666f9d189742f2c",
       "geometry_publishable": false,
-      "access": "PUBLIC"
+      "access": "PUBLIC",
+      "original_bytes": 16295926,
+      "retrieved_utc": "2026-11-20T05:26:40.774723+00:00",
+      "archive_source": "GitHub Actions official source PDF acquisition run 44681013537; independent SHA-256 check of downloaded artifact; stored in private TSM Posey warehouse"
     },
     {
       "id": "posey-county-comprehensive-plan-2024",
@@ -29,14 +32,17 @@
       "published_or_adopted": "2024-03",
       "date_basis": "PDF title describes FINAL MARCH 2024; adoption separately unconfirmed",
       "kind": "policy_document",
-      "verification": "OFFICIAL_DOCUMENT_CONFIRMED_BINARY_NOT_STAGED",
+      "verification": "OFFICIAL_DOCUMENT_BYTES_SHA256_VERIFIED_PRIVATE_ARCHIVE",
       "authority": "advisory_policy_not_zoning",
       "crs": null,
       "crs_status": "UNVERIFIED_DOCUMENT_MAPS",
       "vertical_datum": null,
-      "sha256": null,
+      "sha256": "165629f385e2c02dd9018bdb2552d9f63032e639ec84f21befa98ee688e281b3",
       "geometry_publishable": false,
-      "access": "PUBLIC"
+      "access": "PUBLIC",
+      "original_bytes": 19915009,
+      "retrieved_utc": "2026-11-20T05:26:42.050201+00:00",
+      "archive_source": "GitHub Actions official source PDF acquisition run 44681013537; independent SHA-256 check of downloaded artifact; stored in private TSM Posey warehouse"
     },
     {
       "id": "posey-official-zoning-map-current",
@@ -71,5 +77,5 @@
       "access": "PUBLIC"
     }
   ],
-  "acquisition_policy": "Only copy original official PDF bytes; record true SHA256 after download. No zoning geometry, parcel joins or EPSG assignment without verified official map export and CRS."
+  "acquisition_policy": "Preserve original source PDF bytes and immutable SHA256 receipt in private geodata warehouse; official zoning geometry remains PENDING until custodian GIS export and effective CRS/date review. Do not infer legal map from these PDF plans."
 }
