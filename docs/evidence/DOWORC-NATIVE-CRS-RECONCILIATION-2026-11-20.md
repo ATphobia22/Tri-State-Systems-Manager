@@ -25,4 +25,4 @@ The audit reports source archive SHA-256, each .shp/.prj pair, PRJ SHA-256, pars
 5. Compare transformed sample control points against official county geometry; report residuals and outliers. Verify extent/FIPS county intersection and feature identifiers.
 6. Do not promote `SOURCE_ACQUIRED_UNVALIDATED` to engineering/regulatory use until geometry, CRS, vertical provenance and source identities are reviewed. Keep unknowns visible, not silently coerced.
 
-**Current evidence status:** source list verified in repo; no original ZIP inspection or per-layer EPSG values independently verified in this review. The audit code is staged, not executed on original data. DoWORC UTM wording does not prove EPSG:26916 or EPSG:2966. Human authority final.
+**Current evidence status:** the original eight ZIPs and 125 layers were audited. The official local NADCON5 grid enabled numerical transforms for 124 layers. One original PRJ, surveyed control, and the vertical datum remain missing. See [the source CRS audit record](DOWORC-SOURCE-CRS-RECONCILED-2026-11-20.md).
