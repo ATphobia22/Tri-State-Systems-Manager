@@ -61,6 +61,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
   const [reviewBaseline, setReviewBaseline] = useState<Review | null>(null);
   const [reviewChanges, setReviewChanges] = useState<Changes | null>(null);
   const [reviewError, setReviewError] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
   const [selectedReviewElement, setSelectedReviewElement] = useState('');
   const [reviewSearch, setReviewSearch] = useState('');
   const [quantityKey, setQuantityKey] = useState('volume');
@@ -402,6 +403,8 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
                 onChange={(event) => {
                   const file = event.currentTarget.files?.[0];
                   if (!file) return;
+                  setReviewLoading(true);
+                  setReviewChanges(null);
                   void readDesignReviewFile(file).then((next) => {
                     setReview(next);
                     setReviewError('');
@@ -409,9 +412,10 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
                     setSelectedReviewElement('');
                   }).catch((reason: unknown) => {
                     setReviewError(reason instanceof Error ? reason.message : 'Could not open design review file');
-                  });
+                  }).finally(() => setReviewLoading(false));
                   event.currentTarget.value = '';
                 }} />
+              {reviewLoading && <small role="status">Loading local design revision…</small>}
               {reviewError && <p role="alert">{reviewError}</p>}
               {review && <>
                 <p><strong>{review.modelId}</strong> · revision {review.revisionId} · {review.elements.length.toLocaleString()} elements</p>
@@ -449,12 +453,12 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
                   source records {reviewQuantity.sourceCount}; derived {reviewQuantity.derivedCount}.
                   These are non-certified metadata aggregates, not measured survey quantities.
                 </small> : <small>Provide a valid quantity name to calculate an informational summary.</small>}
-                <button type="button" onClick={() => {
+                <button type="button" disabled={reviewLoading} onClick={() => {
                   setReviewBaseline(review);
                   setReviewChanges(null);
                   setReviewError('');
                 }}>Save current revision as comparison baseline</button>
-                <button type="button" disabled={!reviewBaseline} onClick={() => {
+                <button type="button" disabled={!reviewBaseline || reviewLoading} onClick={() => {
                   if (!reviewBaseline) return;
                   try {
                     setReviewChanges(compareDesignRevisions(reviewBaseline, review));

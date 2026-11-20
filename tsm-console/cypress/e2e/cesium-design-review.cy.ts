@@ -33,7 +33,10 @@ describe('Local BIM review and public education', () => {
     cy.contains('Element ID: girder').should('be.visible');
     cy.contains('button','Save current revision as comparison baseline').click();
     load(fixture('b','b',17.5));
-    cy.contains('button','Compare to saved baseline').click();
+    // A file input selection is asynchronous; compare only after React renders revision b.
+    cy.contains('revision b').should('be.visible');
+    cy.get('[data-testid="cesium-design-quantity"]').should('contain.text','17.5 m3');
+    cy.contains('button','Compare to saved baseline').should('be.enabled').click();
     cy.get('[data-testid="cesium-design-diff"]').should('contain.text','modified 1');
     cy.get('[data-testid="cesium-design-quantity"]').should('contain.text','17.5 m3');
   });
