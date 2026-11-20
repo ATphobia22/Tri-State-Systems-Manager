@@ -32,6 +32,7 @@ on:
       - 'scripts/geospatial/package-building-3d-tiles.sh'
       - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'scripts/geospatial/extract_lidar_heights.py'
+      - 'scripts/geospatial/test_extract_ept_node_batches.py'
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_building_tiles_checkpoint_workflow.py'
@@ -72,6 +73,7 @@ on:
       - 'scripts/geospatial/package-building-3d-tiles.sh'
       - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'scripts/geospatial/extract_lidar_heights.py'
+      - 'scripts/geospatial/test_extract_ept_node_batches.py'
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_building_tiles_checkpoint_workflow.py'
@@ -86,6 +88,7 @@ permissions:
 
 env:
   EXPECTED_BUILDINGS: '23082'
+  POSEY_EPT_URL: https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json
 
 jobs:
   build-tiles:
@@ -133,6 +136,7 @@ jobs:
       - name: Verify COPC extraction and release workflow contracts
         run: |
           python3 -m unittest scripts.geospatial.test_building_tiles_checkpoint_workflow -v
+          python3 -m unittest scripts.geospatial.test_extract_ept_node_batches -v
           python3 -m unittest scripts.geospatial.test_extract_derived_heights_copc -v
           python3 -m unittest scripts.geospatial.test_retry_adjacent_copc_heights -v
       - name: Prove source-to-LOD topology, hole preservation, per-OBJECTID height provenance
@@ -165,8 +169,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, urllib.request
-          u="https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json"
+          import json, os, urllib.request
+          u=os.environ["POSEY_EPT_URL"]
           d=json.load(urllib.request.urlopen(u, timeout=30))
           print("EPT bounds:", d.get("bounds"))
           print("EPT srs:", d.get("srs"))
@@ -177,7 +181,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --allow-zero-heights
+          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --ept-url "$POSEY_EPT_URL" --allow-zero-heights
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]))')" = "23082"
           python3 - <<'PY'
           import json
