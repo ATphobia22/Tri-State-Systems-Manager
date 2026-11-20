@@ -1,0 +1,28 @@
+name: Import checksum-verified music MP3s (one-time)
+on:
+  push:
+    branches: [feat/pages-music-photogrammetry-2026-11-20]
+    paths:
+      - 'tsm-console/public/audio/.import/**'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - name: Reassemble audio and verify exact source checksums
+        run: python3 scripts/music/import_audio_chunks.py
+      - name: Commit binary MP3s and remove one-time import machinery
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -rf tsm-console/public/audio/.import
+          rm scripts/music/import_audio_chunks.py .github/workflows/tsm-music-import-once.yml
+          git add -A -- tsm-console/public/audio scripts/music/import_audio_chunks.py .github/workflows/tsm-music-import-once.yml
+          git diff --cached --quiet && exit 1
+          git commit -m 'feat(pages): publish four verified original MP3 tracks'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
