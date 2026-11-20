@@ -181,57 +181,31 @@ jobs:
           ok=sum(1 for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK")
           print(f"OBSERVED heights (3DEP EPT Class 6): {ok}/23082")
           PY
-      - name: Generate Indiana 2020 COPC tile list for gap buildings
+      - name: Plan Indiana 2020 COPC tiles for single-tile building gaps
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json
-          from pyproj import Transformer
-          # Indiana State Plane West (ftUS) 5000-ft COPC tile grid.
-          # Tile IN2020_26850945_12 covers easting 2,685,000-2,690,000 /
-          # northing 945,000-950,000; name encodes the SW corner in
-          # thousands of feet: f"IN2020_{E//5000*5:04d}{N//5000*5:04d}_12".
-          # (Verified against tile footprint GeoJSONs in giselevationingov.)
-          t = Transformer.from_crs("EPSG:4326", "EPSG:2968", always_xy=True)
-          base = "https://giselevationingov.s3.amazonaws.com/copc/statewide/2020/SPW/ql2"
-          def tile_name(ex, ny):
-              te = int(ex // 5000) * 5
-              tn = int(ny // 5000) * 5
-              return f"IN2020_{te:04d}{tn:04d}_12.copc.laz"
-          feats = json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]
-          tiles = set()
-          gaps = 0
-          for ft in feats:
-              if ft.get("properties", {}).get("lidarHeightStatus") == "OK":
-                  continue
-              gaps += 1
-              g = ft["geometry"]
-              coords = g["coordinates"][0] if g["type"] == "Polygon" else max((p[0] for p in g["coordinates"]), key=len)
-              cx = sum(c[0] for c in coords) / len(coords)
-              cy = sum(c[1] for c in coords) / len(coords)
-              ex, ny = t.transform(cx, cy)
-              sw_e, sw_n = int(ex // 5000) * 5000, int(ny // 5000) * 5000
-              # Primary tile + edge neighbors within the DERIVED script's
-              # 60-ft ground-search buffer.
-              for dx, dy in [(0, 0), (5000, 0), (-5000, 0), (0, 5000), (0, -5000)]:
-                  if dx > 0 and (sw_e + 5000) - ex > 60:
-                      continue
-                  if dx < 0 and ex - sw_e > 60:
-                      continue
-                  if dy > 0 and (sw_n + 5000) - ny > 60:
-                      continue
-                  if dy < 0 and ny - sw_n > 60:
-                      continue
-                  tiles.add(tile_name(ex + dx, ny + dy))
-          urls = sorted(f"{base}/{tn}" for tn in tiles)
-          with open("/tmp/tsm-igio/copc-tile-list.txt", "w") as f:
-              f.write("# Indiana 2020 COPC tiles covering gap-building centroids\n")
-              for u in urls:
-                  f.write(u + "\n")
-          print(f"Gap buildings: {gaps}, COPC tiles: {len(urls)}")
+          from pathlib import Path
+          from scripts.geospatial.extract_derived_heights_copc import footprint_tile_plan, grid_url
+
+          work = Path("/tmp/tsm-igio")
+          features = json.loads((work / "posey-buildings-lidar-enriched.geojson").read_text())["features"]
+          tiles, adjacent, invalid = footprint_tile_plan(features)
+          urls = sorted(grid_url(grid) for grid in tiles)
+          (work / "copc-tile-list.txt").write_text(
+              "# Indiana 2020 COPC tiles for single-tile search windows\n"
+              + "".join(f"{url}\n" for url in urls)
+          )
+          all_grids = set(tiles)
+          for _, _, grids in adjacent.values():
+              all_grids.update(grids)
+          (work / "copc-source-inventory.txt").write_text(
+              "".join(f"{grid_url(grid)}\n" for grid in sorted(all_grids))
+          )
+          print(f"Single-tile gap sources: {len(urls)}; adjacent-tile gaps: {len(adjacent)}; invalid: {len(invalid)}")
           PY
-          test -s /tmp/tsm-igio/copc-tile-list.txt
       - name: Probe public IGIO Indiana 2020 nDHM and DEM recovery objects
         continue-on-error: true
         timeout-minutes: 10
@@ -239,7 +213,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/geospatial/verify_in_elevation_recovery_sources.py \
-            --tile-list /tmp/tsm-igio/copc-tile-list.txt \
+            --tile-list /tmp/tsm-igio/copc-source-inventory.txt \
             --layers 2020_NDHM 2020_DEM \
             --verify --workers 16 --timeout 8 \
             --out /tmp/tsm-igio/indiana-elevation-source-inventory.json

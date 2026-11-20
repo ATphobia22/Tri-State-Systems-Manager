@@ -62,6 +62,8 @@ def reason_code(raw: object) -> str:
         return "HEIGHT_OUT_OF_PLAUSIBLE_RANGE"
     if value == "no-points-in-buffer":
         return "NO_LIDAR_RETURNS_NEAR_FOOTPRINT"
+    if value == "adjacent-tile-source-unavailable":
+        return "ADJACENT_TILE_SOURCE_UNAVAILABLE"
     if value.startswith("error:tile-read-failed:"):
         return "TILE_READ_ERROR"
     if value.startswith("error:footprint-crs:"):

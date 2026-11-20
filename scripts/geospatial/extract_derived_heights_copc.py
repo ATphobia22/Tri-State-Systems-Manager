@@ -32,7 +32,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
+import re
 import sys
 import urllib.request
 from statistics import median, stdev
@@ -52,6 +54,12 @@ ROOF_HEIGHT_THRESHOLD_FT = 6.0  # Class 1 points must be >6 ft above ground
 MAX_ROOF_STDDEV_FT = 10.0  # Tree confound: reject if roof candidates too spread
 MAX_PLAUSIBLE_HEIGHT_FT = 328.0  # 100m, same as OBSERVED pipeline
 MIN_PLAUSIBLE_HEIGHT_FT = 0.0
+
+TILE_FT = 5000
+GROUND_BUFFER_FT = 50.0
+SOURCE_PREFIX = 'https://giselevationingov.s3.amazonaws.com/copc/statewide/2020/SPW/ql2/'
+MAX_TILES_PER_BUILDING = 64
+
 
 # CRS transformers
 # Building footprints are in WGS84 lon/lat
@@ -146,6 +154,93 @@ def point_in_footprint(
         not any(point_in_polygon(x, y, hole) for hole in part[1:])
         for part in polygons
     )
+
+
+def search_windows(polygons):
+    """Return one ground-search window per polygon exterior, including detached parts."""
+    windows = []
+    for exterior, *_holes in polygons:
+        eastings, northings = zip(*exterior)
+        windows.append((
+            min(eastings) - GROUND_BUFFER_FT, min(northings) - GROUND_BUFFER_FT,
+            max(eastings) + GROUND_BUFFER_FT, max(northings) + GROUND_BUFFER_FT,
+        ))
+    return windows
+
+
+def intersecting_grids(windows):
+    grids = set()
+    for west, south, east, north in windows:
+        x0, x1 = math.floor(west / TILE_FT), math.floor(east / TILE_FT)
+        y0, y1 = math.floor(south / TILE_FT), math.floor(north / TILE_FT)
+        if min(x0, y0) < 0 or max(x1, y1) > 1999:
+            raise ValueError('projected footprint lies outside the source grid')
+        if (x1 - x0 + 1) * (y1 - y0 + 1) > MAX_TILES_PER_BUILDING:
+            raise ValueError('projected footprint exceeds the bounded tile window')
+        grids.update((e, n) for e in range(x0, x1 + 1) for n in range(y0, y1 + 1))
+        if len(grids) > MAX_TILES_PER_BUILDING:
+            raise ValueError('multipart footprint exceeds the bounded tile window')
+    return grids
+
+
+def grid_url(grid):
+    easting, northing = grid
+    return f'{SOURCE_PREFIX}IN2020_{easting * 5:04d}{northing * 5:04d}_12.copc.laz'
+
+
+
+def source_grid(url):
+    pattern = re.escape(SOURCE_PREFIX) + r'IN2020_([0-9]{4})([0-9]{4})_12\.copc\.laz'
+    match = re.fullmatch(pattern, url)
+    if match is None or any(int(value) % 5 for value in match.groups()):
+        raise ValueError(f'Invalid Indiana 2020 COPC source URL: {url}')
+    return tuple(int(value) // 5 for value in match.groups())
+
+
+def footprint_tile_plan(features):
+    """Group single-tile gaps and set aside gaps requiring a combined source window."""
+    tiles = {}
+    adjacent = {}
+    invalid = []
+    for index, feature in enumerate(features):
+        if feature['properties'].get('lidarHeightStatus') == 'OK':
+            continue
+        try:
+            polygons = get_footprint_polygons_spw(feature['geometry'])
+            windows = search_windows(polygons)
+            grids = intersecting_grids(windows)
+        except (TypeError, ValueError, KeyError):
+            invalid.append(index)
+            continue
+        if len(grids) == 1:
+            grid = next(iter(grids))
+            tiles.setdefault(grid, {})[index] = polygons
+        else:
+            adjacent[index] = (polygons, windows, grids)
+    return tiles, adjacent, invalid
+
+
+def verified_tile_bounds(path, grid):
+    with laspy.open(path) as source:
+        crs = source.header.parse_crs()
+        if crs is None:
+            raise ValueError('COPC header has no source CRS')
+        horizontal = crs.sub_crs_list[0] if crs.is_compound else crs
+        if horizontal.is_bound:
+            horizontal = horizontal.source_crs
+        if horizontal.to_epsg() != 2968:
+            raise ValueError('COPC header must use the Indiana West ftUS source CRS')
+        vertical = crs.sub_crs_list[1] if crs.is_compound else None
+        if vertical is None or vertical.to_epsg() != 6360:
+            raise ValueError('COPC header must use NAVD88 US survey feet')
+        west, south = (index * TILE_FT for index in grid)
+        x_min, y_min = source.header.mins[:2]
+        x_max, y_max = source.header.maxs[:2]
+        if not all(np.isfinite((x_min, y_min, x_max, y_max))) or x_min > x_max or y_min > y_max:
+            raise ValueError('COPC header has invalid horizontal bounds')
+        if x_max < west or x_min >= west + TILE_FT or y_max < south or y_min >= south + TILE_FT:
+            raise ValueError('COPC header does not intersect the named tile')
+        return float(x_min), float(y_min), float(x_max), float(y_max)
 
 
 def download_tile(url: str, dest: str, max_attempts: int = 3) -> str:
@@ -255,7 +350,6 @@ def extract_derived_height(
     # - Ground points: larger buffer (50 ft) to find nearby ground when
     #   building footprint itself has no visible ground (common in 2020 data)
     roof_buf = 2.0  # small buffer for roof bbox prefilter
-    ground_buf = 50.0  # larger buffer for ground search
 
     if tile_arrays is None:
         try:
@@ -267,8 +361,10 @@ def extract_derived_height(
     xs, ys, zs, classes = tile_arrays  # feet, NAVD88/Geoid12B
 
     # Bounding-box prefilter with ground buffer
-    in_buf = (xs >= bx1 - ground_buf) & (xs <= bx2 + ground_buf) & \
-             (ys >= by1 - ground_buf) & (ys <= by2 + ground_buf)
+    in_buf = np.zeros(len(xs), dtype=bool)
+    for west, south, east, north in search_windows(polygons):
+        in_buf |= (xs >= west) & (xs <= east) & (ys >= south) & (ys <= north)
+    in_buf &= np.isfinite(zs)
     if not np.any(in_buf):
         result["lidarHeightStatus"] = "no-points-in-buffer"
         return result
@@ -407,34 +503,25 @@ def main() -> int:
     features = data["features"]
     print(f"  Total features: {len(features)}", flush=True)
 
-    # Identify gap buildings (not OK)
-    gaps = []
-    for feature_index, feat in enumerate(features):
-        props = feat.get("properties", {})
-        if props.get("lidarHeightStatus") != "OK":
-            # Pre-compute footprint ring in SPW feet
-            try:
-                ring_spw = get_footprint_polygons_spw(feat["geometry"])
-            except Exception as e:
-                props["lidarHeightStatus"] = f"error:footprint-crs:{e}"
-                props["heightProvenance"] = "UNAVAILABLE"
-                continue
-            # Centroid in SPW for tile matching
-            exterior = [p for polygon in ring_spw for p in polygon[0]]
-            xs = [p[0] for p in exterior]
-            ys = [p[1] for p in exterior]
-            cx = sum(xs) / len(xs)
-            cy = sum(ys) / len(ys)
-            gaps.append({
-                "feature": feat,
-                "feature_index": feature_index,
-                "props": props,
-                "ring_spw": ring_spw,
-                "cx": cx,
-                "cy": cy,
-                "done": False,
-            })
-    print(f"  Gap buildings to process: {len(gaps)}", flush=True)
+    primary_tiles, adjacent, invalid = footprint_tile_plan(features)
+    gaps = {
+        index: polygons
+        for buildings in primary_tiles.values()
+        for index, polygons in buildings.items()
+    }
+    for index in invalid:
+        features[index]['properties'].update(
+            lidarHeightStatus='error:footprint-crs:invalid',
+            heightProvenance='UNAVAILABLE',
+        )
+    for index in adjacent:
+        features[index]['properties'].update(
+            lidarHeightStatus='adjacent-tile-window-required',
+            heightProvenance='UNAVAILABLE',
+            heightProvenanceMethod='Complete COPC search window requires adjacent tiles',
+        )
+    print(f"  Single-tile gaps: {len(gaps)}; adjacent-tile gaps: {len(adjacent)}; "
+          f"invalid geometry: {len(invalid)}", flush=True)
 
     # Load tile list
     tiles = []
@@ -447,6 +534,8 @@ def main() -> int:
             url = line.split("#")[0].strip()
             if url:
                 tiles.append(url)
+    tiles = list(dict.fromkeys(tiles))
+    tile_grids = {url: source_grid(url) for url in tiles}
     print(f"  Tiles: {len(tiles)}", flush=True)
 
     if args.limit_tiles > 0:
@@ -474,7 +563,8 @@ def main() -> int:
     state = {**checkpoint_identity, "completed_tiles": {}}
     if os.path.isfile(state_path):
         try:
-            saved = json.load(open(state_path, encoding="utf-8"))
+            with open(state_path, encoding="utf-8") as stream:
+                saved = json.load(stream)
         except (OSError, json.JSONDecodeError) as exc:
             raise SystemExit(f"RESILIENT: unreadable checkpoint {state_path}: {exc}")
         if any(saved.get(k) != v for k, v in checkpoint_identity.items()):
@@ -485,27 +575,26 @@ def main() -> int:
 
     # Restore validated per-tile results. Each result file is written before
     # its tile is committed to state.json, making interrupted writes replay-safe.
-    gap_by_index = {g["feature_index"]: g for g in gaps}
     tile_manifest = []
     stats = {"derived_ok": 0, "unavailable": 0, "tiles_processed": 0, "tiles_failed": 0}
     completed = state["completed_tiles"]
+    processed_indices = set()
     for tile_url, record in completed.items():
         if tile_url not in tiles or not isinstance(record, dict):
             raise SystemExit("RESILIENT: checkpoint references a tile outside the current tile list")
         result_path = os.path.join(checkpoint_dir, record.get("results_file", ""))
         if not os.path.isfile(result_path) or sha256_file(result_path) != record.get("results_sha256"):
             raise SystemExit(f"RESILIENT: checkpoint result missing or hash mismatch for {tile_url}")
-        tile_result = json.load(open(result_path, encoding="utf-8"))
+        with open(result_path, encoding="utf-8") as stream:
+            tile_result = json.load(stream)
         if tile_result.get("url") != tile_url or tile_result.get("tile_sha256") != record.get("sha256"):
             raise SystemExit(f"RESILIENT: checkpoint tile identity mismatch for {tile_url}")
         for index_text, saved_props in tile_result.get("feature_properties", {}).items():
             index = int(index_text)
-            gap = gap_by_index.get(index)
-            if gap is None or not isinstance(saved_props, dict):
+            if index not in primary_tiles.get(tile_grids[tile_url], {}) or not isinstance(saved_props, dict):
                 raise SystemExit(f"RESILIENT: invalid feature index in checkpoint for {tile_url}: {index}")
-            gap["props"].clear()
-            gap["props"].update(saved_props)
-            gap["done"] = True
+            features[index]["properties"] = saved_props
+            processed_indices.add(index)
         tile_manifest.append(record["manifest_entry"])
         stats["tiles_processed"] += 1
         stats["derived_ok"] += int(tile_result.get("derived_ok", 0))
@@ -532,13 +621,9 @@ def main() -> int:
             })
             continue
 
-        # Read tile bounds from header
+        grid = tile_grids[url]
         try:
-            with laspy.open(tile_path) as las:
-                hdr = las.header
-                # Header mins/maxs are in SPW feet
-                hx_min, hy_min = float(hdr.mins[0]), float(hdr.mins[1])
-                hx_max, hy_max = float(hdr.maxs[0]), float(hdr.maxs[1])
+            hx_min, hy_min, hx_max, hy_max = verified_tile_bounds(tile_path, grid)
         except Exception as e:
             print(f"  [error] header read failed: {e}", flush=True)
             stats["tiles_failed"] += 1
@@ -550,13 +635,7 @@ def main() -> int:
             os.remove(tile_path)
             continue
 
-        # Find gap buildings in this tile's bounds
-        in_tile = [
-            g for g in gaps
-            if not g["done"]
-            and hx_min <= g["cx"] <= hx_max
-            and hy_min <= g["cy"] <= hy_max
-        ]
+        in_tile = primary_tiles.get(grid, {})
         print(f"  Bounds: X[{hx_min:.0f},{hx_max:.0f}] Y[{hy_min:.0f},{hy_max:.0f}]", flush=True)
         print(f"  Gap buildings in tile: {len(in_tile)}", flush=True)
 
@@ -566,36 +645,32 @@ def main() -> int:
         tile_unavailable = 0
         # A single LAZ tile may contain many building footprints. Decompress
         # once and reuse the same immutable point arrays for every footprint.
-        tile_arrays = None
-        tile_read_error = None
-        if in_tile:
-            try:
-                tile_arrays = load_tile_arrays(tile_path)
-            except Exception as exc:
-                tile_read_error = f"error:tile-read-failed:{exc}"
-                print(f"  [error] {tile_read_error}", flush=True)
-        for g in in_tile:
-            result = (
-                {"lidarHeightStatus": tile_read_error}
-                if tile_read_error is not None
-                else extract_derived_height(tile_path, g["ring_spw"], tile_arrays)
-            )
-            g["props"].update(result)
+        try:
+            tile_arrays = load_tile_arrays(tile_path) if in_tile else None
+        except Exception as exc:
+            print(f"  [error] tile read failed: {exc}", flush=True)
+            stats["tiles_failed"] += 1
+            tile_manifest.append({
+                "url": url, "tile": tile_name, "sha256": sha256,
+                "status": f"tile-read-failed:{exc}", "buildings_processed": 0,
+            })
+            os.remove(tile_path)
+            continue
+        for index, polygons in in_tile.items():
+            props = features[index]["properties"]
+            result = extract_derived_height(tile_path, polygons, tile_arrays)
+            props.update(result)
             if result.get("lidarHeightStatus") == "OK":
-                g["props"]["lidarSource"] = url
-            # Ensure provenance is set even on failure
-            if g["props"].get("lidarHeightStatus") != "OK":
-                g["props"]["heightProvenance"] = "UNAVAILABLE"
-                g["props"]["heightProvenanceMethod"] = (
-                    "DERIVED extraction failed; no synthetic height generated"
-                )
-                stats["unavailable"] += 1
-                tile_unavailable += 1
-            else:
+                props["lidarSource"] = url
                 stats["derived_ok"] += 1
                 tile_derived_ok += 1
-            feature_properties[str(g["feature_index"])] = dict(g["props"])
-            g["done"] = True
+            else:
+                props["heightProvenance"] = "UNAVAILABLE"
+                props["heightProvenanceMethod"] = "DERIVED extraction failed"
+                stats["unavailable"] += 1
+                tile_unavailable += 1
+            feature_properties[str(index)] = props
+            processed_indices.add(index)
             buildings_processed += 1
 
         del tile_arrays  # Release decoded point buffers before the next tile.
@@ -636,16 +711,18 @@ def main() -> int:
         print(f"  [cleaned] {tile_name}", flush=True)
 
     # Any gaps not matched to a tile remain UNAVAILABLE
-    unmatched = [g for g in gaps if not g["done"]]
-    for g in unmatched:
-        g["props"]["lidarHeightStatus"] = "UNAVAILABLE"
-        g["props"]["heightProvenance"] = "UNAVAILABLE"
-        g["props"]["heightProvenanceMethod"] = (
-            "No 2020 COPC tile coverage; no synthetic height generated"
+    unmatched = set(gaps) - processed_indices
+    for index in unmatched:
+        features[index]["properties"].update(
+            lidarHeightStatus="UNAVAILABLE",
+            heightProvenance="UNAVAILABLE",
+            heightProvenanceMethod="No verified 2020 COPC tile coverage",
         )
-        stats["unavailable"] += 1
+    stats["unavailable"] += len(unmatched) + len(adjacent) + len(invalid)
+    stats["adjacent_tile_gaps"] = len(adjacent)
+    stats["invalid_geometry"] = len(invalid)
     if unmatched:
-        print(f"\nUnmatched buildings (no tile coverage): {len(unmatched)}", flush=True)
+        print(f"\nUnmatched buildings (no verified tile coverage): {len(unmatched)}", flush=True)
 
     # Write output
     print(f"\nWriting output to {args.out}...", flush=True)
