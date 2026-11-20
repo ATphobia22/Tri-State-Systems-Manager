@@ -24,8 +24,13 @@ class RunPipelineTests(unittest.TestCase):
 
     def preflight(self, source, output, expected_sha, expected_crs, datum):
         self.assertEqual(expected_sha,self.f.d)
-        output.write_bytes(self.f.preflight.read_bytes())
-        return json.loads(output.read_text())
+        parsed = json.loads(self.f.preflight.read_text())
+        # The mocked preflight must preserve the real parser's explicit
+        # non-authoritative safety flags, not omit them.
+        parsed["engineeringUse"] = False
+        parsed["regulatoryUse"] = False
+        output.write_text(json.dumps(parsed), encoding="utf-8")
+        return parsed
 
     def convert(self, source, preflight, crosswalk, registry, converter, output_dir):
         glb=output_dir/"ifc-model.glb"
