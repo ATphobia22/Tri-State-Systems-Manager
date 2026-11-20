@@ -1,0 +1,77 @@
+{
+  "schema": "tsm-doworc-native-crs-reconciliation-summary-v1",
+  "auditDateUtc": "2026-11-20",
+  "sourceBundleSha256": "bbbcfffe60245679be7e820cf70decb8e9dbd585d62b80fd28c211ad93875ed3",
+  "sourceBundleStorage": "private-google-drive-originals",
+  "sourceArchives": 8,
+  "sourceShapefiles": 125,
+  "nativeHorizontalCrsCounts": {
+    "EPSG:26916": 69,
+    "EPSG:26716": 55,
+    "unknown": 1
+  },
+  "nativeAxisUnit": "metre",
+  "targetCRS": "EPSG:2966",
+  "targetAxisUnit": "US survey foot",
+  "strictNumericalTransformedLayerSamples": 69,
+  "maxRoundTripResidualMeters": 1.8852454075475277e-9,
+  "strictNAD27TransformedLayerSamples": 0,
+  "missingGrid": "us_noaa_nadcon5_nad27_nad83_1986_conus.tif",
+  "missingPrjLayer": "source-originals/Vanderburgh/aquifer_system/vanderburgh_shapefiles.zip/tr_van.shp",
+  "externalCountyGeometrySource": "https://gisdata.in.gov/server/rest/services/Hosted/County_Boundaries_of_Indiana_Current/FeatureServer/0",
+  "externalPolygonSampleMatches": 8,
+  "externalPolygonSamplesChecked": 8,
+  "verifiedCountyFips": [
+    "18051",
+    "18129",
+    "18163",
+    "18173"
+  ],
+  "externalControlValidationLevel": "topological_point_in_polygon_not_survey_position",
+  "sourceZipsSha256MatchAcquisitionReceipts": 8,
+  "originalZipSha256": [
+    [
+      "source-originals/Gibson/potentiometric/66_Gibson_County_PSM_shapefiles.zip",
+      "68859f56e7253e6295ea8ed7062a05859a33d9ef222c560a95397fab32f28af4"
+    ],
+    [
+      "source-originals/Gibson/aquifer_system/gibson_shapefiles.zip",
+      "a6147ee1713e3cd7825f7dc50c0c4bfb2ea6c390d703085c02787afe97510d11"
+    ],
+    [
+      "source-originals/Posey/aquifer_system/posey_shapefiles.zip",
+      "436ab71a018509faec796d7cf03b1be6c0387584bad1f3534035205b5ba0984f"
+    ],
+    [
+      "source-originals/Posey/potentiometric/80_Posey_County_PSM_shapefiles.zip",
+      "4531408c994050f61633d07d0101495bcb3b9cef97a407142643a7ea0d6265a3"
+    ],
+    [
+      "source-originals/Vanderburgh/aquifer_system/vanderburgh_shapefiles.zip",
+      "33ce4cfb63467a989b01dcd43c18e67ae69671b6c4ea7c8b8bdcef58d408bce7"
+    ],
+    [
+      "source-originals/Vanderburgh/potentiometric/70_Vanderburgh_County_PSM_shapefiles.zip",
+      "16b2d3a94a7e7e1811e83b7ffda1051e0b53058dbb3290983acb5dac9f488d07"
+    ],
+    [
+      "source-originals/Warrick/aquifer_system/warrick_shapefiles.zip",
+      "3b66902e0b4b3d01a993185b8a8a68d80618323be3bf1c4015c2d87b1c725af0"
+    ],
+    [
+      "source-originals/Warrick/potentiometric/83_Warrick_County_PSM_Shapefiles.zip",
+      "862305ef892a31b0d9451e977b184a0ae30afe11f32f8a9ae35b3de079141d08"
+    ]
+  ],
+  "NAVD88Verified": false,
+  "verticalUnitsAllLayersVerified": false,
+  "regulatoryApproved": false,
+  "engineeringPromotionApproved": false,
+  "releaseGate": "BLOCKED_MISSING_NAD27_GRID_UNKNOWN_PRJ_AND_VERTICAL_EVIDENCE",
+  "toolchain": "pyproj 3.7.2 PROJ 9.5.1",
+  "notes": [
+    "Documented values come from recovered original shapefile PRJ files, not the DoWORC display CRS.",
+    "Eight independent GIO polygon checks only confirm coarse geographic location.",
+    "No source archive or licensed binary is committed."
+  ]
+}
