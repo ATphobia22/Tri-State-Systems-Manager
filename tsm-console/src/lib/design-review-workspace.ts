@@ -80,20 +80,25 @@ export function parseDesignReview(input: unknown): Review {
     elements.push(item);
     byId.set(id, item);
   }
-  const marks = new Map<string, number>();
-  function visit(id: string, depth = 0): void {
-    if (depth > 128) throw new Error('BIM element nesting exceeds safe depth');
-    if (marks.get(id) === 2) return;
-    if (marks.get(id) === 1) throw new Error('Cyclic BIM element tree');
-    marks.set(id, 1);
+  const visiting = new Set<string>();
+  const ancestryDepth = new Map<string, number>();
+  function depthOf(id: string): number {
+    const cached = ancestryDepth.get(id);
+    if (cached !== undefined) return cached;
+    if (visiting.has(id)) throw new Error('Cyclic BIM element tree');
+    visiting.add(id);
     const parent = byId.get(id)?.parentId;
+    let depth = 0;
     if (parent !== null && parent !== undefined) {
       if (!byId.has(parent)) throw new Error('Orphan BIM element parent: ' + parent);
-      visit(parent, depth + 1);
+      depth = depthOf(parent) + 1;
     }
-    marks.set(id, 2);
+    if (depth > 128) throw new Error('BIM element nesting exceeds safe depth');
+    visiting.delete(id);
+    ancestryDepth.set(id, depth);
+    return depth;
   }
-  for (const { id } of elements) visit(id);
+  for (const { id } of elements) depthOf(id);
   elements.sort((a,b) => order(a.id, b.id));
   return {
     schema: REVIEW_SCHEMA, modelId, revisionId,
