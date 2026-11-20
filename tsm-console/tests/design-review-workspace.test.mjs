@@ -87,3 +87,20 @@ test('count values must remain integers', () => {
   const a = valid(); a.elements[1].quantities.volume = { value: 4.5, unit: 'count', evidence: 'DERIVED' };
   assert.throws(()=>parseDesignReview(a),/Invalid quantity unit/);
 });
+
+test('rejects pathological nesting before rendering a very deep BIM tree', () => {
+  const a = valid();
+  let parentId = 'slab';
+  for (let i = 0; i < 145; i++) {
+    const id = 'nested-' + i;
+    a.elements.push({ id, parentId, title: id, category: 'Assembly', quantities: {} });
+    parentId = id;
+  }
+  assert.throws(() => parseDesignReview(a), /safe depth/);
+});
+test('rejects numeric overflow in aggregates instead of displaying infinity', () => {
+  const a = valid();
+  a.elements[1].quantities.volume.value = 1e308;
+  a.elements[2].quantities.volume.value = 1e308;
+  assert.throws(() => summarizeQuantity(parseDesignReview(a),'volume','m3'), /safe numeric range/);
+});

@@ -81,14 +81,15 @@ export function parseDesignReview(input: unknown): Review {
     byId.set(id, item);
   }
   const marks = new Map<string, number>();
-  function visit(id: string): void {
+  function visit(id: string, depth = 0): void {
+    if (depth > 128) throw new Error('BIM element nesting exceeds safe depth');
     if (marks.get(id) === 2) return;
     if (marks.get(id) === 1) throw new Error('Cyclic BIM element tree');
     marks.set(id, 1);
     const parent = byId.get(id)?.parentId;
     if (parent !== null && parent !== undefined) {
       if (!byId.has(parent)) throw new Error('Orphan BIM element parent: ' + parent);
-      visit(parent);
+      visit(parent, depth + 1);
     }
     marks.set(id, 2);
   }
@@ -162,6 +163,7 @@ export function summarizeQuantity(review: Review, key: string, unit: Unit): Summ
     else sourceCount++;
   }
   const sum = values.length ? values.reduce((a,b)=>a+b, 0) : null;
+  if (sum !== null && !Number.isFinite(sum)) throw new Error('Quantity aggregate exceeds safe numeric range');
   return {
     key, unit, count: values.length, omitted, sourceCount, derivedCount, sum,
     min: values.length ? Math.min(...values) : null,

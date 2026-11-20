@@ -62,6 +62,7 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
   const [reviewChanges, setReviewChanges] = useState<Changes | null>(null);
   const [reviewError, setReviewError] = useState('');
   const [selectedReviewElement, setSelectedReviewElement] = useState('');
+  const [reviewSearch, setReviewSearch] = useState('');
   const [quantityKey, setQuantityKey] = useState('volume');
   const [quantityUnit, setQuantityUnit] = useState<Unit>('m3');
   const [imageryPreset, setImageryPreset] = useState<IonImageryPreset>('usgs');
@@ -86,6 +87,12 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
     try { return summarizeQuantity(review, quantityKey, quantityUnit); }
     catch { return null; }
   }, [review, quantityKey, quantityUnit]);
+  const reviewOptions = useMemo(() => {
+    const text = reviewSearch.trim().toLowerCase();
+    return (text ? reviewTree.filter((item) =>
+      item.title.toLowerCase().includes(text) || item.id.toLowerCase().includes(text) ||
+      item.category.toLowerCase().includes(text)) : reviewTree).slice(0, 40);
+  }, [reviewTree, reviewSearch]);
   const reviewElement = reviewTree.find((item) => item.id === selectedReviewElement);
   const frame = screening[screeningLevel];
   const date = REPLAY_DATES[day]!;
@@ -411,12 +418,15 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
                 <small>Declared CRS {review.source.horizontalCrs} · {review.source.horizontalUnits} · vertical: {review.source.verticalDatum}</small>
                 <small>Placement: {review.placement.state} · controls: {review.placement.controlCount} · source ID: {review.source.sourceId}</small>
                 <small>Source SHA-256 declared: {review.source.sha256.slice(0, 16)}… · license: {review.source.license}</small>
-                <p><strong>Element hierarchy</strong> (first 40 entries)</p>
+                <p><strong>Element hierarchy</strong> (up to 40 search results)</p>
+                <label htmlFor="cesium-design-search">Search by element name, stable ID or category</label>
+                <input id="cesium-design-search" type="search" value={reviewSearch} maxLength={128}
+                  onChange={(event) => setReviewSearch(event.currentTarget.value)} />
                 <label htmlFor="cesium-design-element">Select model element</label>
                 <select id="cesium-design-element" value={selectedReviewElement}
                   onChange={(event) => setSelectedReviewElement(event.currentTarget.value)}>
                   <option value="">Select an element</option>
-                  {reviewTree.slice(0, 40).map((item) =>
+                  {reviewOptions.map((item) =>
                     <option key={item.id} value={item.id}>{'· '.repeat(Math.min(item.depth, 8))}{item.title} ({item.category})</option>)}
                 </select>
                 {reviewElement && <>
