@@ -18,7 +18,7 @@ python3 scripts/acquire_mount_vernon_planning.py --output /secure/local/tsm-evid
 python3 -m unittest discover -s tests -p 'test_acquire_mount_vernon_planning.py'
 ```
 
-The program restricts downloads to official Posey County PDF hosting, checks redirects/content type/PDF signature/maximum size, and writes original bytes with a true SHA-256 and retrieval timestamp. It **does not** claim a checksum until bytes were downloaded. Store downloaded PDFs/receipts outside the repo unless explicitly reviewed.
+The program restricts downloads to official Posey County PDF hosting, checks redirects/content type/PDF signature/maximum size, and writes original bytes with a SHA-256 and retrieval timestamp. The two plans were acquired in GitHub Actions run `44681013537`, stored as separate source archives in the private Posey County Drive warehouse and independently rehashed. Neither raw PDFs nor private Drive identifiers are checked into GitHub. Store downloaded PDFs/receipts outside the repo unless explicitly reviewed.
 
 ## Geospatial admission gates
 
@@ -34,4 +34,4 @@ Posey County Area Plan Commission: **areaplancommission@poseycountyin.gov**, **8
 
 > Please provide a digital copy of the current *Official Zoning Map* applicable to Mount Vernon, Indiana, preferably as a native GIS export with coordinate reference system WKT/EPSG, feature identifiers, zoning/overlay code legend, edition/effective date, amendment history, any superseded maps, accompanying adoption ordinance/resolution, and available licensing/reuse conditions. Please identify any official map service URL and the administrator responsible for boundary interpretation.
 
-Status: **city plan official source verified; original PDF bytes not yet locally staged; official zoning map export not obtained; native CRS unknown; parcel-geometry join blocked**. Do not change these release gates until evidence supports a transition.
+Status (2026-11-20 UTC): **two official planning PDFs were downloaded and independently SHA-256 verified in the private Posey County Drive warehouse; official zoning GIS map export not obtained; its effective date/native CRS unknown; parcel-to-zoning geometry join blocked**. City-plan and county-plan PDFs are policy references, not a replacement for the Official Zoning Map. Source identifiers, downloaded lengths and UTC-retrieval hashes are in `sources.json`. The PDF-byte acquisition gate is complete; the regulatory/geospatial map gate is not.
