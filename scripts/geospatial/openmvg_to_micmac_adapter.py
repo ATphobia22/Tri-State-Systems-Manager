@@ -193,10 +193,10 @@ def build_orientation_xml(
         _text_elem("KnownConv", "eConvApero_DistM2C")
     )
     ET.SubElement(ori, "FileInterne").text = autocal_rel_path
+    ET.SubElement(ori, "RelativeNameFI").text = "true"
 
     ext = ET.SubElement(ori, "Externe")
     ET.SubElement(ext, "Time").text = "0"
-    ET.SubElement(ext, "KnownSize").text = "true"
     ET.SubElement(ext, "Centre").text = (
         f"{center_world[0]:.8f} {center_world[1]:.8f} {center_world[2]:.8f}"
     )
@@ -208,8 +208,6 @@ def build_orientation_xml(
     ET.SubElement(codage, "L2").text = " ".join(f"{v:.12f}" for v in rot_c2w[1])
     ET.SubElement(codage, "L3").text = " ".join(f"{v:.12f}" for v in rot_c2w[2])
 
-    verif = ET.SubElement(ori, "Verif")
-    ET.SubElement(verif, "Tol").text = "0.001"
     return root
 
 
@@ -301,7 +299,7 @@ def convert_sfm_data(
             cam=cam,
             center_world=[float(c) for c in ext["center"]],
             rot_world_to_cam=[[float(x) for x in row] for row in ext["rotation"]],
-            autocal_rel_path=f"{out_ori_dir.name}/{autocal_files[id_intrinsic]}",
+            autocal_rel_path=autocal_files[id_intrinsic],
         )
         ori_file = out_ori_dir / f"Orientation-{filename}.xml"
         ori_file.write_text(pretty_xml(ori_xml), encoding="utf-8")
