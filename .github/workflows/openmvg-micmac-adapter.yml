@@ -1,0 +1,31 @@
+name: TSM openMVG to MicMac Adapter (synthetic)
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/test_openmvg_to_micmac_adapter.py'
+      - 'docs/review/PHOTOGRAMMETRY-ADAPTER-ACCEPTANCE.md'
+      - '.github/workflows/openmvg-micmac-adapter.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/test_openmvg_to_micmac_adapter.py'
+      - 'docs/review/PHOTOGRAMMETRY-ADAPTER-ACCEPTANCE.md'
+      - '.github/workflows/openmvg-micmac-adapter.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Synthetic math, path safety and evidence receipts
+        run: python -m unittest discover -s scripts/geospatial -p test_openmvg_to_micmac_adapter.py -v
+      - name: Explicit non-claim
+        run: echo 'UNVERIFIED - no MicMac runtime, PROJ/GEOID18 control, UE5.8 Shipping or surveyed accuracy evidence'
