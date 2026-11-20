@@ -1,0 +1,4 @@
+{"op":"check"}
+{"op":"transform","src_epsg":26916,"target_epsg":2966,"x":440000,"y":4200000}
+{"op":"transform","src_epsg":26716,"target_epsg":2966,"x":440000,"y":4200000}
+{"op":"transform","src_epsg":null,"target_epsg":2966,"x":440000,"y":4200000}
