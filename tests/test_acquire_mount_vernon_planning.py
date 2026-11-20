@@ -19,8 +19,24 @@ class MunicipalEvidenceContract(unittest.TestCase):
     def test_no_geometry_published_without_official_export(self):
         self.assertTrue(all(r["geometry_publishable"] is False for r in self.rows))
 
-    def test_no_fabricated_hashes_or_crs(self):
-        self.assertTrue(all(r["sha256"] is None and r["crs"] is None for r in self.rows))
+    def test_verified_original_plans_have_source_sha256_and_receipts(self):
+        observed = {
+            "mount-vernon-comprehensive-plan-2023": ("64cf65b02140967c8993e82b8d5a2ed48065fc88270b28a5d666f9d189742f2c", 16295926),
+            "posey-county-comprehensive-plan-2024": ("165629f385e2c02dd9018bdb2552d9f63032e639ec84f21befa98ee688e281b3", 19915009),
+        }
+        for row in self.rows:
+            self.assertIsNone(row["crs"])
+            self.assertFalse(row["geometry_publishable"])
+            if row["id"] in observed:
+                sha, byte_count = observed[row["id"]]
+                self.assertEqual(row["sha256"], sha)
+                self.assertEqual(row["original_bytes"], byte_count)
+                self.assertTrue(row["retrieved_utc"].startswith("2026-11-20T05:26:"))
+                self.assertEqual(row["verification"], "OFFICIAL_DOCUMENT_BYTES_SHA256_VERIFIED_PRIVATE_ARCHIVE")
+            else:
+                self.assertIsNone(row["sha256"])
+                self.assertNotIn("original_bytes", row)
+                self.assertNotIn("retrieved_utc", row)
 
     def test_official_host_allowlist(self):
         self.assertTrue(planning.allowed(self.rows[0]["url"]))
