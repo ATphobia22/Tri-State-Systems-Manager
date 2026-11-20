@@ -51,6 +51,38 @@ class SceneBuilderTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "INCOMPLETE_DOWNLOAD"):
                 scene.collect_layer("building", scene.BUILDINGS, bbox)
 
+    def test_exhausted_http_500_splits_batch_and_keeps_all_source_ids(self):
+        """A persistently failing large query is recovered by smaller ID batches."""
+        from urllib.error import HTTPError
+        ids = {"objectIds": [1, 2, 3, 4]}
+        def feature(i):
+            return {"type": "Feature", "properties": {"objectid": i}, "geometry": POLYGON}
+        calls = []
+        def fake_query(url, params):
+            calls.append(params)
+            if params.get("returnIdsOnly") == "true":
+                return ids, "a" * 64
+            wanted = [int(n) for n in params["objectIds"].split(",")]
+            if len(wanted) > 2:
+                raise HTTPError(url, 500, "Server Error", {}, None)
+            return {"type": "FeatureCollection", "features": [feature(i) for i in wanted]}, str(wanted[0]) * 64
+        with patch.object(scene, "query", side_effect=fake_query):
+            features, evidence = scene.collect_layer("building", scene.BUILDINGS, scene.DEFAULT_BBOX)
+        self.assertEqual([f["properties"]["source_objectid"] for f in features], [1, 2, 3, 4])
+        self.assertEqual(evidence["source_object_count"], 4)
+        self.assertEqual(len(evidence["raw_response_sha256"]), 3)
+        self.assertEqual([x["objectIds"] for x in calls if "objectIds" in x], ["1,2,3,4", "1,2", "3,4"])
+
+    def test_single_object_http_500_remains_blocker_without_partial_result(self):
+        from urllib.error import HTTPError
+        def fake_query(url, params):
+            if params.get("returnIdsOnly") == "true":
+                return {"objectIds": [1]}, "a" * 64
+            raise HTTPError(url, 500, "Server Error", {}, None)
+        with patch.object(scene, "query", side_effect=fake_query):
+            with self.assertRaises(HTTPError):
+                scene.collect_layer("building", scene.BUILDINGS, scene.DEFAULT_BBOX)
+
     def test_transient_timeout_retries_without_changing_source_bytes(self):
         raw = b'{"objectIds":[7,3]}'
         with patch.object(scene, "urlopen", side_effect=[TimeoutError("upstream timeout"), io.BytesIO(raw)]) as request, \
