@@ -5,11 +5,11 @@ import unittest
 from unittest.mock import patch
 
 from scripts.geospatial import run_ifc_review_pipeline as runner
-from scripts.geospatial.test_build_ifc_review_package import ReviewPipelineTests, sha
+from scripts.geospatial import test_build_ifc_review_package as fixtures
 
 class RunPipelineTests(unittest.TestCase):
     def setUp(self):
-        fixture=ReviewPipelineTests("test_generates_usable_review_contract_and_real_node_links")
+        fixture=fixtures.ReviewPipelineTests("test_generates_usable_review_contract_and_real_node_links")
         fixture.setUp()
         self.addCleanup(fixture.doCleanups)
         self.f=fixture
@@ -31,18 +31,18 @@ class RunPipelineTests(unittest.TestCase):
         glb=output_dir/"ifc-model.glb"
         glb.write_bytes(self.f.glb.read_bytes())
         row=dict(self.f.bridge_data)
-        row["preflightSha256"]=sha(preflight.read_bytes())
+        row["preflightSha256"]=fixtures.sha(preflight.read_bytes())
         (output_dir/"ifc-model-asset-bridge.json").write_text(json.dumps(row))
         return row
 
-    def run(self):
+    def execute_pipeline(self):
         return runner.run(self.f.ifc,self.f.intake,self.crosswalk,self.registry,
                           self.converter,self.output,"fixture","rev1")
 
     def test_manifest_checksums_and_unplaced_release(self):
         with patch.object(runner,"preflight",side_effect=self.preflight), \
              patch.object(runner,"convert",side_effect=self.convert):
-            result=self.run()
+            result=self.execute_pipeline()
         self.assertEqual(result["status"],"METADATA_READY_GEOMETRY_UNPLACED")
         self.assertFalse(result["modelOverlayPermitted"])
         self.assertFalse(result["terrainClipPermitted"])
@@ -50,7 +50,7 @@ class RunPipelineTests(unittest.TestCase):
         self.assertEqual(result["reviewElementCount"],2)
         self.assertEqual(result["glbNodeGuidLinkCount"],2)
         for name,digest in result["outputHashes"].items():
-            self.assertEqual(sha((self.output/name).read_bytes()),digest)
+            self.assertEqual(fixtures.sha((self.output/name).read_bytes()),digest)
         self.assertTrue((self.output/"design-review.json").is_file())
         self.assertEqual(list(self.f.root.glob(".geobim-stage-*")),[])
 
@@ -58,14 +58,14 @@ class RunPipelineTests(unittest.TestCase):
         with patch.object(runner,"preflight",side_effect=self.preflight), \
              patch.object(runner,"convert",side_effect=RuntimeError("CONVERTER_FAILED")):
             with self.assertRaisesRegex(RuntimeError,"CONVERTER_FAILED"):
-                self.run()
+                self.execute_pipeline()
         self.assertFalse(self.output.exists())
         self.assertEqual(list(self.f.root.glob(".geobim-stage-*")),[])
 
     def test_existing_release_cannot_be_overwritten(self):
         self.output.mkdir()
         with self.assertRaisesRegex(ValueError,"OUTPUT_EXISTS"):
-            self.run()
+            self.execute_pipeline()
 
 if __name__=="__main__":
     unittest.main()
