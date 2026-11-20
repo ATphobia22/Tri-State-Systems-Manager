@@ -1,0 +1,31 @@
+name: GitHub Pages Music Assets
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/src/components/BackgroundMusic.tsx'
+      - 'tsm-console/public/audio/**'
+      - 'tsm-console/tests/background-music-assets.test.mjs'
+      - '.github/workflows/pages-music-assets.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/src/components/BackgroundMusic.tsx'
+      - 'tsm-console/public/audio/**'
+      - 'tsm-console/tests/background-music-assets.test.mjs'
+      - '.github/workflows/pages-music-assets.yml'
+permissions:
+  contents: read
+jobs:
+  verify-audio:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout (no stored credentials)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Check playlist and SHA-256 of four uploaded MP3s
+        run: node --test tsm-console/tests/background-music-assets.test.mjs
