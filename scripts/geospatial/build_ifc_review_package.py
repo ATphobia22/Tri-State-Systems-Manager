@@ -254,8 +254,10 @@ def build(ifc_path: Path, intake_metadata_path: Path, preflight_path: Path,
     if validate_glb(glb_path)["sha256"] != bridge["geometry"].get("sha256"):
         raise ValueError("GLB_HASH_MISMATCH")
     geo = preflight.get("georeferencing", {})
-    if not isinstance(geo, dict) or geo.get("projectedCrs") != metadata["horizontalCrs"] or geo.get("verticalDatumDeclared") != metadata["verticalDatum"]:
+    if not isinstance(geo, dict) or geo.get("projectedCrs") not in (None, metadata["horizontalCrs"]) or geo.get("verticalDatumDeclared") != metadata["verticalDatum"]:
         raise ValueError("PRECHECK_CRS_OR_VERTICAL_DATUM_CONFLICT")
+    if control_path is not None and geo.get("projectedCrs") != metadata["horizontalCrs"]:
+        raise ValueError("CONTROL_REQUIRES_SOURCE_IFC_PROJECTED_CRS")
     source_crs = metadata["horizontalCrs"]
     if source_crs not in CRS_UNIT:
         raise ValueError("CRS_UNIT_REQUIRES_INDEPENDENT_ADAPTER")
@@ -280,8 +282,15 @@ def build(ifc_path: Path, intake_metadata_path: Path, preflight_path: Path,
         title = product.get("name")
         if not isinstance(title, str) or not title.strip() or len(title) > 512:
             title = category + " " + gid
+        quantities = product.get("quantities", {})
+        if not isinstance(quantities, dict) or len(quantities) > 64:
+            raise ValueError("INVALID_IFC_QUANTITY_SET")
+        for key, qty in quantities.items():
+            if not ID.fullmatch(key) or not isinstance(qty, dict) or qty.get("evidence") != "DERIVED" or qty.get("unit") not in ("m", "m2", "m3"):
+                raise ValueError("INVALID_DERIVED_IFC_QUANTITY")
+            finite(qty.get("value"), "quantity")
         elements.append({"id": gid, "parentId": parent, "title": title,
-                         "category": category, "quantities": {}})
+                         "category": category, "quantities": quantities})
     for element in elements:
         if element["parentId"] and element["parentId"] not in valid:
             element["parentId"] = None  # Unresolved relationship, never an invented root mesh.
@@ -336,6 +345,7 @@ def build(ifc_path: Path, intake_metadata_path: Path, preflight_path: Path,
             "sourceId": metadata["sourceId"], "sha256": receipt["sha256"],
             "horizontalCrs": source_crs, "horizontalUnits": map_unit,
             "verticalDatum": metadata["verticalDatum"], "license": metadata["license"],
+            "crsDeclarationOnly": geo.get("projectedCrs") is None,
         },
         "placement": {"state": "PENDING_EVIDENCE", "controlCount": control["controlCount"],
                       "maxResidualM": None, "toleranceM": None},
