@@ -168,3 +168,17 @@ class ReviewPipelineTests(unittest.TestCase):
         self.write_bridge()
         with self.assertRaisesRegex(ValueError, "CONFLICTING_GLB_GUID"):
             self.run_pipeline()
+
+    def test_missing_ifc_georeference_stays_unplaced_but_reviewable(self):
+        obj=json.loads(self.preflight.read_text())
+        obj["georeferencing"]["projectedCrs"]=None
+        obj["georeferencing"]["mapConversion"]=None
+        self.preflight.write_text(json.dumps(obj))
+        self.bridge_data["preflightSha256"]=sha(self.preflight.read_bytes())
+        self.write_bridge()
+        review, features, placement=self.run_pipeline()
+        self.assertEqual(review["placement"]["state"],"PENDING_EVIDENCE")
+        self.assertTrue(review["source"]["crsDeclarationOnly"])
+        self.assertFalse(placement["modelOverlayPermitted"])
+        self.assertFalse(placement["terrainClipPermitted"])
+        self.assertFalse(placement["ifcMapConversionDeclared"])
