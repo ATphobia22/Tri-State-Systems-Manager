@@ -41,6 +41,15 @@ class BuildingTilesWorkflowTests(unittest.TestCase):
         self.assertIn("concurrency:", self.text)
         self.assertIn("cancel-in-progress: false", self.text)
 
+    def test_seal_implicit_output_before_packaging_or_chunking(self):
+        validate = self.text.index("- name: Validate implicit spatial coherence and feature metadata")
+        seal = self.text.index("python3 scripts/release/prepare_implicit_tileset_manifest.py")
+        package = self.text.index("- name: Package versioned artifact")
+        chunk = self.text.index("- name: Pack accepted implicit")
+        self.assertLess(validate, seal)
+        self.assertLess(seal, package)
+        self.assertLess(seal, chunk)
+
     def test_artifact_only_public_evidence(self):
         self.assertIn("/tmp/tsm-igio/copc-checkpoint/", self.text)
         self.assertIn("if-no-files-found: ignore", self.text)
