@@ -1,0 +1,84 @@
+name: Mount Vernon Official Planning Source PDF Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'evidence/municipal/mount-vernon/**'
+      - 'scripts/acquire_mount_vernon_planning.py'
+      - 'tests/test_acquire_mount_vernon_planning.py'
+      - '.github/workflows/mount-vernon-official-planning-acquisition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'evidence/municipal/mount-vernon/**'
+      - 'scripts/acquire_mount_vernon_planning.py'
+      - 'tests/test_acquire_mount_vernon_planning.py'
+      - '.github/workflows/mount-vernon-official-planning-acquisition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-plans:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout reviewed source registry
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Verify authoritative-document source contract
+        run: python -m unittest discover -s tests -p 'test_acquire_mount_vernon_planning.py' -v
+      - name: Download original municipal and county planning PDFs
+        run: |
+          python scripts/acquire_mount_vernon_planning.py \
+            --registry evidence/municipal/mount-vernon/sources.json \
+            --output artifacts/mount-vernon-planning \
+            --include-county
+      - name: Verify source byte SHA256, identity and explicitly blocked zoning status
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path("artifacts/mount-vernon-planning")
+          s=json.loads(Path("evidence/municipal/mount-vernon/sources.json").read_text())
+          expected={"mount-vernon-comprehensive-plan-2023","posey-county-comprehensive-plan-2024"}
+          found=set()
+          for pdf in sorted(root.glob("*.pdf")):
+              sid=pdf.stem
+              assert sid in expected
+              rec=json.loads((root/(pdf.name+".receipt.json")).read_text())
+              assert rec["source_id"]==sid
+              assert rec["bytes"]==pdf.stat().st_size and rec["bytes"]>=100
+              assert hashlib.sha256(pdf.read_bytes()).hexdigest()==rec["sha256"]
+              assert pdf.open("rb").read(5)==b"%PDF-"
+              assert rec["zoning_geometry_verified"] is False
+              assert rec["source_crs"] is None
+              assert rec["original_url"]==next(x["url"] for x in s["sources"] if x["id"]==sid)
+              found.add(sid)
+          assert found==expected
+          assert all(x["geometry_publishable"] is False for x in s["sources"])
+          assert next(x for x in s["sources"] if x["id"]=="posey-official-zoning-map-current")["url"] is None
+          print({"original_pdfs":len(found),"zoning_geometry_verified":False,"survey_certification":False})
+          PY
+      - name: Preserve byte-original city plan and SHA256 receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: official-mount-vernon-adopted-plan-${{ github.sha }}
+          path: |
+            artifacts/mount-vernon-planning/mount-vernon-comprehensive-plan-2023.pdf
+            artifacts/mount-vernon-planning/mount-vernon-comprehensive-plan-2023.pdf.receipt.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preserve byte-original county plan and SHA256 receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: official-posey-county-2024-plan-${{ github.sha }}
+          path: |
+            artifacts/mount-vernon-planning/posey-county-comprehensive-plan-2024.pdf
+            artifacts/mount-vernon-planning/posey-county-comprehensive-plan-2024.pdf.receipt.json
+          if-no-files-found: error
+          retention-days: 30

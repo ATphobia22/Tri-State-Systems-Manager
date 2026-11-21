@@ -81,6 +81,92 @@ def inspect_length_unit(model) -> dict:
             "metersPerModelUnit": factors[prefix], "verified": True}
 
 
+def inspect_quantity_units(model) -> dict:
+    """Return only explicitly declared SI dimensions; no inferred m²/m³ from length units."""
+    assignments = model.by_type("IfcUnitAssignment")
+    if len(assignments) != 1:
+        return {}
+    requirements = {
+        "LENGTHUNIT": ("METRE", 1, "m"),
+        "AREAUNIT": ("SQUARE_METRE", 2, "m2"),
+        "VOLUMEUNIT": ("CUBIC_METRE", 3, "m3"),
+    }
+    prefixes = {None: 1., "MILLI": .001, "CENTI": .01, "DECI": .1,
+                "DECA": 10., "HECTO": 100., "KILO": 1000.}
+    found = {}
+    for unit in getattr(assignments[0], "Units", []):
+        kind = getattr(unit, "UnitType", "")
+        if kind not in requirements or kind in found:
+            continue
+        name, exponent, output_unit = requirements[kind]
+        if unit.is_a() != "IfcSIUnit" or getattr(unit, "Name", None) != name:
+            continue
+        prefix = getattr(unit, "Prefix", None)
+        if prefix in prefixes:
+            found[kind] = (prefixes[prefix] ** exponent, output_unit)
+    return found
+
+
+def inspect_product_quantities(product, dimensional_units: dict) -> dict:
+    """Source-derived authored quantities; never mislabel these as survey observation."""
+    typemap = {
+        "IfcQuantityLength": ("LENGTHUNIT", "LengthValue"),
+        "IfcQuantityArea": ("AREAUNIT", "AreaValue"),
+        "IfcQuantityVolume": ("VOLUMEUNIT", "VolumeValue"),
+    }
+    out = {}
+    for rel in getattr(product, "IsDefinedBy", None) or []:
+        if rel.is_a() != "IfcRelDefinesByProperties":
+            continue
+        definition = getattr(rel, "RelatingPropertyDefinition", None)
+        if definition is None or definition.is_a() != "IfcElementQuantity":
+            continue
+        group = getattr(definition, "Name", None)
+        if not isinstance(group, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,60}", group):
+            continue
+        for q in getattr(definition, "Quantities", None) or []:
+            spec = typemap.get(q.is_a())
+            if not spec or getattr(q, "Unit", None) is not None:
+                continue
+            unit_type, attribute = spec
+            if unit_type not in dimensional_units:
+                continue
+            name = getattr(q, "Name", None)
+            if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,60}", name):
+                continue
+            key = group + "." + name
+            factor, unit = dimensional_units[unit_type]
+            value = getattr(q, attribute, None)
+            if type(value) not in (int, float) or not math.isfinite(value * factor):
+                continue
+            converted = float(value * factor)
+            if key in out:
+                raise PreflightError("Ambiguous duplicate IFC quantity: " + key)
+            if len(out) >= 64:
+                raise PreflightError("IFC quantity count exceeds review package limit")
+            out[key] = {"value": converted, "unit": unit, "evidence": "DERIVED"}
+    return out
+
+
+def inspect_ifc_parent(product) -> str | None:
+    """Prefer explicit aggregation parent, then spatial containment; never guess by order."""
+    for links, relation in (("Decomposes", "RelatingObject"),
+                            ("ContainedInStructure", "RelatingStructure")):
+        parents = set()
+        for rel in getattr(product, links, None) or []:
+            parent = getattr(rel, relation, None)
+            gid = getattr(parent, "GlobalId", None)
+            if gid is not None:
+                if not isinstance(gid, str) or not GLOBAL_ID.fullmatch(gid):
+                    raise PreflightError("Invalid IFC relationship parent GUID")
+                parents.add(gid)
+        if len(parents) > 1:
+            raise PreflightError("Ambiguous IFC spatial parent")
+        if parents:
+            return next(iter(parents))
+    return None
+
+
 def inspect_model(model, source: dict, declared_vertical_datum: str | None = None,
                   expected_crs: str | None = None) -> dict:
     """Testable core: consume an actual IfcOpenShell model object, never heuristics."""
@@ -89,13 +175,22 @@ def inspect_model(model, source: dict, declared_vertical_datum: str | None = Non
         raise PreflightError("IFC product count exceeds bounded inventory")
     items = []
     seen = set()
+    dimensional_units = inspect_quantity_units(model)
     for product in products:
         gid = getattr(product, "GlobalId", None)
         if not isinstance(gid, str) or not GLOBAL_ID.fullmatch(gid) or gid in seen:
             raise PreflightError("Missing, malformed, or duplicate IFC GlobalId")
         seen.add(gid)
-        items.append({"globalId": gid, "ifcClass": product.is_a(),
-                      "hasRepresentation": getattr(product, "Representation", None) is not None})
+        item = {"globalId": gid, "ifcClass": product.is_a(),
+                "hasRepresentation": getattr(product, "Representation", None) is not None,
+                "quantities": inspect_product_quantities(product, dimensional_units)}
+        name = getattr(product, "Name", None)
+        if isinstance(name, str) and 0 < len(name.strip()) <= 512:
+            item["name"] = name
+        parent_gid = inspect_ifc_parent(product)
+        if parent_gid:
+            item["parentGlobalId"] = parent_gid
+        items.append(item)
     items.sort(key=lambda item: item["globalId"])
 
     # IFC2X3 predates IfcProjectedCRS and IfcMapConversion. In that

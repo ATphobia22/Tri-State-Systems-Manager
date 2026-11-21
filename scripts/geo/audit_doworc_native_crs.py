@@ -9,9 +9,12 @@ from datetime import datetime, timezone
 
 def audit(path):
     from pyproj import CRS
+    from pyproj.exceptions import CRSError
     rows = []
     with zipfile.ZipFile(path) as z:
         entries = {n.lower(): n for n in z.namelist()}
+        if len(entries) != len(z.namelist()):
+            raise ValueError("Archive contains ambiguous case-insensitive member names")
         for shp in sorted(n for n in z.namelist() if n.lower().endswith(".shp")):
             prj = entries.get((shp[:-4] + ".prj").lower())
             row = {"shapefile": shp, "source_epsg": None, "source_wkt": None,
@@ -25,7 +28,7 @@ def audit(path):
                     row.update(source_epsg=crs.to_epsg(), source_wkt=crs.to_wkt(),
                                horizontal_units=[a.unit_name for a in crs.axis_info],
                                status="PARSED_HORIZONTAL" if crs.is_projected or crs.is_geographic else "REVIEW_COMPOUND")
-                except (ValueError, UnicodeError) as exc:
+                except (CRSError, ValueError) as exc:
                     row.update(status="INVALID_PRJ", error=str(exc))
             rows.append(row)
     return {"archive": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "layers": rows}

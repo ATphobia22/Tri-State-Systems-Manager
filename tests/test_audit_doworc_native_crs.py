@@ -21,6 +21,16 @@ class AuditTests(unittest.TestCase):
             self.assertIsNone(row["source_epsg"])
             self.assertIsNone(row["vertical_datum"])
 
+    def test_malformed_projection_is_reported(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "invalid.zip"
+            with zipfile.ZipFile(p, "w") as z:
+                z.writestr("layer.shp", b"placeholder")
+                z.writestr("layer.prj", "invalid WKT")
+            row = module.audit(p)["layers"][0]
+            self.assertEqual(row["status"], "INVALID_PRJ")
+            self.assertIsNone(row["source_epsg"])
+
     def test_distinct_crs_remain_distinct(self):
         from pyproj import CRS
         with tempfile.TemporaryDirectory() as td:

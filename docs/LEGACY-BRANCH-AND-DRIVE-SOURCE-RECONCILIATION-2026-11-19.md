@@ -38,3 +38,38 @@ These findings are *inventory and evidence-gate observations*, not proof that th
 5. Delete or archive obsolete branches only after verifying no unique desired changes and retaining audit references. Tracking issue #680 remains open until these executable and data gates are evidenced.
 
 This reconciliation rejects dangerous whole-branch merges while preserving the documented useful functionality already present on main.
+
+## November 20 corrections and recovered source tooling
+
+The owner confirmed that the Unreal showcase archive contains no Tri-State
+county coverage or functioning map layers. The archive directory and file
+extensions alone do not establish scene content. Treat the showcase as a
+separate demo project. County and layer acceptance requires loading the
+actual TSM scene against its source manifest. UE5.8 Editor validation and
+the clean Windows 11 Shipping launch remain open.
+
+This consolidation recovers the Mount Vernon scene manifest writer and
+checksum/geometry preflight from #686. They run without the Unreal Editor.
+For local data that has already been converted to the EAST_SOUTH_UP scene
+frame in centimeters, build the manifest with
+`python scripts/geospatial/tsm_mv_scene_manifest.py --help`. Run
+`python tsm-native/Content/Python/tsm_mv_scene_contract.py SCENE_DIRECTORY`
+to inspect the result before any future Editor import. The preflight verifies
+the format and byte identity of the inputs. Survey control and source datum
+claims require separate evidence.
+
+The source-archive projection inventory from #690 is available through
+`python scripts/geo/audit_doworc_native_crs.py --help`. Its read-only audit
+found 69 layers in EPSG:26916, 55 in EPSG:26716, and one without a projection
+file across eight Indiana DNR archives. With the
+[official NADCON5 CONUS grid](https://cdn.proj.org/us_noaa_nadcon5_nad27_nad83_1986_conus.tif)
+(SHA-256 `c7d587e0d0b39b9f46c7de850b9a6a468c17b7139f82a313aa43aa4a64d94fa8`),
+a separate strict numerical audit could transform 124 layer samples. The
+remaining layer was `tr_van.shp` in the Vanderburgh aquifer archive. Survey
+control and vertical datum are still unverified. Original DNR archives
+remain private.
+
+The older music branch was superseded by #694. The photogrammetry SfM
+contract branch is already an ancestor of `main`. The remaining MicMac
+adapter, DoWORC transform runtime, and Unreal Editor integration each retain
+their own validation status.

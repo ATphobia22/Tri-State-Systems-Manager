@@ -1,0 +1,71 @@
+name: TSM openMVG to MicMac Adapter
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/test_openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/verify_micmac_camera_projection.py'
+      - 'docs/review/PHOTOGRAMMETRY-ADAPTER-ACCEPTANCE.md'
+      - '.github/workflows/openmvg-micmac-adapter.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/test_openmvg_to_micmac_adapter.py'
+      - 'scripts/geospatial/verify_micmac_camera_projection.py'
+      - 'docs/review/PHOTOGRAMMETRY-ADAPTER-ACCEPTANCE.md'
+      - '.github/workflows/openmvg-micmac-adapter.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Synthetic math, path safety and evidence receipts
+        run: python -m unittest discover -s scripts/geospatial -p test_openmvg_to_micmac_adapter.py -v
+  micmac-reference-projections:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install MicMac shared-library dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libqt5opengl5t64 libqt5xml5t64 libqt5widgets5t64
+      - name: Verify pinned real-camera fixture and MicMac release
+        run: |
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            https://github.com/micmacIGN/micmac/releases/download/v1.2.0/micmac_linux.tgz \
+            --output "$RUNNER_TEMP/micmac_linux.tgz"
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            https://raw.githubusercontent.com/openMVG/openMVG/e0162aef9a5ba6ec9f54c39ed49ea47a0e82e1db/src/software/SfM/python/sfm_viewer/sample_data/sfm_data.json \
+            --output "$RUNNER_TEMP/sfm_data.json"
+          (cd "$RUNNER_TEMP" && sha256sum -c <<'SUMS'
+          84c1b48dd4f7b4e099a40d034d08afbebd4837ea61526ecae370304e8d5153c5  micmac_linux.tgz
+          885cb7e3e1379a469fc02e5cebbc440553272007ff2c0094b371bb5f6062b626  sfm_data.json
+          SUMS
+          )
+          tar -xzf "$RUNNER_TEMP/micmac_linux.tgz" -C "$RUNNER_TEMP"
+      - name: Compare MicMac pixels with real openMVG camera projections
+        run: |
+          ulimit -c 0
+          python scripts/geospatial/verify_micmac_camera_projection.py \
+            --fixture "$RUNNER_TEMP/sfm_data.json" \
+            --micmac "$RUNNER_TEMP/micmac_linux/bin/mm3d" | tee "$RUNNER_TEMP/micmac-projection.json"
+      - name: Preserve numeric projection receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: micmac-reference-projection-receipt
+          path: ${{ runner.temp }}/micmac-projection.json
+          if-no-files-found: error
