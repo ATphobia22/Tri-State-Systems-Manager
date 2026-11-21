@@ -2,6 +2,8 @@
 import hashlib
 import importlib.util
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,6 +58,28 @@ class SceneContractTests(unittest.TestCase):
             self.assertEqual({x: len(layers[x]) for x in scene.ROLES},
                              {"buildings": 1, "roads": 1, "trees": 1})
             self.assertTrue(layers["buildings"][0]["closed"])
+
+    def test_manifest_cli_validates_before_publication_and_preserves_existing_manifest(self):
+        script = MODULE.parents[3] / "scripts/geospatial/tsm_mv_scene_manifest.py"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _write(root, bad_ring=True)
+            path = root / "manifest.json"
+            path.unlink()
+            command = [
+                sys.executable, str(script), str(root), "--source-crs", "EPSG:2968",
+                "--anchor-x", "500000", "--anchor-y", "1000000", "--units",
+                "us_survey_foot", "--vertical-datum", "UNVERIFIED",
+            ]
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            self.assertFalse(path.exists())
+            _write(root)
+            path.unlink()
+            subprocess.run(command, check=True, capture_output=True)
+            original = path.read_bytes()
+            self.assertEqual(scene.scene_summary(root)["counts"]["buildings"], 1)
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            self.assertEqual(path.read_bytes(), original)
 
     def test_sha_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -96,8 +96,14 @@ def load_scene(scene_dir):
     it never upgrades PENDING_EVIDENCE to authoritative on its own.
     """
     root = Path(scene_dir).expanduser().resolve(strict=True)
-    manifest_file = root / "manifest.json"
-    manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    return manifest, validate_scene(root, manifest)
+
+
+def validate_scene(root: Path, manifest: dict):
+    """Validate candidate metadata and the exact bytes parsed for each layer."""
+    if not isinstance(manifest, dict):
+        raise SceneError("manifest: expected a JSON object")
     if manifest.get("schema") != SCHEMA:
         raise SceneError("manifest: schema must be " + SCHEMA)
     if manifest.get("coordinate_frame") != "UE_LOCAL_CM" or manifest.get("axes") != "EAST_SOUTH_UP":
@@ -112,7 +118,7 @@ def load_scene(scene_dir):
     anchor = manifest.get("source_anchor") or {}
     for key in ("easting", "northing"):
         value = anchor.get(key)
-        if not isinstance(value, (float, int)) or not math.isfinite(value):
+        if type(value) not in (float, int) or not math.isfinite(value):
             raise SceneError(f"manifest: source_anchor.{key} is required")
     if anchor.get("units") not in ("us_survey_foot", "meter"):
         raise SceneError("manifest: source_anchor.units must be explicit")
@@ -133,10 +139,11 @@ def load_scene(scene_dir):
         path = (root / filename).resolve(strict=True)
         if path.parent != root:
             raise SceneError(f"manifest: {role} file must remain within scene folder")
-        if sha256_file(path) != checksum:
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != checksum:
             raise SceneError(f"{role}: SHA-256 mismatch")
-        fc = json.loads(path.read_text(encoding="utf-8"))
-        if fc.get("type") != "FeatureCollection" or not isinstance(fc.get("features"), list):
+        fc = json.loads(raw)
+        if not isinstance(fc, dict) or fc.get("type") != "FeatureCollection" or not isinstance(fc.get("features"), list):
             raise SceneError(f"{role}: expected GeoJSON FeatureCollection")
         seen = set()
         features = []
@@ -147,7 +154,7 @@ def load_scene(scene_dir):
             seen.add(item["id"])
             features.append(item)
         layers[role] = sorted(features, key=lambda x: x["id"])
-    return manifest, layers
+    return layers
 
 
 def scene_summary(scene_dir):

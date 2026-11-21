@@ -5,22 +5,15 @@ Does not convert coordinates or certify inputs. Use only AFTER an independently
 reviewed GDAL/PROJ conversion from source files into EAST_SOUTH_UP centimeters.
 """
 import argparse
-import hashlib
 import json
 import math
+import os
+import tempfile
 import sys
 from pathlib import Path
 
 SCHEMA = "tsm.mount-vernon.scene.v1"
 FILES = ("buildings", "roads", "trees")
-
-
-def sha(path):
-    digest = hashlib.sha256()
-    with path.open("rb") as src:
-        for chunk in iter(lambda: src.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def main(argv=None):
@@ -39,6 +32,9 @@ def main(argv=None):
         p.error("source-crs must be an explicit EPSG code")
     if not all(math.isfinite(x) for x in (args.anchor_x, args.anchor_y)):
         p.error("source anchor coordinates must be finite")
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tsm-native/Content/Python"))
+    from tsm_mv_scene_contract import sha256_file, validate_scene
+
     root = args.scene_dir.expanduser().resolve(strict=True)
     manifest_path = root / "manifest.json"
     if manifest_path.exists():
@@ -48,25 +44,25 @@ def main(argv=None):
         path = root / (name + ".geojson")
         if not path.is_file() or path.is_symlink():
             p.error("missing/unsafe " + str(path))
-        file_map[name] = {"path": path.name, "sha256": sha(path)}
+        file_map[name] = {"path": path.name, "sha256": sha256_file(path)}
     output = {
         "schema": SCHEMA, "coordinate_frame": "UE_LOCAL_CM",
         "axes": "EAST_SOUTH_UP", "source_horizontal_crs": args.source_crs,
         "vertical_datum": args.vertical_datum, "evidence_status": args.evidence_status,
         "source_anchor": {"easting": args.anchor_x, "northing": args.anchor_y,
                           "units": args.units}, "files": file_map}
-    # Validate before persisting; import path is checked at top level.
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tsm-native/Content/Python"))
-    from tsm_mv_scene_contract import load_scene
-    try:
-        with manifest_path.open("x", encoding="utf-8") as out:
+    validate_scene(root, output)
+    # Publish only a complete manifest, without replacing a concurrent writer.
+    with tempfile.NamedTemporaryFile(dir=root, mode="w", encoding="utf-8", delete=False) as out:
+        temporary = Path(out.name)
+        try:
             out.write(json.dumps(output, indent=2, sort_keys=True) + "\n")
-        load_scene(root)
-    except Exception:
-        manifest_path.unlink(missing_ok=True)
-        raise
+            out.close()
+            os.link(temporary, manifest_path)
+        finally:
+            temporary.unlink(missing_ok=True)
     print("Wrote validated local manifest:", manifest_path)
-    print("SHA-256:", sha(manifest_path))
+    print("SHA-256:", sha256_file(manifest_path))
 
 
 if __name__ == "__main__":
