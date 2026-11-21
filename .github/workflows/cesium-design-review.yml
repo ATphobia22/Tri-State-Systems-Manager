@@ -1,0 +1,39 @@
+name: Cesium design-driven review (source contracts)
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/src/lib/design-review-workspace.ts'
+      - 'tsm-console/src/routes/CesiumRegionalTwinView.tsx'
+      - 'tsm-console/tests/design-review-workspace.test.mjs'
+      - 'docs/research/CESIUM-DESIGN-DRIVEN-TSM-ADOPTION-2026-11-20.md'
+      - '.github/workflows/cesium-design-review.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/src/lib/design-review-workspace.ts'
+      - 'tsm-console/src/routes/CesiumRegionalTwinView.tsx'
+      - 'tsm-console/tests/design-review-workspace.test.mjs'
+      - '.github/workflows/cesium-design-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-and-revision-contracts:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Offline synthetic model-tree / revision / quantities tests
+        run: node --experimental-strip-types --test tests/design-review-workspace.test.mjs
+      - name: Record native evidence boundary
+        run: |
+          echo "Source contracts only. Actual IFC geometry, Cesium ion API, georeference checks,"
+          echo "clipping, low-power device performance, and UE5.8 Shipping are NOT_EVIDENCED."
