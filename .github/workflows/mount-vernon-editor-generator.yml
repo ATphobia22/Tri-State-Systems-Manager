@@ -1,0 +1,46 @@
+name: Mount Vernon UE5.8 Editor and RVT contracts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'tsm-native/Content/Python/init_unreal.py'
+      - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
+      - 'scripts/geospatial/tsm_mv_scene_manifest.py'
+      - 'tests/test_tsm_mv_*.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+  pull_request:
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'tsm-native/Content/Python/init_unreal.py'
+      - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
+      - 'scripts/geospatial/tsm_mv_scene_manifest.py'
+      - 'tests/test_tsm_mv_*.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  headless-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - name: Parse UE Editor and headless manifest scripts
+        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_rvt_contract.py tsm-native/Content/Python/tsm_mv_rvt_functions.py tsm-native/Content/Python/tsm_mv_environment_contract.py tsm-native/Content/Python/tsm_mv_environment.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py scripts/geospatial/tsm_mv_scene_manifest.py
+      - name: Validate immutable GIS source contracts
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_scene_contract.py' -v
+      - name: Validate RVT height and edge math
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_contract.py' -v
+      - name: Verify RVT starter graph pin topology with strict fake Editor
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_builder.py' -v
+      - name: Test reusable foundation and road MaterialFunction graphs
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_rvt_functions.py' -v
+      - name: Validate DST-aware cinematic environment presets
+        run: python -m unittest discover -s tests -p 'test_tsm_mv_environment_contract.py' -v
+      - name: Disclose missing native gates
+        run: echo "Headless contracts only; UE5.8 Editor, RVT shader, PCG, HLOD and Win64 Shipping remain NOT_EVIDENCED."
