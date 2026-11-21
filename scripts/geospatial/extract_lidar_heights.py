@@ -52,7 +52,6 @@ POSEY_BBOX = (-88.08, 37.75, -87.92, 38.03)
 
 CLASS_GROUND = 2
 CLASS_BUILDING = 6
-CLASS_BUILDING_ALT = 8
 
 MIN_ROOF_POINTS = 5
 MIN_GROUND_POINTS = 3
@@ -437,7 +436,7 @@ def measure_height(props, sid, ring_native, xs, ys, zs, classes, buf, stats, ept
         for i in idxs:
             c = int(classes[i])
             px, py = float(xs[i]), float(ys[i])
-            if c in (CLASS_BUILDING, CLASS_BUILDING_ALT):
+            if c == CLASS_BUILDING:
                 if point_in_polygon(px, py, ring_native):
                     roof_z.append(float(zs[i]))
             elif c == CLASS_GROUND:
@@ -479,7 +478,7 @@ def measure_height(props, sid, ring_native, xs, ys, zs, classes, buf, stats, ept
         props["lidarHeightConfidence"] = ("HIGH" if len(roof_z) >= 30 and len(ground_z) >= 15 and robust_spread_m <= 0.30 else "MEDIUM" if len(roof_z) >= 10 and len(ground_z) >= 5 and robust_spread_m <= 0.75 else "LOW")
         props["canopyOcclusionStatus"] = "NOT_FLAGGED_BY_CLASS_5_SCREEN"
         props["canopyPointsWithinFootprint"] = len(canopy_z)
-        props["lidarHeightMethod"] = "median(Classification in {6,8} Z) - median(Classification=2 Z); robust spread indicator is not survey accuracy"
+        props["lidarHeightMethod"] = "median(Classification=6 Z) - median(Classification=2 Z); robust spread indicator is not survey accuracy"
         props["lidarHeightDatum"] = "NAVD88"
         props["lidarHeightUnit"] = "ftUS"
         props["lidarSource"] = ept_url

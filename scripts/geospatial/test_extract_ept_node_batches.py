@@ -19,8 +19,9 @@ class EptNodeBatchTests(unittest.TestCase):
             for nid in (93, 81, 65)
         ]
         las = SimpleNamespace(
-            x=np.full(8, 5.0), y=np.full(8, 5.0),
-            z=np.array([100.0] * 3 + [106.0] * 5), classification=np.array([2] * 3 + [6] * 5),
+            x=np.full(14, 5.0), y=np.full(14, 5.0),
+            z=np.array([100.0] * 3 + [106.0] * 5 + [120.0] * 6),
+            classification=np.array([2] * 3 + [6] * 5 + [8] * 6),
         )
         with TemporaryDirectory() as directory:
             source = Path(directory) / "source.json"
@@ -39,7 +40,8 @@ class EptNodeBatchTests(unittest.TestCase):
             self.assertEqual([row["igioObjectId"] for row in rows], [93, 81, 65])
             self.assertEqual([row["lidarHeightM"] for row in rows], [6.0] * 3)
             self.assertEqual(stats["with_height"], 3)
-            self.assertEqual(stats["class_histogram"], {"2": 9, "6": 15})
+            self.assertTrue(all(row["lidarRoofPoints"] == 5 for row in rows))
+            self.assertEqual(stats["class_histogram"], {"2": 9, "6": 15, "8": 18})
 
     def test_batches_never_exceed_node_budget_or_drop_a_group(self):
         groups = {(str(i), str(i + 1)): [i] for i in range(50)}
