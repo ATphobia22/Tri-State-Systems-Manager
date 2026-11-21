@@ -1,0 +1,168 @@
+{
+  "type": "record",
+  "name": "StateUpdate",
+  "fields": [
+    {
+      "name": "version",
+      "type": "int"
+    },
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "matrix",
+      "type": {
+        "type": "enum",
+        "name": "Matrix",
+        "symbols": [
+          "S",
+          "O",
+          "H",
+          "T",
+          "I",
+          "B",
+          "R",
+          "M",
+          "V",
+          "P",
+          "U",
+          "E",
+          "TT",
+          "RR",
+          "SYNC",
+          "D"
+        ]
+      }
+    },
+    {
+      "name": "entity_id",
+      "type": "string"
+    },
+    {
+      "name": "timeline",
+      "type": {
+        "type": "enum",
+        "name": "Timeline",
+        "symbols": [
+          "observed",
+          "forecast",
+          "scenario"
+        ]
+      }
+    },
+    {
+      "name": "branch",
+      "type": "string"
+    },
+    {
+      "name": "valid_from",
+      "type": "string"
+    },
+    {
+      "name": "operation",
+      "type": {
+        "type": "enum",
+        "name": "Operation",
+        "symbols": [
+          "upsert",
+          "retire"
+        ]
+      }
+    },
+    {
+      "name": "geometry_json",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "state_json",
+      "type": "string"
+    },
+    {
+      "name": "source",
+      "type": {
+        "type": "record",
+        "name": "Source",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "retrieved_at",
+            "type": "string"
+          },
+          {
+            "name": "sha256",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evidence",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "EvidenceLink",
+          "fields": [
+            {
+              "name": "event_id",
+              "type": "string"
+            },
+            {
+              "name": "relationship",
+              "type": {
+                "type": "enum",
+                "name": "Relationship",
+                "symbols": [
+                  "derived_from",
+                  "observes",
+                  "validates",
+                  "reviewed_by",
+                  "supersedes"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": []
+    },
+    {
+      "name": "asset",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Asset",
+          "fields": [
+            {
+              "name": "href",
+              "type": "string"
+            },
+            {
+              "name": "media_type",
+              "type": "string"
+            },
+            {
+              "name": "sha256",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "default": null
+    }
+  ],
+  "namespace": "org.tsm.livingtwin"
+}

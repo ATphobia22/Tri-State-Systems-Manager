@@ -1,0 +1,108 @@
+name: tsm-living-twin
+x-runtime: &runtime
+  image: tsm-living-twin:local
+  build: .
+  environment:
+    DATABASE_URL: postgresql://twin:twin@db:5432/twin
+    KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+    SCHEMA_REGISTRY_URL: http://redpanda:8081
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    CESIUM_ORIGINS: "${CESIUM_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
+services:
+  db:
+    image: ghcr.io/stac-utils/pgstac:v0.9.11
+    environment:
+      POSTGRES_USER: twin
+      POSTGRES_PASSWORD: twin
+      POSTGRES_DB: twin
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports: ["127.0.0.1:15432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U twin -d twin -Atqc \"SELECT to_regnamespace('pgstac') IS NOT NULL\" | grep -qx t"]
+      interval: 3s
+      timeout: 4s
+      retries: 40
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v25.1.9
+    command:
+      - redpanda
+      - start
+      - --mode=dev-container
+      - --smp=1
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:19092
+      - --schema-registry-addr=0.0.0.0:8081
+    ports: ["127.0.0.1:19092:19092", "127.0.0.1:18081:8081"]
+    volumes:
+      - kafka-data:/var/lib/redpanda/data
+  migrate:
+    <<: *runtime
+    depends_on:
+      db: {condition: service_healthy}
+    command: ["alembic", "upgrade", "head"]
+  topics:
+    <<: *runtime
+    depends_on:
+      redpanda: {condition: service_started}
+    command: ["python", "-m", "twin.kafka"]
+  consumer:
+    <<: *runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      topics: {condition: service_completed_successfully}
+    command: ["python", "-m", "twin.consumer"]
+    restart: on-failure
+  relay:
+    <<: *runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      topics: {condition: service_completed_successfully}
+    command: ["python", "-m", "twin.relay"]
+    restart: on-failure
+  api:
+    <<: *runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    command: ["uvicorn", "twin.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["127.0.0.1:18000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2)"]
+      interval: 3s
+      timeout: 4s
+      retries: 20
+  tempo:
+    image: grafana/tempo:2.8.1
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo.yaml:/etc/tempo.yaml:ro
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    volumes:
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+  grafana:
+    image: grafana/grafana:12.0.1
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports: ["127.0.0.1:13000:3000"]
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  tests:
+    <<: *runtime
+    profiles: ["test"]
+    depends_on:
+      api: {condition: service_healthy}
+      relay: {condition: service_started}
+      consumer: {condition: service_started}
+    environment:
+      DATABASE_URL: postgresql://twin:twin@db:5432/twin
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SCHEMA_REGISTRY_URL: http://redpanda:8081
+      TWIN_API: http://api:8000
+    command: ["python", "-m", "pytest", "-q", "tests"]
+volumes:
+  postgres-data:
+  kafka-data:

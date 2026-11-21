@@ -1,0 +1,709 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "event_id",
+    "matrix",
+    "entity_id",
+    "timeline",
+    "branch",
+    "valid_from",
+    "operation",
+    "geometry",
+    "state",
+    "source",
+    "evidence",
+    "asset"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$"
+    },
+    "matrix": {
+      "enum": [
+        "S",
+        "O",
+        "H",
+        "T",
+        "I",
+        "B",
+        "R",
+        "M",
+        "V",
+        "P",
+        "U",
+        "E",
+        "TT",
+        "RR",
+        "SYNC",
+        "D"
+      ]
+    },
+    "entity_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+    },
+    "timeline": {
+      "enum": [
+        "observed",
+        "forecast",
+        "scenario"
+      ]
+    },
+    "branch": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "operation": {
+      "enum": [
+        "upsert",
+        "retire"
+      ]
+    },
+    "geometry": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "Point",
+                "MultiPoint",
+                "LineString",
+                "MultiLineString",
+                "Polygon",
+                "MultiPolygon"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "state": {
+      "type": "object",
+      "maxProperties": 64
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "uri",
+        "retrieved_at",
+        "sha256"
+      ],
+      "properties": {
+        "authority": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^/]+",
+          "maxLength": 2048
+        },
+        "retrieved_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "relationship"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$"
+          },
+          "relationship": {
+            "enum": [
+              "derived_from",
+              "observes",
+              "validates",
+              "reviewed_by",
+              "supersedes"
+            ]
+          }
+        }
+      },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
+    "asset": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "href",
+            "media_type",
+            "sha256"
+          ],
+          "properties": {
+            "href": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://[^/]+",
+              "maxLength": 2048
+            },
+            "media_type": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:twin:state-update:v1",
+  "title": "TSM living twin state update",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "timeline": {
+            "const": "observed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "branch": {
+            "const": "main"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "branch": {
+            "not": {
+              "const": "main"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "retire"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "maxProperties": 0
+          },
+          "geometry": {
+            "type": "null"
+          },
+          "asset": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "asset": {
+            "type": "object"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "geometry": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "O"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "sensor_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              },
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "quality": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "vertical_reference": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "sensor_id",
+              "parameter",
+              "value",
+              "unit",
+              "quality",
+              "vertical_reference"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "H"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "reach_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              }
+            },
+            "required": [
+              "reach_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "T"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "horizontal_crs": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "vertical_datum": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "vertical_unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "horizontal_crs",
+              "vertical_datum",
+              "vertical_unit"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "I"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "asset_type": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "asset_type"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "B"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "source_object_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              }
+            },
+            "required": [
+              "source_object_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "R"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "capture_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              }
+            },
+            "required": [
+              "capture_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "M"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "engine": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "engine",
+              "revision"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "V"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "metric": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "sample_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "observation_use": {
+                "enum": [
+                  "withheld",
+                  "fit",
+                  "unknown"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "metric",
+              "sample_count",
+              "observation_use",
+              "unit"
+            ]
+          },
+          "evidence": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "U"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "method": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "method",
+              "unit"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "RR"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "community_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "community_id",
+              "method"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "SYNC"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              },
+              "status": {
+                "enum": [
+                  "current",
+                  "stale",
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "source_id",
+              "status"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "matrix": {
+            "const": "D"
+          },
+          "operation": {
+            "const": "upsert"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "properties": {
+              "reviewer_id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$"
+              },
+              "reviewed_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+              },
+              "disposition": {
+                "enum": [
+                  "accepted",
+                  "rejected",
+                  "deferred"
+                ]
+              }
+            },
+            "required": [
+              "reviewer_id",
+              "reviewed_at",
+              "disposition"
+            ]
+          },
+          "evidence": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

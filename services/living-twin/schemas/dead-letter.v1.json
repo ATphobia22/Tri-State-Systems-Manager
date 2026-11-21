@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:twin:dead-letter:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "topic", "partition", "offset", "sha256", "reason"],
+  "properties": {
+    "version": {"const": 1},
+    "topic": {"const": "tsm.twin.state-update.v1"},
+    "partition": {"type": "integer", "minimum": 0},
+    "offset": {"type": "integer", "minimum": 0},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "reason": {"type": "string", "minLength": 1}
+  }
+}
