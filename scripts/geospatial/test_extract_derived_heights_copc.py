@@ -2,11 +2,16 @@
 """Regression: COPC tiles are decompressed once per tile, not once per building."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import unittest
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import laspy
 import numpy as np
+from pyproj import CRS, Transformer
 
 from scripts.geospatial import extract_derived_heights_copc as copc
 
@@ -101,6 +106,89 @@ class FootprintTopologyTests(unittest.TestCase):
             with self.subTest(coord=coord):
                 with self.assertRaises(ValueError):
                     copc.get_footprint_polygons_spw(geom)
+
+
+class CopcWorkflowTests(unittest.TestCase):
+    grid = (537, 189)
+    to_wgs84 = Transformer.from_crs(2968, 4326, always_xy=True)
+
+    def footprint(self, oid, east, north, status="UNAVAILABLE"):
+        ring = [(east, north), (east+20, north), (east+20, north+20),
+                (east, north+20), (east, north)]
+        return {"type": "Feature", "properties": {
+            "igioObjectId": oid, "lidarHeightStatus": status,
+        }, "geometry": {"type": "Polygon", "coordinates": [
+            [self.to_wgs84.transform(x, y) for x, y in ring]
+        ]}}
+
+    def test_primary_cli_defers_crossing_window_even_if_one_tile_can_return_a_height(self):
+        with TemporaryDirectory() as directory:
+            work = Path(directory)
+            source, tile_list, output = [work / filename for filename in
+                                         ("input.geojson", "tiles.txt", "output.geojson")]
+            features = [
+                self.footprint(1, 2685100, 945100),
+                self.footprint(2, 2689970, 949970),
+                self.footprint(3, 2689970, 949970, "OK"),
+            ]
+            source.write_text(json.dumps({"features": features}))
+            tile_url = copc.grid_url(self.grid)
+            tile_list.write_text(tile_url + "\n")
+            arrays = (
+                np.repeat([2685110.0, 2689980.0], 20),
+                np.repeat([945110.0, 949980.0], 20),
+                np.tile(np.repeat([100.0, 120.0], 10), 2),
+                np.tile(np.repeat([2, 1], 10), 2),
+            )
+            args = ["extract", "--geojson", str(source), "--tile-list", str(tile_list),
+                    "--tile-dir", str(work), "--out", str(output),
+                    "--tile-manifest", str(work / "manifest.json")]
+
+            def stage_tile(url, path):
+                self.assertEqual(url, tile_url)
+                Path(path).touch()
+                return "a" * 64
+
+            with patch("sys.argv", args), patch.object(copc, "download_tile", side_effect=stage_tile), \
+                    patch.object(copc, "verified_tile_bounds", return_value=(2685000, 945000, 2690000, 950000)), \
+                    patch.object(copc, "load_tile_arrays", return_value=arrays) as read:
+                self.assertEqual(copc.main(), 0)
+                first = output.read_bytes()
+                self.assertEqual(copc.main(), 0)
+                self.assertEqual(output.read_bytes(), first)
+                read.assert_called_once()
+            rows = [feature["properties"] for feature in json.loads(first)["features"]]
+            self.assertEqual(rows[0]["lidarHeightFt"], 20.0)
+            self.assertEqual(rows[0]["lidarSource"], tile_url)
+            self.assertEqual(rows[1]["lidarHeightStatus"], "adjacent-tile-window-required")
+            self.assertNotIn("lidarHeightFt", rows[1])
+            self.assertEqual(rows[2]["heightProvenance"], "OBSERVED")
+
+    def test_source_header_requires_horizontal_and_vertical_crs_and_matching_grid(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "tile.las"
+            for crs, message in [
+                ("EPSG:2968", "NAVD88 US survey feet"),
+                ("EPSG:2968+5703", "NAVD88 US survey feet"),
+                ("EPSG:2966+6360", "Indiana West ftUS source CRS"),
+                ("EPSG:2968+6360", None),
+            ]:
+                with self.subTest(crs=crs):
+                    header = laspy.LasHeader(point_format=6, version="1.4")
+                    header.add_crs(CRS.from_user_input(crs))
+                    data = laspy.LasData(header)
+                    data.x = [2685100]
+                    data.y = [945100]
+                    data.z = [375]
+                    data.write(path)
+                    if message:
+                        with self.assertRaisesRegex(ValueError, message):
+                            copc.verified_tile_bounds(path, self.grid)
+                    else:
+                        self.assertEqual(copc.verified_tile_bounds(path, self.grid),
+                                         (2685100, 945100, 2685100, 945100))
+                        with self.assertRaisesRegex(ValueError, "named tile"):
+                            copc.verified_tile_bounds(path, (538, 189))
 
 
 if __name__ == "__main__":

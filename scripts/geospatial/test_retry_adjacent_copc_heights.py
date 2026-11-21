@@ -8,6 +8,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import retry_adjacent_copc_heights as retry
+import extract_derived_heights_copc as copc
 
 
 class AdjacentTileRecoveryTests(unittest.TestCase):
@@ -30,7 +31,7 @@ class AdjacentTileRecoveryTests(unittest.TestCase):
 
     def run_recovery(self, reader):
         with TemporaryDirectory() as directory, \
-                patch.object(retry, 'get_footprint_polygons_spw', return_value=self.polygons), \
+                patch.object(copc, 'get_footprint_polygons_spw', return_value=self.polygons), \
                 patch.object(retry, 'download_tile', return_value='a' * 64), \
                 patch.object(retry, 'read_source', side_effect=reader):
             return retry.recover(self.features, Path(directory), keep_tiles=True)
@@ -58,7 +59,7 @@ class AdjacentTileRecoveryTests(unittest.TestCase):
         self.assertEqual(self.features[0]['properties']['lidarHeightStatus'], 'insufficient-ground-points:5')
 
     def test_ground_buffer_reaches_diagonal_neighbor(self):
-        self.assertEqual(retry.intersecting_grids([(4960, 4960, 5030, 5030)]),
+        self.assertEqual(copc.intersecting_grids([(4960, 4960, 5030, 5030)]),
                          {(0, 0), (0, 1), (1, 0), (1, 1)})
 
 
