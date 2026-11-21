@@ -75,11 +75,13 @@ def test_ordered_projection_and_rebuild(event, revision):
             }).status_code == 409
 
         retired, _ = apply(revision(first, operation="retire", geometry=None, state={}))
-        late, _ = apply(revision(first, valid_from="2025-01-01T03:00:00Z"))
-        def retired_page():
+        def observed_after(seq):
             data = page()
-            return data if data["watermark"] >= max(late, retired) else None
-        assert all(row["entity_id"] != reach for row in wait_for(retired_page)["entries"])
+            return data if data["watermark"] >= seq else None
+
+        assert all(row["entity_id"] != reach for row in wait_for(lambda: observed_after(retired))["entries"])
+        late, _ = apply(revision(first, valid_from="2025-01-01T03:00:00Z"))
+        assert all(row["entity_id"] != reach for row in wait_for(lambda: observed_after(late))["entries"])
 
 
 def test_stac_replay_restores_missing_item(event, revision):
@@ -115,3 +117,21 @@ def test_stac_replay_restores_missing_item(event, revision):
         job = wait_for(complete)
         assert job["watermark"] >= seq and job["affected"] >= 1
         assert wait_for(has_item)
+        assert wait_for(lambda: client.get(f"/rebuild/jobs/{key}", headers=headers).json()["pending_deliveries"] == 0)
+
+
+def test_state_api_database_role_cannot_write_history():
+    import psycopg
+
+    database = os.getenv("STATE_DATABASE_URL")
+    if not database:
+        pytest.skip("State API database role required")
+    with connect(database) as conn:
+        assert conn.execute("SELECT count(*) AS n FROM twin.event").fetchone()["n"] >= 0
+    for statement in (
+        "UPDATE twin.event SET operation='retire' WHERE false",
+        "DELETE FROM read_model.current_entity WHERE false",
+        "UPDATE read_model.rebuild_job SET status='completed' WHERE false",
+    ):
+        with pytest.raises(psycopg.errors.InsufficientPrivilege), connect(database) as conn:
+            conn.execute(statement)

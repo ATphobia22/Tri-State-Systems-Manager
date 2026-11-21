@@ -84,7 +84,7 @@ Run `alembic upgrade head` with `DATABASE_URL` set. The SQL sources are in `migr
 
 ## Twin State API and replay
 
-The CQRS API runs separately at `http://127.0.0.1:18001/docs`. The original port 18000 API still serves raw event history. The kernel advances the current projection from committed PostGIS sequences. Kafka delivery timing is independent of that checkpoint.
+The CQRS API runs separately at `http://127.0.0.1:18001/docs`. The original port 18000 API still serves raw event history. The kernel advances the current projection from committed PostGIS sequences. Compose provisions a dedicated API database login with read access and permission to insert rebuild requests only. Kafka delivery timing is independent of that checkpoint.
 
 | Endpoint | Read model |
 | --- | --- |
@@ -107,6 +107,6 @@ curl --fail -X POST http://127.0.0.1:18001/rebuild/projections \
   -H "Idempotency-Key: $(uuidgen)"
 ```
 
-Poll `GET /rebuild/jobs/{job_id}` with the same authorization. Projection rebuilds replace the projection and checkpoint in one transaction. Readers see the previous complete state until the rebuild commits. `POST /rebuild/stac` requeues the existing asset revisions for pgSTAC via the existing outbox. A completed STAC rebuild job means requeueing committed. The relay performs catalog delivery asynchronously. Rebuilds do not write source events or create Kafka messages. Use a fresh UUID for a new rebuild and reuse the original UUID for request retries.
+Poll `GET /rebuild/jobs/{job_id}` with the same authorization. Projection rebuilds replace the projection and checkpoint in one transaction. Readers see the previous complete state until the rebuild commits. `POST /rebuild/stac` requeues the existing asset revisions for pgSTAC via the existing outbox. A completed STAC rebuild job means requeueing committed. The relay performs catalog delivery asynchronously. The job status reports the number of pending deliveries through its captured watermark. Rebuilds do not write source events or create Kafka messages. Use a fresh UUID for a new rebuild and reuse the original UUID for request retries.
 
 The kernel coordinates replay and projection. The existing ingress consumer owns event writes, and the existing relay owns Kafka and pgSTAC delivery. Simulation and validation workers can publish results through the existing event contract. This service does not launch HEC-RAS or adjudicate engineering decisions.

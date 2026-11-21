@@ -21,7 +21,13 @@ def submit(job_id, target):
 
 def status(job_id):
     with connect() as conn:
-        return conn.execute("SELECT * FROM read_model.rebuild_job WHERE job_id=%s", (job_id,)).fetchone()
+        return conn.execute("""
+            SELECT j.*, CASE WHEN j.target='stac' AND j.status='completed' THEN (
+                SELECT count(*) FROM twin.outbox o
+                WHERE o.destination='pgstac' AND o.event_seq<=j.watermark AND o.delivered_at IS NULL
+            ) END AS pending_deliveries
+            FROM read_model.rebuild_job j WHERE j.job_id=%s
+        """, (job_id,)).fetchone()
 
 
 def requeue_stac(conn):
