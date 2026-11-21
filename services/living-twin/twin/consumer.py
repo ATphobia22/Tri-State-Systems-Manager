@@ -9,7 +9,7 @@ from prometheus_client import start_http_server
 
 from .contracts import InvalidEvent, stream_key
 from .kafka import Wire, producer, send
-from .observability import Circuit, INGEST, LATENCY, setup
+from .observability import Circuit, INGEST, LATENCY, incoming_trace, setup
 from .settings import DEAD, INGRESS, KAFKA
 from .store import apply
 
@@ -68,7 +68,9 @@ def run():
                 while not circuit.ready():
                     time.sleep(0.5)
                 try:
-                    with tracer.start_as_current_span("twin.consume") as span, LATENCY.time():
+                    with tracer.start_as_current_span(
+                        "twin.consume", context=incoming_trace(message.headers())
+                    ) as span, LATENCY.time():
                         span.set_attribute("messaging.destination.name", INGRESS)
                         outcome = process_message(client, message, wire, outgoing)
                     circuit.success()

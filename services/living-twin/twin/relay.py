@@ -2,17 +2,18 @@
 import logging
 import time
 
+from opentelemetry import trace
 from prometheus_client import start_http_server
 
 from .catalog import deliver, prepare_catalog
 from .contracts import stream_key
 from .kafka import Wire, producer, send
-from .observability import BACKLOG, DELIVERY, REFRESH, Circuit, setup
+from .observability import BACKLOG, DELIVERY, REFRESH, TRACE_CONTEXT, Circuit, setup
 from .settings import CHANGE
 from .store import connect, refresh
 
 CLAIM = """
-    SELECT o.event_seq,o.attempts,e.body AS event, ST_AsGeoJSON(e.geom)::jsonb AS geometry,
+    SELECT o.event_seq,o.attempts,o.trace_headers,e.body AS event, ST_AsGeoJSON(e.geom)::jsonb AS geometry,
            CASE WHEN e.geom IS NOT NULL THEN ARRAY[
                ST_XMin(e.geom),ST_YMin(e.geom),ST_XMax(e.geom),ST_YMax(e.geom)
            ] END AS bbox
@@ -30,7 +31,10 @@ def deliver_one(destination, dispatch):
             return "idle"
         try:
             # A savepoint lets database-side publisher failures record a retry in this transaction.
-            with conn.transaction():
+            with trace.get_tracer("tsm.living_twin").start_as_current_span(
+                "twin.outbox.delivery", context=TRACE_CONTEXT.extract(row["trace_headers"]),
+                attributes={"tsm.outbox.destination": destination},
+            ), conn.transaction():
                 dispatch(conn, row)
         except Exception as error:
             retry_after = min(300, 2 ** min(row["attempts"] + 1, 9))
@@ -59,7 +63,7 @@ def report_backlog():
 
 
 def run():
-    tracer = setup("living-twin-relay")
+    setup("living-twin-relay")
     start_http_server(9102)
     wire, outgoing = Wire(), producer()
     with connect() as conn:
@@ -79,13 +83,11 @@ def run():
             circuit = circuits[name]
             if not circuit.ready():
                 continue
-            with tracer.start_as_current_span("twin.outbox.delivery") as span:
-                span.set_attribute("tsm.outbox.destination", name)
-                try:
-                    outcome = deliver_one(name, dispatch)
-                except Exception:
-                    logging.exception("Outbox transaction failed")
-                    outcome = "retry"
+            try:
+                outcome = deliver_one(name, dispatch)
+            except Exception:
+                logging.exception("Outbox transaction failed")
+                outcome = "retry"
             if outcome != "idle":
                 DELIVERY.labels(name, outcome).inc()
                 (circuit.success if outcome == "delivered" else circuit.fail)()

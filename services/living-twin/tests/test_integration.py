@@ -115,3 +115,37 @@ def test_alembic_reversible_and_outbox_retry(event, monkeypatch):
     finally:
         with psycopg.connect(DATABASE, autocommit=True) as server:
             server.execute("DROP DATABASE twin_migration_test WITH (FORCE)")
+
+
+def test_observability_stack():
+    prometheus = os.getenv("TWIN_PROMETHEUS")
+    grafana = os.getenv("TWIN_GRAFANA")
+    tempo = os.getenv("TWIN_TEMPO")
+    if not all((prometheus, grafana, tempo)):
+        pytest.skip("Compose monitoring services required")
+
+    def available(url, params=None):
+        try:
+            response = httpx.get(url, params=params, timeout=3)
+            return response.json() if response.is_success else None
+        except (httpx.HTTPError, ValueError):
+            return None
+
+    def scraped():
+        document = available(prometheus + "/api/v1/query", {
+            "query": 'up{job=~"living-twin-.*"} == 1',
+        })
+        return document and len(document["data"]["result"]) == 3
+
+    assert wait_for(scraped, timeout=45)
+    dashboard = wait_for(lambda: available(grafana + "/api/dashboards/uid/tsm-living-twin"), timeout=45)
+    assert dashboard["dashboard"]["title"] == "TSM Living Twin Runtime"
+    httpx.get(API + "/v1/changes", timeout=3).raise_for_status()
+
+    def traced():
+        document = available(tempo + "/api/search", {
+            "q": '{ resource.service.name = "living-twin-api" }',
+        })
+        return document and document.get("traces")
+
+    assert wait_for(traced, timeout=45)

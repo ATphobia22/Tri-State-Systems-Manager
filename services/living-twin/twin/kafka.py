@@ -8,6 +8,7 @@ from confluent_kafka.schema_registry.avro import AvroDeserializer, AvroSerialize
 from confluent_kafka.serialization import MessageField, SerializationContext
 
 from .contracts import AVRO_TEXT, decode, encode, stream_key
+from .observability import trace_headers
 from .settings import CHANGE, DEAD, INGRESS, KAFKA, REGISTRY
 
 
@@ -35,7 +36,7 @@ def producer():
 
 def send(producer_client, topic, key, payload, headers=None):
     outcomes = []
-    producer_client.produce(topic, key=key, value=payload, headers=headers,
+    producer_client.produce(topic, key=key, value=payload, headers={**(headers or {}), **trace_headers()},
                             on_delivery=lambda error, _message: outcomes.append(error))
     if producer_client.flush(7) or not outcomes:
         raise TimeoutError("Kafka delivery acknowledgment timed out")

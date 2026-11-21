@@ -68,6 +68,7 @@ CREATE TRIGGER event_audit AFTER INSERT ON twin.event
 CREATE TABLE twin.outbox (
     event_seq bigint NOT NULL REFERENCES twin.event(seq),
     destination text NOT NULL CHECK (destination IN ('kafka','pgstac')),
+    trace_headers jsonb NOT NULL DEFAULT '{}' CHECK (jsonb_typeof(trace_headers) = 'object'),
     attempts integer NOT NULL DEFAULT 0 CHECK (attempts >= 0),
     available_at timestamptz NOT NULL DEFAULT clock_timestamp(),
     delivered_at timestamptz,

@@ -97,11 +97,17 @@ services:
       api: {condition: service_healthy}
       relay: {condition: service_started}
       consumer: {condition: service_started}
+      prometheus: {condition: service_started}
+      grafana: {condition: service_started}
+      tempo: {condition: service_started}
     environment:
       DATABASE_URL: postgresql://postgres:twin@db:5432/postgres
       KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
       TWIN_API: http://api:8000
+      TWIN_PROMETHEUS: http://prometheus:9090
+      TWIN_GRAFANA: http://grafana:3000
+      TWIN_TEMPO: http://tempo:3200
     command: ["python", "-m", "pytest", "-q", "tests"]
 volumes:
   postgres-data:

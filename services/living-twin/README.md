@@ -46,7 +46,7 @@ docker compose up --build -d
 docker compose --profile test run --rm tests
 ```
 
-The default development services bind exposed ports to loopback. The API is at `http://localhost:18000/docs`, Schema Registry at `http://localhost:18081` and Grafana at `http://localhost:13000/d/tsm-living-twin`. Prometheus scrapes bounded-cardinality service metrics. Tempo receives OTLP traces for API, ingestion and relay spans. Compose is a single-broker local deployment with fixed development credentials. For wider deployment, provide organizational TLS, network policy, credentials, Kafka ACLs, backups and a publication review before exposing any data.
+The default development services bind exposed ports to loopback. The API is at `http://localhost:18000/docs`, Schema Registry at `http://localhost:18081` and Grafana at `http://localhost:13000/d/tsm-living-twin`. Prometheus scrapes bounded-cardinality service metrics. Tempo receives OTLP traces for API, ingestion and relay spans. W3C trace headers flow through Kafka and the outbox. Compose is a single-broker local deployment with fixed development credentials. For wider deployment, provide organizational TLS, network policy, credentials, Kafka ACLs, backups and a publication review before exposing any data.
 
 Publish a validated JSON file with local Python dependencies and the default host ports:
 
@@ -54,6 +54,14 @@ Publish a validated JSON file with local Python dependencies and the default hos
 python -m pip install -r requirements.txt
 python -m twin.publish ./update.json
 ```
+
+To replay an existing river pilot capture into the observation matrix, pass its extracted snapshot directory containing `manifest.json` and station GeoJSON files:
+
+```sh
+python -m twin.import_usgs ./river-snapshot
+```
+
+This importer verifies each source hash and preserves series, observation time, units and approval status. It preserves gauge-relative stage and emits stable UUIDs when replaying the same capture. Schedule it alongside the capture workflow when running a connected deployment.
 
 Schema files are in `schemas/`. The wire codec validates with the JSON Schema and Avro schema, then uses Redpanda's registry and the Confluent wire format. The ingress and change subjects are `tsm.twin.state-update.v1-value` and `tsm.twin.state-change.v1-value`. Both use `FULL_TRANSITIVE`. Compatible wire changes add fields with defaults and preserve old names and types. Validate proposed changes against all deployed readers and writers. New timeline, matrix or operation semantics require a coordinated version bump when existing readers would reject them. Breaking changes use new topics, subjects and a documented migration.
 

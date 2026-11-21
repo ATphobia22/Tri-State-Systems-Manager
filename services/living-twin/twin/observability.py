@@ -6,6 +6,7 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from prometheus_client import Counter, Gauge, Histogram
 
 INGEST = Counter("twin_ingest_events", "Kafka ingestion outcomes", ["outcome"])
@@ -22,6 +23,22 @@ def setup(service):
         provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
         trace.set_tracer_provider(provider)
     return trace.get_tracer("tsm.living_twin")
+
+
+TRACE_CONTEXT = TraceContextTextMapPropagator()
+
+
+def trace_headers():
+    headers = {}
+    TRACE_CONTEXT.inject(headers)
+    return headers
+
+
+def incoming_trace(headers):
+    return TRACE_CONTEXT.extract({
+        key: value.decode("ascii", errors="ignore") if isinstance(value, bytes) else value
+        for key, value in headers or [] if key in ("traceparent", "tracestate") and value is not None
+    })
 
 
 class Circuit:

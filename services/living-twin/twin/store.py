@@ -4,6 +4,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from .contracts import InvalidEvent, canonical, fingerprint, validate
+from .observability import trace_headers
 from .settings import DATABASE
 
 
@@ -15,6 +16,7 @@ def connect(database=DATABASE):
 def apply(event: dict, database=DATABASE) -> tuple[int, bool]:
     validate(event)
     digest = fingerprint(event)
+    geom = canonical(event["geometry"]) if event["geometry"] is not None else None
     try:
         with connect(database) as conn:
             # This serialization point makes committed feed cursors safe across concurrent writers.
@@ -30,7 +32,6 @@ def apply(event: dict, database=DATABASE) -> tuple[int, bool]:
                 required = "reviewed_by" if event["matrix"] == "D" else "validates"
                 if not any(link["relationship"] == required for link in event["evidence"]):
                     raise InvalidEvent(f"{event['matrix']} requires {required} evidence")
-            geom = canonical(event["geometry"]) if event["geometry"] is not None else None
             seq = conn.execute("""
                 INSERT INTO twin.event(event_id,digest,matrix,entity_id,timeline,branch,
                                        valid_from,operation,geom,body)
@@ -43,9 +44,13 @@ def apply(event: dict, database=DATABASE) -> tuple[int, bool]:
                 conn.execute("""
                     INSERT INTO twin.evidence_link VALUES (%s,%s,%s)
                 """, (seq, link["event_id"], link["relationship"]))
-            conn.execute("INSERT INTO twin.outbox(event_seq,destination) VALUES (%s,'kafka')", (seq,))
-            if event["asset"]:
-                conn.execute("INSERT INTO twin.outbox(event_seq,destination) VALUES (%s,'pgstac')", (seq,))
+            targets = ["kafka", "pgstac"] if event["asset"] else ["kafka"]
+            headers = Jsonb(trace_headers())
+            for target in targets:
+                conn.execute(
+                    "INSERT INTO twin.outbox(event_seq,destination,trace_headers) VALUES (%s,%s,%s)",
+                    (seq, target, headers),
+                )
             return seq, True
     except psycopg.IntegrityError as error:
         raise InvalidEvent("State geometry, timeline, or evidence constraint failed") from error
