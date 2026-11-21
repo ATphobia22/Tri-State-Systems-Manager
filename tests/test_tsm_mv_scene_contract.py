@@ -15,7 +15,7 @@ scene = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scene)
 
 
-def _write(root, *, bad_hash=False, bad_ring=False):
+def _write(root, *, bad_hash=False, bad_ring=False, interior=None):
     layers = {
         "buildings": [
             {"type": "Feature", "properties": {"id": "MV-B1", "height_cm": 750.0, "eave_cm": 640.0},
@@ -29,6 +29,8 @@ def _write(root, *, bad_hash=False, bad_ring=False):
             {"type": "Feature", "properties": {"id": "MV-T1", "height_cm": 900},
              "geometry": {"type": "Point", "coordinates": [200, 300]}}],
     }
+    if interior is not None:
+        layers["buildings"][0]["geometry"]["coordinates"].append(interior)
     files = {}
     for role, feats in layers.items():
         name = role + ".geojson"
@@ -90,6 +92,23 @@ class SceneContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             _write(root, bad_ring=True)
+            with self.assertRaisesRegex(scene.SceneError, "ring must"):
+                scene.load_scene(root)
+
+    def test_keeps_interior_ring_on_original_building(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            hole = [[100, 100], [100, 200], [200, 200], [200, 100], [100, 100]]
+            _write(root, interior=hole)
+            _, layers = scene.load_scene(root)
+            building, = layers["buildings"]
+            self.assertEqual(building["id"], "MV-B1")
+            self.assertEqual(building["interior_rings"], [[tuple(p) for p in hole]])
+
+    def test_unclosed_interior_rejects_entire_scene(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _write(root, interior=[[100, 100], [100, 200], [200, 200], [200, 100]])
             with self.assertRaisesRegex(scene.SceneError, "ring must"):
                 scene.load_scene(root)
 
