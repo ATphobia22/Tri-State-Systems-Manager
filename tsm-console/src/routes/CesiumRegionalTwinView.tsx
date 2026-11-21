@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { FILM_PREVIEW_FPS, FILM_SHOTS, lastShotFrame, sampleShotCamera } from '../lib/cesium-film-shots';
 import {
@@ -7,6 +7,10 @@ import {
 } from '../lib/cesium-regional-scene';
 import { type IonImageryPreset, type BuildingPreviewDetail, type TerrainPreviewSource } from '../lib/cesium-ion-assets';
 import type { OsmBuildingStyle } from '../lib/cesium-osm-building-style';
+import {
+  compareDesignRevisions, flattenDesignTree, readDesignReviewFile, summarizeQuantity,
+  type Changes, type Review, type Unit,
+} from '../lib/design-review-workspace';
 
 const ION_ENABLED = Boolean((import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim());
 
@@ -53,6 +57,15 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
   const [visible, setVisible] = useState(() => Object.fromEntries(LAYERS.map((layer) => [layer.id, layer.initial])));
   const [aerial, setAerial] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [review, setReview] = useState<Review | null>(null);
+  const [reviewBaseline, setReviewBaseline] = useState<Review | null>(null);
+  const [reviewChanges, setReviewChanges] = useState<Changes | null>(null);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [selectedReviewElement, setSelectedReviewElement] = useState('');
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [quantityKey, setQuantityKey] = useState('volume');
+  const [quantityUnit, setQuantityUnit] = useState<Unit>('m3');
   const [imageryPreset, setImageryPreset] = useState<IonImageryPreset>('usgs');
   const [terrainSource, setTerrainSource] = useState<TerrainPreviewSource>('local');
   const [buildingDetail, setBuildingDetail] = useState<BuildingPreviewDetail>('balanced');
@@ -69,6 +82,19 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
   const [screeningOn, setScreeningOn] = useState(false);
   const [screeningLevel, setScreeningLevel] = useState(3);
   const [screeningStatus, setScreeningStatus] = useState('');
+  const reviewTree = useMemo(() => review ? flattenDesignTree(review) : [], [review]);
+  const reviewQuantity = useMemo(() => {
+    if (!review) return null;
+    try { return summarizeQuantity(review, quantityKey, quantityUnit); }
+    catch { return null; }
+  }, [review, quantityKey, quantityUnit]);
+  const reviewOptions = useMemo(() => {
+    const text = reviewSearch.trim().toLowerCase();
+    return (text ? reviewTree.filter((item) =>
+      item.title.toLowerCase().includes(text) || item.id.toLowerCase().includes(text) ||
+      item.category.toLowerCase().includes(text)) : reviewTree).slice(0, 40);
+  }, [reviewTree, reviewSearch]);
+  const reviewElement = reviewTree.find((item) => item.id === selectedReviewElement);
   const frame = screening[screeningLevel];
   const date = REPLAY_DATES[day]!;
   const shot = FILM_SHOTS.find(({ id }) => id === shotId);
@@ -368,6 +394,111 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
           </div>}
         </div>
         <aside id="tsm-cesium-tools" className="tsm-cesium-controls" aria-label="Scene controls" hidden={!toolsOpen}>
+          <details className="tsm-cesium-accordion" data-testid="cesium-design-review">
+            <summary>Design review · local BIM metadata</summary>
+            <section>
+              <small>Source-linked model metadata, not imported geometry. Local files stay in this browser; source hashes and review status are supplied declarations, not independently verified here.</small>
+              <label htmlFor="cesium-design-file">Load design revision JSON (up to 4 MiB)</label>
+              <input id="cesium-design-file" type="file" accept=".json,application/json"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (!file) return;
+                  setReviewLoading(true);
+                  setReviewChanges(null);
+                  void readDesignReviewFile(file).then((next) => {
+                    setReview(next);
+                    setReviewError('');
+                    setReviewChanges(null);
+                    setSelectedReviewElement('');
+                  }).catch((reason: unknown) => {
+                    setReviewError(reason instanceof Error ? reason.message : 'Could not open design review file');
+                  }).finally(() => setReviewLoading(false));
+                  event.currentTarget.value = '';
+                }} />
+              {reviewLoading && <small role="status">Loading local design revision…</small>}
+              {reviewError && <p role="alert">{reviewError}</p>}
+              {review && <>
+                <p><strong>{review.modelId}</strong> · revision {review.revisionId} · {review.elements.length.toLocaleString()} elements</p>
+                <small>Declared CRS {review.source.horizontalCrs} · {review.source.horizontalUnits} · vertical: {review.source.verticalDatum}</small>
+                <small>Placement: {review.placement.state} · controls: {review.placement.controlCount} · source ID: {review.source.sourceId}</small>
+                <small>Source SHA-256 declared: {review.source.sha256.slice(0, 16)}… · license: {review.source.license}</small>
+                <p><strong>Element hierarchy</strong> (up to 40 search results)</p>
+                <label htmlFor="cesium-design-search">Search by element name, stable ID or category</label>
+                <input id="cesium-design-search" type="search" value={reviewSearch} maxLength={128}
+                  onChange={(event) => setReviewSearch(event.currentTarget.value)} />
+                <label htmlFor="cesium-design-element">Select model element</label>
+                <select id="cesium-design-element" value={selectedReviewElement}
+                  onChange={(event) => setSelectedReviewElement(event.currentTarget.value)}>
+                  <option value="">Select an element</option>
+                  {reviewOptions.map((item) =>
+                    <option key={item.id} value={item.id}>{'· '.repeat(Math.min(item.depth, 8))}{item.title} ({item.category})</option>)}
+                </select>
+                {reviewElement && <>
+                  <small>Element ID: {reviewElement.id} · parent: {reviewElement.parentId ?? 'model root'}</small>
+                  {Object.entries(reviewElement.quantities).slice(0, 12).map(([key, q]) =>
+                    <small key={key}>{key}: {q.value} {q.unit} · {q.evidence}</small>)}
+                </>}
+                <label htmlFor="cesium-design-quantity-key">Quantity field</label>
+                <input id="cesium-design-quantity-key" type="text" maxLength={128}
+                  value={quantityKey} onChange={(event) => setQuantityKey(event.currentTarget.value)} />
+                <label htmlFor="cesium-design-quantity-unit">Unit</label>
+                <select id="cesium-design-quantity-unit" value={quantityUnit}
+                  onChange={(event) => setQuantityUnit(event.currentTarget.value as Unit)}>
+                  <option value="m">m</option><option value="m2">m²</option>
+                  <option value="m3">m³</option><option value="kg">kg</option><option value="count">count</option>
+                </select>
+                {reviewQuantity ? <small role="status" data-testid="cesium-design-quantity">
+                  Included {reviewQuantity.count} · omitted {reviewQuantity.omitted} (unverified/missing/other units).
+                  Sum {reviewQuantity.sum === null ? 'not available' : reviewQuantity.sum.toLocaleString()} {quantityUnit};
+                  source records {reviewQuantity.sourceCount}; derived {reviewQuantity.derivedCount}.
+                  These are non-certified metadata aggregates, not measured survey quantities.
+                </small> : <small>Provide a valid quantity name to calculate an informational summary.</small>}
+                <button type="button" disabled={reviewLoading} onClick={() => {
+                  setReviewBaseline(review);
+                  setReviewChanges(null);
+                  setReviewError('');
+                }}>Save current revision as comparison baseline</button>
+                <button type="button" disabled={!reviewBaseline || reviewLoading} onClick={() => {
+                  if (!reviewBaseline) return;
+                  try {
+                    setReviewChanges(compareDesignRevisions(reviewBaseline, review));
+                    setReviewError('');
+                  } catch (reason) {
+                    setReviewChanges(null);
+                    setReviewError(reason instanceof Error ? reason.message : 'Revision comparison unavailable');
+                  }
+                }}>Compare to saved baseline</button>
+                {reviewBaseline && <small>Baseline: {reviewBaseline.revisionId} · same model and CRS/datum required</small>}
+                {reviewChanges && <small role="status" data-testid="cesium-design-diff">
+                  Added {reviewChanges.added.length}, removed {reviewChanges.removed.length},
+                  modified {reviewChanges.modified.length}, unchanged {reviewChanges.unchanged.length}.
+                  Differences reflect metadata and stable IDs, not a geometry/engineering change approval.
+                </small>}
+              </>}
+            </section>
+          </details>
+          <details className="tsm-cesium-accordion" data-testid="cesium-learning-lab">
+            <summary>Infrastructure learning lab</summary>
+            <section>
+              <p>Explore how roads, structures and waterways relate in the Tri-State valley.</p>
+              <button type="button" disabled={!ready} onClick={() => {
+                choosePlace(0);
+                setVisible((prev) => ({ ...prev, buildings: true, roads: true, osmContext: false }));
+                scene.current?.setLayer('buildings', true);
+                scene.current?.setLayer('roads', true);
+              }}>1. Explore Mount Vernon roads & buildings</button>
+              <button type="button" disabled={!ready || !screening.length} onClick={() => {
+                choosePlace(0);
+                setScreeningOn(true);
+              }}>2. Explore hypothetical flood screening</button>
+              <small>Flood screening is a demonstration, not a calibrated prediction or FEMA determination. Gauge stages are not NAVD88 elevations without the correct station datum.</small>
+              <button type="button" disabled={!ready} onClick={() => choosePlace(1)}>
+                3. Fly to the Ohio-Wabash confluence
+              </button>
+              <small>Observations, design metadata, candidate sources and cinematic animations have different evidence grades. Agency data and qualified professional review control engineering decisions.</small>
+            </section>
+          </details>
+
           <details className="tsm-cesium-accordion" open>
             <summary>Camera</summary>
             <section>

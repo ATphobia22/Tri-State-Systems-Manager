@@ -22,6 +22,10 @@ const TRACKS: Track[] = [
   { file: 'monster-down.mp3', title: 'Monster Down' },
   { file: 'get-it-out-the-mud.mp3', title: 'Get It Out The Mud' },
   { file: 'dadhuntin2.mp3', title: 'Dad Huntin 2' },
+  { file: 'oak-grove-slim-days.mp3', title: 'Oak Grove Slim Days' },
+  { file: 'mama-times-changed.mp3', title: 'Mama Times Changed' },
+  { file: 'home-sweet-home.mp3', title: 'Home Sweet Home' },
+  { file: 'creek-bank-jumpin.mp3', title: "Creek Bank Jumpin'" },
 ];
 
 const STORAGE_KEY = 'tsm-bgm-track-index';
