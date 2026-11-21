@@ -126,5 +126,47 @@ class PreflightTests(unittest.TestCase):
                 module.preflight(path, Path(tmp) / "out.json", "0"*64, None, None)
 
 
+    def test_explicit_ifc_aggregation_parent_and_name_are_preserved(self):
+        child = FakeProduct(B, "IfcWall")
+        child.Name = "Reviewed wall"
+        root = FakeProduct(A, "IfcBuildingStorey")
+        root.Name = "Ground floor"
+        child.Decomposes = [SimpleNamespace(RelatingObject=root)]
+        reviewed = module.inspect_model(FakeModel(products=[child,root]), self.source)
+        by_id = {p["globalId"]:p for p in reviewed["products"]}
+        self.assertEqual(by_id[B]["parentGlobalId"], A)
+        self.assertEqual(by_id[B]["name"], "Reviewed wall")
+        self.assertNotIn("parentGlobalId", by_id[A])
+
+    def test_ambiguous_ifc_parent_is_rejected(self):
+        child = FakeProduct(B)
+        a, other = FakeProduct(A), FakeProduct("2"*22)
+        child.Decomposes = [SimpleNamespace(RelatingObject=a),
+                            SimpleNamespace(RelatingObject=other)]
+        with self.assertRaisesRegex(module.PreflightError, "Ambiguous IFC spatial parent"):
+            module.inspect_model(FakeModel(products=[child,a,other]), self.source)
+
+    def test_quantities_require_explicit_ifc_units_and_provenance(self):
+        unit = SimpleNamespace(UnitType="VOLUMEUNIT", Name="CUBIC_METRE", Prefix=None,
+                               is_a=lambda: "IfcSIUnit")
+        unit_m = SimpleNamespace(UnitType="LENGTHUNIT", Name="METRE", Prefix=None,
+                                 is_a=lambda: "IfcSIUnit")
+        wall = FakeProduct(A)
+        qto = SimpleNamespace(Name="Qto_Wall", Quantities=[
+            SimpleNamespace(Name="NetVolume", VolumeValue=7.25, Unit=None,
+                            is_a=lambda: "IfcQuantityVolume")],
+            is_a=lambda: "IfcElementQuantity")
+        wall.IsDefinedBy = [SimpleNamespace(RelatingPropertyDefinition=qto,
+                             is_a=lambda: "IfcRelDefinesByProperties")]
+        model = FakeModel(products=[wall])
+        original = model.by_type
+        model.by_type = lambda kind: [SimpleNamespace(Units=[unit_m,unit])] if kind == "IfcUnitAssignment" else original(kind)
+        review = module.inspect_model(model, self.source)
+        self.assertEqual(review["products"][0]["quantities"]["Qto_Wall.NetVolume"],
+                         {"value": 7.25, "unit": "m3", "evidence": "DERIVED"})
+        model.by_type = lambda kind: [] if kind == "IfcUnitAssignment" else original(kind)
+        pending = module.inspect_model(model,self.source)
+        self.assertEqual(pending["products"][0]["quantities"], {})
+
 if __name__ == "__main__":
     unittest.main()

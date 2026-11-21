@@ -119,49 +119,64 @@ def collect_layer(kind: str, service: str, bbox: tuple[float, float, float, floa
     provenance_batches = [ids_hash]
     seen: set[int] = set()
     results = []
-    for start in range(0, len(ids), BATCH):
-        subset = ids[start:start + BATCH]
-        response, response_hash = query(service, {
-            "objectIds": ",".join(str(i) for i in subset),
-            "outFields": "*", "outSR": 4326, "returnGeometry": "true", "f": "geojson",
-        })
-        provenance_batches.append(response_hash)
-        if response.get("type") != "FeatureCollection" or not isinstance(response.get("features"), list):
-            raise ValueError("ARCGIS_GEOJSON_NOT_A_FEATURE_COLLECTION")
-        for feature in response["features"]:
-            if not isinstance(feature, dict):
-                raise ValueError("INVALID_ARCGIS_FEATURE")
-            props = feature.get("properties")
-            if not isinstance(props, dict):
-                raise ValueError("ARCGIS_ATTRIBUTES_MISSING")
-            raw_oid = props.get("objectid", props.get("OBJECTID"))
-            if isinstance(raw_oid, bool) or not isinstance(raw_oid, int):
-                raise ValueError("ARCGIS_STABLE_OBJECTID_MISSING")
-            if raw_oid not in subset or raw_oid in seen:
-                raise ValueError("ARCGIS_OBJECTID_MISMATCH_OR_DUPLICATE")
-            if not valid_geometry(feature.get("geometry"), kind):
-                raise ValueError("ARCGIS_GEOMETRY_MISSING_OR_INVALID")
-            seen.add(raw_oid)
-            identity = f"IGIO:{kind}:{raw_oid}"
-            source_hash = digest(canonical(feature))
-            name = props.get("st_name", props.get("ST_NAME")) if kind == "road" else None
-            source_lidar_year = props.get("lidaryear", props.get("LidarYear")) if kind == "building" else None
-            source_county = props.get("county", props.get("County"))
-            results.append({
-                "type": "Feature", "id": identity, "geometry": feature["geometry"],
-                "properties": {
-                    "tsm_id": identity,
-                    "source_objectid": raw_oid,
-                    "kind": kind,
-                    "name": str(name)[:180] if name is not None else None,
-                    "source_lidar_year": str(source_lidar_year)[:32] if source_lidar_year is not None else None,
-                    "source_county": str(source_county)[:80] if source_county is not None else None,
-                    "height_m": None, "height_status": "NOT_EVIDENCED",
-                    "source_url": service, "source_feature_sha256": source_hash,
-                    "evidence_status": "SOURCE_OBSERVED_UNREVIEWED",
-                    "engineering_approved": False,
-                },
+
+    def fetch_batch(subset: list[int]) -> list[tuple[dict, str, list[int]]]:
+        """Split only exhausted transient server failures, retaining exact ID accounting.
+
+        Query already performs bounded retries. Subdivision reduces the load of
+        individual ArcGIS FeatureServer requests; no source is substituted.
+        """
+        try:
+            response, response_hash = query(service, {
+                "objectIds": ",".join(str(i) for i in subset),
+                "outFields": "*", "outSR": 4326, "returnGeometry": "true", "f": "geojson",
             })
+        except HTTPError as error:
+            if error.code not in RETRYABLE_HTTP_STATUSES or len(subset) <= 1:
+                raise
+            midpoint = len(subset) // 2
+            return fetch_batch(subset[:midpoint]) + fetch_batch(subset[midpoint:])
+        return [(response, response_hash, subset)]
+
+    for start in range(0, len(ids), BATCH):
+        for response, response_hash, subset in fetch_batch(ids[start:start + BATCH]):
+            provenance_batches.append(response_hash)
+            if response.get("type") != "FeatureCollection" or not isinstance(response.get("features"), list):
+                raise ValueError("ARCGIS_GEOJSON_NOT_A_FEATURE_COLLECTION")
+            for feature in response["features"]:
+                if not isinstance(feature, dict):
+                    raise ValueError("INVALID_ARCGIS_FEATURE")
+                props = feature.get("properties")
+                if not isinstance(props, dict):
+                    raise ValueError("ARCGIS_ATTRIBUTES_MISSING")
+                raw_oid = props.get("objectid", props.get("OBJECTID"))
+                if isinstance(raw_oid, bool) or not isinstance(raw_oid, int):
+                    raise ValueError("ARCGIS_STABLE_OBJECTID_MISSING")
+                if raw_oid not in subset or raw_oid in seen:
+                    raise ValueError("ARCGIS_OBJECTID_MISMATCH_OR_DUPLICATE")
+                if not valid_geometry(feature.get("geometry"), kind):
+                    raise ValueError("ARCGIS_GEOMETRY_MISSING_OR_INVALID")
+                seen.add(raw_oid)
+                identity = f"IGIO:{kind}:{raw_oid}"
+                source_hash = digest(canonical(feature))
+                name = props.get("st_name", props.get("ST_NAME")) if kind == "road" else None
+                source_lidar_year = props.get("lidaryear", props.get("LidarYear")) if kind == "building" else None
+                source_county = props.get("county", props.get("County"))
+                results.append({
+                    "type": "Feature", "id": identity, "geometry": feature["geometry"],
+                    "properties": {
+                        "tsm_id": identity,
+                        "source_objectid": raw_oid,
+                        "kind": kind,
+                        "name": str(name)[:180] if name is not None else None,
+                        "source_lidar_year": str(source_lidar_year)[:32] if source_lidar_year is not None else None,
+                        "source_county": str(source_county)[:80] if source_county is not None else None,
+                        "height_m": None, "height_status": "NOT_EVIDENCED",
+                        "source_url": service, "source_feature_sha256": source_hash,
+                        "evidence_status": "SOURCE_OBSERVED_UNREVIEWED",
+                        "engineering_approved": False,
+                    },
+                })
     if len(seen) != len(ids):
         raise ValueError(f"ARCGIS_INCOMPLETE_DOWNLOAD_EXPECTED_{len(ids)}_GOT_{len(seen)}")
     return sorted(results, key=lambda x: x["properties"]["source_objectid"]), {
