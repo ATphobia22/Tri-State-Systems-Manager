@@ -47,6 +47,8 @@ Built with local communities in mind, **Tri-State Systems Manager (TSM)** helps 
 | **Community funding research** | Find possible grant programs and the documentation a qualified sponsor may need. | Planning matrix exists; deadlines and eligibility must be checked against current notices. |
 | **Native and offline development** | Prepare local datasets and test Windows/macOS/Linux/iOS and native 3D pipelines. | Platform code and CI workflows exist; a clean offline UE5.8 Windows Shipping acceptance is **not independently established**. |
 
+**Native world review.** Assemble the [offline Unreal review snapshot](docs/release/NATIVE-WORLD-REVIEW-SNAPSHOT.md) from the committed terrain subset and source-linked Posey building preview.
+
 ### The eight-county exact-boundary work area
 
 TSM's [eight-county configuration](data/regional/eight-county-exact-spatial-validation-v1.json) identifies **eight counties in three states**. It requires source features to match or intersect **actual county polygons** instead of relying on a rough bounding box. **A county in the configuration does not mean all its parcels, roads, buildings, LiDAR or flood layers have been downloaded or verified.**

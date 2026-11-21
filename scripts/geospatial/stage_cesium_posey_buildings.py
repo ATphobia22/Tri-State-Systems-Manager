@@ -14,12 +14,12 @@ from zipfile import ZipFile
 
 from pyproj import Transformer
 
-from build_cesium_regional_scene import ROOT, write_json
 from compile_tri_state_offline_layers import sha256 as file_sha256
 from tsm_geodesy import GeoidGrid, GEOID18_GRID_SHA256, default_geoid_grid_path
 from validate_feature_linkage import implicit_glb_object_ids
 from validate_spatial_coherence import check_implicit
 
+ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE_DIR = ROOT / "data/fabrics/downloads/posey-preview-2026-11-13"
 ARCHIVE_DIGEST = "b82c1bca02e176f57e97ef7b5d46830091f02564ad4898c46ad30f6f0ff3b7ac"
 DRIVE_PREVIEW_DIGEST = "ee0fcc542c6b17469e4e949608dc6aab60191552349a05c18652979fe8e880ee"
@@ -33,6 +33,11 @@ FOOTPRINT_COUNT = 23082
 MESH_FILE_COUNT = 861
 SUBTREE_COUNT = 493
 ASSET_PATH = re.compile(r"tileset\.json|content/\d+/\d+/\d+\.glb|subtrees/\d+/\d+/\d+\.(subtree|bin)")
+
+
+def write_json(path: Path, value: dict) -> None:
+    path.write_text(json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n",
+                    encoding="utf-8")
 
 
 def unpack_drive_preview(archive_path: Path, output: Path) -> None:
