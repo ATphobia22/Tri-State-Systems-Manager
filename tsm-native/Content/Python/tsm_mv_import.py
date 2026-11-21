@@ -53,10 +53,18 @@ def _existing_index(editor):
     return found
 
 
+def _write_spline(unreal, spline, points, position, base_z, *, closed):
+    spline.clear_spline_points(update_spline=False)
+    for i, point in enumerate(points[:-1] if closed else points):
+        z = point[2] if len(point) == 3 else 0.0
+        delta = unreal.Vector(point[0] - position[0], point[1] - position[1], z - base_z)
+        spline.add_spline_point(delta, unreal.SplineCoordinateSpace.LOCAL, False)
+        spline.set_spline_point_type(i, unreal.SplinePointType.LINEAR, False)
+    spline.set_closed_loop(closed, update_spline=True)
+
+
 def _spawn_spline(unreal, editor, actor_class, role, feature, sha, manifest_sha):
     points = feature["points"]
-    if role == "buildings":
-        points = points[:-1]  # close loop in USplineComponent, not twice in points
     position = points[0]
     base_z = position[2] if len(position) == 3 else 0.0
     origin = unreal.Vector(position[0], position[1], base_z)
@@ -77,14 +85,13 @@ def _spawn_spline(unreal, editor, actor_class, role, feature, sha, manifest_sha)
         actor.set_editor_property("eave_cm", float(props.get("eave_cm", 0)))
         actor.set_editor_property("width_cm", float(props.get("width_cm", 0)))
         actor.set_editor_property("roof_type", str(props.get("roof_type", "unknown")))
-        spline = actor.get_editor_property("geometry_spline")
-        spline.clear_spline_points(update_spline=False)
-        for i, point in enumerate(points):
-            z = point[2] if len(point) == 3 else 0.0
-            delta = unreal.Vector(point[0] - position[0], point[1] - position[1], z - base_z)
-            spline.add_spline_point(delta, unreal.SplineCoordinateSpace.LOCAL, False)
-            spline.set_spline_point_type(i, unreal.SplinePointType.LINEAR, False)
-        spline.set_closed_loop(feature["closed"], update_spline=True)
+        _write_spline(unreal, actor.get_editor_property("geometry_spline"),
+                      points, position, base_z, closed=feature["closed"])
+        for ring in feature["interior_rings"]:
+            interior = actor.add_interior_ring_spline()
+            if interior is None:
+                raise RuntimeError("Failed creating interior spline for " + feature["id"])
+            _write_spline(unreal, interior, ring, position, base_z, closed=True)
     except Exception:
         editor.destroy_actor(actor)
         raise

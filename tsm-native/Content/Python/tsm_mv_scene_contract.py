@@ -54,14 +54,21 @@ def _validate_feature(feature, role):
     if not SAFE_ID.fullmatch(uid):
         raise SceneError(f"{role}: missing/unsafe stable feature id")
     coords = geometry.get("coordinates")
+    interior_rings = []
     if role == "buildings":
-        if not isinstance(coords, list) or len(coords) != 1:
-            raise SceneError("buildings: only simple single-ring polygons supported; split holes/multipolygons upstream")
-        points = [_xy(p, role) for p in coords[0]]
-        if len(points) < 4 or points[0][:2] != points[-1][:2]:
-            raise SceneError(f"buildings {uid}: ring must have at least 3 vertices and be closed")
-        if len({p[:2] for p in points[:-1]}) < 3:
-            raise SceneError(f"buildings {uid}: degenerate polygon")
+        if not isinstance(coords, list) or not coords:
+            raise SceneError(f"buildings {uid}: expected at least one polygon ring")
+        rings = []
+        for ring in coords:
+            if not isinstance(ring, list):
+                raise SceneError(f"buildings {uid}: expected polygon ring")
+            vertices = [_xy(p, role) for p in ring]
+            if len(vertices) < 4 or vertices[0] != vertices[-1]:
+                raise SceneError(f"buildings {uid}: ring must have at least 3 vertices and be closed")
+            if len({p[:2] for p in vertices[:-1]}) < 3:
+                raise SceneError(f"buildings {uid}: degenerate polygon ring")
+            rings.append(vertices)
+        points, *interior_rings = rings
     elif role == "roads":
         if not isinstance(coords, list):
             raise SceneError(f"roads {uid}: expected line")
@@ -78,7 +85,8 @@ def _validate_feature(feature, role):
     if role == "buildings" and props.get("height_cm", 0) and props.get("eave_cm", 0):
         if props["eave_cm"] > props["height_cm"]:
             raise SceneError(f"buildings {uid}: eave exceeds roof ridge")
-    return {"id": uid, "points": points, "properties": props, "closed": role == "buildings"}
+    return {"id": uid, "points": points, "interior_rings": interior_rings,
+            "properties": props, "closed": role == "buildings"}
 
 
 def load_scene(scene_dir):

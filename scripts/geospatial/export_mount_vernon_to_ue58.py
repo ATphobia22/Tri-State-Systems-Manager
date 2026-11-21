@@ -114,25 +114,24 @@ def make_local_scene(source_scene, target_crs, anchor_x, anchor_y, meters_per_un
             if not isinstance(parts, list) or not parts:
                 raise ValueError("Empty source geometry: " + source_id)
             for index, part in enumerate(parts):
-                if role == "buildings":
-                    if not isinstance(part, list) or len(part) != 1:
-                        raise ValueError("Building has holes; requires a reviewed tessellator: " + source_id)
-                    vertices = part[0]
-                else:
-                    vertices = part
-                points = []
-                for vertex in vertices:
-                    if len(vertex) < 2:
-                        raise ValueError("Invalid source coordinate")
-                    lon, lat = float(vertex[0]), float(vertex[1])
-                    if not (math.isfinite(lon) and math.isfinite(lat)):
-                        raise ValueError("Nonfinite source coordinate")
-                    easting, northing = transformer.transform(lon, lat)
-                    # Y is south in this explicitly declared UE-local frame.
-                    points.append([
-                        round((easting - anchor_x) * meters_per_unit * 100.0, 4),
-                        round(-(northing - anchor_y) * meters_per_unit * 100.0, 4)
-                    ])
+                if not isinstance(part, list) or not part:
+                    raise ValueError("Empty source geometry part: " + source_id)
+                rings = part if role == "buildings" else [part]
+                local_rings = []
+                for vertices in rings:
+                    points = []
+                    for vertex in vertices:
+                        if len(vertex) < 2:
+                            raise ValueError("Invalid source coordinate")
+                        lon, lat = float(vertex[0]), float(vertex[1])
+                        if not (math.isfinite(lon) and math.isfinite(lat)):
+                            raise ValueError("Nonfinite source coordinate")
+                        easting, northing = transformer.transform(lon, lat, errcheck=True)
+                        points.append([
+                            round((easting - anchor_x) * meters_per_unit * 100.0, 4),
+                            round(-(northing - anchor_y) * meters_per_unit * 100.0, 4)
+                        ])
+                    local_rings.append(points)
                 key = source_id + (":part:" + str(index) if len(parts) > 1 else "")
                 out_props = {"id": key, "source_feature_sha256": props.get("source_feature_sha256"),
                              "height_status": "NOT_EVIDENCED"}
@@ -146,9 +145,9 @@ def make_local_scene(source_scene, target_crs, anchor_x, anchor_y, meters_per_un
                 if role == "roads" and isinstance(props.get("width_cm"), (int, float)):
                     out_props["width_cm"] = float(props["width_cm"])
                 if role == "buildings":
-                    out_geom = {"type": "Polygon", "coordinates": [points]}
+                    out_geom = {"type": "Polygon", "coordinates": local_rings}
                 else:
-                    out_geom = {"type": "LineString", "coordinates": points}
+                    out_geom = {"type": "LineString", "coordinates": local_rings[0]}
                 layers[role].append({
                     "type": "Feature", "properties": out_props, "geometry": out_geom})
     return layers, source_counts

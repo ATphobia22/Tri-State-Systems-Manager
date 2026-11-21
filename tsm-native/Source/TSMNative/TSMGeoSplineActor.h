@@ -20,6 +20,12 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="TSM|GIS")
     TObjectPtr<USplineComponent> GeometrySpline;
 
+    UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category="TSM|GIS")
+    TArray<TObjectPtr<USplineComponent>> InteriorRingSplines;
+
+    UFUNCTION(BlueprintCallable, Category="TSM|GIS")
+    USplineComponent* AddInteriorRingSpline();
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSM|GIS")
     FString FeatureId;
 
