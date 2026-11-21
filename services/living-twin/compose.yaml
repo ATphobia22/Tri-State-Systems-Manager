@@ -3,7 +3,7 @@ x-runtime: &runtime
   image: tsm-living-twin:local
   build: .
   environment:
-    DATABASE_URL: postgresql://twin:twin@db:5432/twin
+    DATABASE_URL: postgresql://postgres:twin@db:5432/postgres
     KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
     SCHEMA_REGISTRY_URL: http://redpanda:8081
     OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
@@ -12,14 +12,14 @@ services:
   db:
     image: ghcr.io/stac-utils/pgstac:v0.9.11
     environment:
-      POSTGRES_USER: twin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: twin
-      POSTGRES_DB: twin
+      POSTGRES_DB: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports: ["127.0.0.1:15432:5432"]
     healthcheck:
-      test: ["CMD-SHELL", "PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U twin -d twin -Atqc \"SELECT to_regnamespace('pgstac') IS NOT NULL\" | grep -qx t"]
+      test: ["CMD-SHELL", "PGPASSWORD=twin psql -h 127.0.0.1 -U postgres -d postgres -Atqc \"SELECT to_regnamespace('pgstac') IS NOT NULL\" | grep -qx t"]
       interval: 3s
       timeout: 4s
       retries: 40
@@ -98,7 +98,7 @@ services:
       relay: {condition: service_started}
       consumer: {condition: service_started}
     environment:
-      DATABASE_URL: postgresql://twin:twin@db:5432/twin
+      DATABASE_URL: postgresql://postgres:twin@db:5432/postgres
       KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
       TWIN_API: http://api:8000
