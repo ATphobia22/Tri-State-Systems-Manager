@@ -12,3 +12,4 @@ opentelemetry-sdk==1.33.1
 opentelemetry-exporter-otlp-proto-http==1.33.1
 opentelemetry-instrumentation-fastapi==0.54b1
 pytest==8.3.5
+redis==5.2.1
