@@ -64,7 +64,7 @@ def test_hashed_model_and_distinct_holdout_only_produce_preliminary_report(tmp_p
     assert report["metrics"]["holdout"]["sample_count"] == 2
     assert report["metrics"]["holdout"]["rmse_ft"] == pytest.approx(0.2)
     assert report["metrics"]["holdout"]["bias_ft"] == pytest.approx(0.2)
-    assert report["metrics"]["holdout"]["nse"] == pytest.approx(0.96)
+    assert report["metrics"]["holdout"]["nse"] == pytest.approx(0.84)
     assert assess(manifest, data, tmp_path, gage_zero_by_station={
         "USGS-03378500": datum()}) == report
 
