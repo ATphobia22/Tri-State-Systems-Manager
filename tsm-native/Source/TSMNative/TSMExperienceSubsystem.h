@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "TSMOfflineGaugeReader.h"
 #include "TSMExperienceSubsystem.generated.h"
 
 /** Independent clocks: these values must never be silently substituted for one another. */
@@ -28,6 +29,9 @@ struct FTSMLivingRiverState
     UPROPERTY(BlueprintReadOnly) FString DataRoot;
     UPROPERTY(BlueprintReadOnly) bool bDataManifestPresent = false;
     UPROPERTY(BlueprintReadOnly) bool bDataManifestContentsVerified = false;
+    UPROPERTY(BlueprintReadOnly) bool bGaugeViewLocalShaVerified = false;
+    UPROPERTY(BlueprintReadOnly) FString GaugeViewStatus = TEXT("LOCAL_GAUGE_NOT_AVAILABLE");
+    UPROPERTY(BlueprintReadOnly) TArray<FTSMOfflineGaugeReading> GaugeReadings;
     UPROPERTY(BlueprintReadOnly) FString DataState = TEXT("SOURCE_UNAVAILABLE");
     UPROPERTY(BlueprintReadOnly) FString Disclaimer = TEXT("Scene visualization is not surveying, FEMA certification, or a hydraulic forecast.");
 };

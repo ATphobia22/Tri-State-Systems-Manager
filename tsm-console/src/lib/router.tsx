@@ -111,7 +111,7 @@ export const appRoutes = [
   { path: 'memorial', loader: memorialLoader, element: <MemorialView /> },
   { path: 'index.html', loader: memorialLoader, element: <MemorialView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
-  { path: 'atlas', hydrateFallbackElement: <RouteLoadingFallback label="the real-world 4D engineering atlas" />, lazy: async () => ({ Component: (await import('../routes/TriStateAtlasView')).default }) },
+  { path: 'atlas', hydrateFallbackElement: <RouteLoadingFallback label="the real-world 4D engineering atlas" />, lazy: async () => ({ Component: (await import('../routes/AtlasGraphicsGuard')).default }) },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
   { path: 'river-watch', element: <RiverWatchView /> },
   { path: 'engineering-section', element: <EngineeringSectionView /> },

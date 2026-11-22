@@ -98,3 +98,15 @@ def test_no_unit_or_timeline_shortcuts():
     model["state"]["unit"] = "ft"
     model["timeline"], model["branch"] = "observed", "main"
     assert compare(obs, model, gage_zero=datum())["reason"] == "NOT_MODEL_PREDICTION"
+
+
+def test_foreign_source_cannot_masquerade_as_usgs_observation():
+    obs, model = events()
+    obs["source"]["authority"] = "OTHER"
+    assert compare(obs, model, gage_zero=datum())["reason"] == "OBSERVATION_SOURCE_NOT_USGS"
+
+
+def test_unmodeled_observation_vertical_datum_cannot_use_gage_zero_offset():
+    obs, model = events()
+    obs["state"]["vertical_reference"] = "NGVD29"
+    assert compare(obs, model, gage_zero=datum())["reason"] == "UNSUPPORTED_OBSERVATION_DATUM"

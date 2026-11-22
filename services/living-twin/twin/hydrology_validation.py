@@ -52,7 +52,12 @@ def compare(observation: dict, prediction: dict, *, gage_zero: dict | None = Non
         return _withhold("NOT_AUTHORITATIVE_OBSERVATION", observation, prediction)
     if prediction["matrix"] != "H" or prediction["timeline"] not in ("forecast", "scenario"):
         return _withhold("NOT_MODEL_PREDICTION", observation, prediction)
+    # Prevent a structurally valid O event from impersonating a USGS observation.
+    if observation.get("source", {}).get("authority") != "USGS":
+        return _withhold("OBSERVATION_SOURCE_NOT_USGS", observation, prediction)
     o, p = observation["state"], prediction["state"]
+    if o.get("vertical_reference") not in ("STATION_GAGE_DATUM_UNRESOLVED", "NAVD88"):
+        return _withhold("UNSUPPORTED_OBSERVATION_DATUM", observation, prediction)
     if (o.get("sensor_id") != p.get("station_id") or
             not isinstance(o.get("sensor_id"), str)):
         return _withhold("STATION_MISMATCH", observation, prediction)
