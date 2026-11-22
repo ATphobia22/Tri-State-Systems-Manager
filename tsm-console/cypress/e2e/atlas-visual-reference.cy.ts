@@ -26,7 +26,7 @@ describe('Source-governed regional Atlas navigation and startup', () => {
   });
 
   it('does not pretend a blocked OpenFreeMap style is real imagery', () => {
-    cy.intercept({method: 'GET', url: /tiles\.openfreemap\.org\/styles\/liberty/ }, { forceNetworkError: true });
+    cy.intercept({method: 'GET', url: /^https:\/\/tiles\.openfreemap\.org\/styles\/liberty(?:\?.*)?$/ }, { forceNetworkError: true });
     cy.visit('atlas/');
     cy.get('.tsm-atlas-map-status', { timeout: 30000 })
       .should('contain.text', 'Neutral map fallback loaded');
