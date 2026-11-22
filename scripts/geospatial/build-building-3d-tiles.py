@@ -8,8 +8,10 @@ For each building feature a simple LOD1 block model (extruded prism) is
 generated as a GLB in a tile-local ENU frame, following the same pattern as
 scripts/geospatial/build-terrain-3d-tiles.py:
   - horizontal placement uses WGS84 ellipsoidal surface geometry
-  - NAVD88 elevation is retained as the visualization vertical offset
-    without a NAVD88-to-ellipsoid transformation
+  - an explicitly documented, source-declared per-feature GEOID18 undulation
+    can adjust NAVD88 elevation into a nominal ellipsoidal visual offset
+  - missing geoid values retain a clearly labeled, unverified legacy preview
+    and --require-geoid-placement blocks such legacy placement
 
 This is visualization data, not survey-grade engineering geometry.
 Building heights use observed or derived LiDAR evidence when available; --extrusion-ft estimates are screening-only. Footprints are LiDAR-derived
@@ -255,6 +257,32 @@ def ground_elevation_provenance(props) -> str:
     return "LIDAR_GROUND_MEDIAN_NAVD88"
 
 
+def geoid_placement(props: dict) -> tuple[float, str]:
+    """Return a declared signed geoid separation in metres for visual placement.
+
+    A declared N is never equivalent to independently validated NGS grid
+    interpolation or a NAD83(2011) -> WGS84 reference-frame transformation.
+    The legacy zero-offset preview is explicitly classified as unverified.
+    """
+    keys = ("geoidUndulationM", "geoidModel", "geoidHorizontalFrame",
+            "geoidSourceUrl")
+    if not any(key in props for key in keys):
+        return 0.0, "NAVD88_AS_ELLIPSOID_UNVERIFIED_PREVIEW"
+    n = props.get("geoidUndulationM")
+    if type(n) not in (int, float) or not math.isfinite(n) or not -120.0 <= n <= 120.0:
+        raise ValueError("GEOID undulation must be a finite source-declared metre value")
+    if props.get("groundElevationDatum") != "NAVD88":
+        raise ValueError("NAVD88 groundElevationDatum required for GEOID placement")
+    if (props.get("geoidModel") != "GEOID18" or
+            props.get("geoidHorizontalFrame") != "NAD83(2011)"):
+        raise ValueError("GEOID18 NAD83(2011) model and horizontal frame required")
+    uri = props.get("geoidSourceUrl")
+    if (not isinstance(uri, str) or
+            not uri.startswith(("https://geodesy.noaa.gov/", "https://www.geodesy.noaa.gov/"))):
+        raise ValueError("GEOID source must identify an NGS HTTPS publication")
+    return float(n), "SOURCE_DECLARED_GEOID18_VISUAL_ONLY"
+
+
 def is_flooded(props) -> bool:
     if props.get("isFlooded") is True:
         return True
@@ -275,6 +303,8 @@ class BuildingTile:
     height_ft: float
     height_provenance: str
     component_count: int
+    geoid_undulation_m: float | None
+    vertical_placement_status: str
 
 
 def build_prism(polygons: list[Polygon], base_z_m: float, top_z_m: float,
@@ -394,6 +424,8 @@ def main() -> None:
                     help="Require exactly N unique source IDs and generated mesh tiles")
     ap.add_argument("--allow-partial-informational", action="store_true",
                     help="Publish visibly incomplete screen-only meshes; never engineering acceptance")
+    ap.add_argument("--require-geoid-placement", action="store_true",
+                    help="Reject every feature lacking source-declared GEOID18 N and NAVD88 metadata")
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
     ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
@@ -463,11 +495,22 @@ def main() -> None:
             skip_reasons[str(sid)] = "UNAVAILABLE_LIDAR_HEIGHT"
             continue
 
+        try:
+            geoid_n_m, placement_status = geoid_placement(props)
+        except ValueError as exc:
+            skip_reasons[str(sid)] = "UNAVAILABLE_GEOID_PLACEMENT: " + str(exc)
+            continue
+        if args.require_geoid_placement and placement_status != "SOURCE_DECLARED_GEOID18_VISUAL_ONLY":
+            skip_reasons[str(sid)] = "UNAVAILABLE_GEOID_PLACEMENT: GEOID18 per-feature separation required"
+            continue
+
         centroid = MultiPolygon(polygons).centroid if len(polygons) > 1 else polygons[0].centroid
         lon0, lat0 = centroid.x, centroid.y
         origin = surface(lon0, lat0)
         axes = enu_basis(lon0, lat0)
-        base_z_m = elev_ft * FT_TO_M
+        # NGS relation h = H + N; N is signed and must be in metres.
+        # This is a nominal visualization correction, not an approved 3D frame transform.
+        base_z_m = elev_ft * FT_TO_M + geoid_n_m
         top_z_m = base_z_m + height_ft * FT_TO_M
         try:
             positions, normals_list = build_prism(polygons, base_z_m, top_z_m, origin, axes)
@@ -495,7 +538,9 @@ def main() -> None:
                 max((max(zs) - min(zs)) / 2.0, 0.01))
         tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
                                   flooded, elev_ft, height_ft, height_class,
-                                  len(polygons)))
+                                  len(polygons),
+                                  geoid_n_m if placement_status == "SOURCE_DECLARED_GEOID18_VISUAL_ONLY" else None,
+                                  placement_status))
         ground_sources[sid] = ground_elevation_provenance(props)
         source_lod[sid] = props.get("achievedLod")
 
@@ -562,6 +607,8 @@ def main() -> None:
                 "geometryComponents": t.component_count,
                 "geometryMethod": "all_components_with_hole_walls",
                 "sourceLodClassification": source_lod[t.source_id],
+                "geoidUndulationM": t.geoid_undulation_m,
+                "verticalPlacementStatus": t.vertical_placement_status,
             }},
         }
 
@@ -580,6 +627,9 @@ def main() -> None:
             "generatedBuildingCount": len(tiles),
             "missingBuildingCount": skipped,
             "heightFallbackCount": len(fallback_ids),
+            "geoidAdjustedCount": sum(t.geoid_undulation_m is not None for t in tiles),
+            "unverifiedVerticalPlacementCount": sum(t.geoid_undulation_m is None for t in tiles),
+            "geodeticAlignmentEngineeringVerified": False,
         }}},
         "geometricError": radius,
         "root": root,
@@ -610,13 +660,18 @@ def main() -> None:
             "rejectedReport": "rejected-buildings.json",
             "measuredHeightCount": sum(t.height_provenance in ("OBSERVED", "DERIVED") for t in tiles),
             "explicitScreeningEstimateCount": len(fallback_ids),
+            "geoidDeclaredCount": sum(t.geoid_undulation_m is not None for t in tiles),
+            "unverifiedVerticalPlacementObjectIds": [t.source_id for t in tiles if t.geoid_undulation_m is None],
         },
         "transformation": (
             "IGIO complete polygon components and holes -> topology-verified Delaunay/clipped "
             "triangulation -> flat-shaded LOD1 prism from LiDAR height provenance in a "
-            "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
-            "ground elevation as visualization-only offset without vertical datum "
-            "conversion. Estimated fallbacks require explicit --extrusion-ft; never survey-grade."
+            "tile-local ENU frame; WGS84 ellipsoid surface horizontal placement; "
+            "per-feature source-declared GEOID18 N applied to NAVD88 ground as h = H + N "
+            "when present, otherwise explicitly unverified NAVD88-as-ellipsoid preview. "
+            "NAD83(2011)-to-WGS84 horizontal frame and source geoid grid interpolation "
+            "are NOT independently verified. Estimated fallbacks require explicit "
+            "--extrusion-ft; never survey-grade."
         ),
         "parameters": {
             "extrusionFallbackFt": args.extrusion_ft,
@@ -624,6 +679,10 @@ def main() -> None:
             "actualHeightSource": "OBSERVED 3DEP EPT or DERIVED Indiana COPC per-feature lidarHeightFt",
             "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
+            "geoidPlacementRequired": args.require_geoid_placement,
+            "geoidAdjustedObjectIds": [t.source_id for t in tiles if t.geoid_undulation_m is not None],
+            "geoidVerifiedByIndependentGridSampling": False,
+            "horizontalReferenceFrameTransformationVerified": False,
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },
