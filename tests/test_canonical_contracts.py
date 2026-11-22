@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from jsonschema import Draft202012Validator, FormatChecker
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 FILES = {
     "event": ROOT / "schemas/core/twin-event.schema.json",
     "observation": ROOT / "schemas/core/observation.schema.json",
