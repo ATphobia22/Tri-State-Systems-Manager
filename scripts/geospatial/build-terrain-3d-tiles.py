@@ -4,9 +4,11 @@
 The GLBs use a tile-local ENU frame.
 
 Vertical handling (--vertical-mode):
-  - geodetic (default): the tile-local ENU origin is shifted by the GEOID18
-    geoid separation N at the tile center (via scripts/geospatial/tsm_geodesy.py),
-    so NAVD88 vertex elevations land at true ellipsoidal heights h = H + N.
+  - geodetic (default): the tile-local ENU origin uses the GEOID18
+    separation N at the tile center, while EACH sampled vertex computes its
+    own h = H_NAVD88 + N_GEOID18(lon,lat), converts to WGS84 ECEF, and projects
+    the complete ECEF displacement into ENU. This preserves curvature and
+    spatial geoid variation across adjacent tile-local coordinate systems.
   - legacy-offset: previous behavior -- origin on the ellipsoid surface (h=0)
     with NAVD88 elevations as raw offsets.
 
@@ -147,8 +149,8 @@ def make_grid(image: RGBImage, key: TileKey, size: int, vertical_mode: str = "ge
     west, south, east, north = xyz_bounds(key)
     lon0, lat0 = (west + east) / 2.0, (south + north) / 2.0
     if vertical_mode == "geodetic":
-        # Shift ENU origin by geoid separation N at tile center: NAVD88
-        # vertex heights then sit at true ellipsoidal heights h = H + N.
+        # Place ENU origin at the center geoid surface. Vertex ECEF values
+        # are computed independently below using each point's GEOID18 N.
         geoid = geoid or GeoidModel()
         n_m, _ = geoid.separation_m(lon0, lat0)
         origin = ellipsoidal_to_ecef(lon0, lat0, n_m)
@@ -160,9 +162,23 @@ def make_grid(image: RGBImage, key: TileKey, size: int, vertical_mode: str = "ge
         fy, lat = row / (size - 1), north + (south - north) * row / (size - 1)
         for col in range(size):
             fx, lon = col / (size - 1), west + (east - west) * col / (size - 1)
-            delta = sub(surface(lon, lat), origin)
-            vertices.append((dot(delta, axes[0]), dot(delta, axes[1]), elevation(image, fx * 255.0, fy * 255.0)))
-            heights.append(vertices[-1][2])
+            navd88_height_m = elevation(image, fx * 255.0, fy * 255.0)
+            if vertical_mode == "geodetic":
+                # The vertical is NOT a constant tile-center geoid offset or a
+                # flat tangent-plane Z. Account for Earth curvature and the
+                # spatially varying geoid at every vertex before ENU projection.
+                # Independent, adjacent tile frames now map equal source
+                # boundary samples to the same physical ECEF coordinates.
+                n_vertex_m, _ = geoid.separation_m(lon, lat)
+                absolute_ecef = ellipsoidal_to_ecef(lon, lat, navd88_height_m + n_vertex_m)
+                delta = sub(absolute_ecef, origin)
+                position = tuple(dot(delta, axis) for axis in axes)
+            else:
+                # Preserve the old explicitly unverified local preview mode.
+                delta = sub(surface(lon, lat), origin)
+                position = (dot(delta, axes[0]), dot(delta, axes[1]), navd88_height_m)
+            vertices.append(position)
+            heights.append(navd88_height_m)
     return vertices, heights, axes, origin
 
 
@@ -319,7 +335,7 @@ def main():
 
     tileset = {"asset": {"version": "1.1", "extras": {"tsm": {"authorityClass": "DERIVED", "engineeringUse": False, "regulatoryUse": False}}}, "geometricError": root["geometricError"], "root": root}
     (args.out_dir / "tileset.json").write_text(json.dumps(tileset, indent=2) + "\n")
-    manifest = {"schemaVersion":"1.0.0","artifactId":"tsm-terrain-3d-tiles-3dep","format":"OGC 3D Tiles 1.1 + glTF 2.0 GLB","source":{"sourceUrl":args.source_url,"sourceVersionOrEffectiveDate":args.source_version,"sourceId":metadata.get("name","terrain_3dep")},"input":{"mbtilesSha256":hashlib.sha256(args.mbtiles.read_bytes()).hexdigest(),"tileCount":len(rows),"zoomLevels":levels},"transformation":"Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB.","verticalMode":args.vertical_mode,"verticalProvenance":"geodetic: ENU origin shifted by GEOID18 separation N at tile center via tsm_geodesy (h=H+N); legacy-offset: origin on ellipsoid surface (previous behavior)","softwareVersion":"TSM deterministic terrain 3D Tiles converter v1","authorityClass":"DERIVED","engineeringUse":False,"regulatoryUse":False,"tileCount":len(rows),"gridSize":args.grid_size,"content":sorted(p.relative_to(args.out_dir).as_posix() for p in paths)}
+    manifest = {"schemaVersion":"1.0.0","artifactId":"tsm-terrain-3d-tiles-3dep","format":"OGC 3D Tiles 1.1 + glTF 2.0 GLB","source":{"sourceUrl":args.source_url,"sourceVersionOrEffectiveDate":args.source_version,"sourceId":metadata.get("name","terrain_3dep")},"input":{"mbtilesSha256":hashlib.sha256(args.mbtiles.read_bytes()).hexdigest(),"tileCount":len(rows),"zoomLevels":levels},"transformation":"Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB.","verticalMode":args.vertical_mode,"verticalProvenance":"geodetic: each vertex ECEF computed from h=H_NAVD88+N_GEOID18(lon,lat), projected in full 3D into local ENU at tile-center geoid origin; legacy-offset: old planar visualization preview (unverified)","softwareVersion":"TSM deterministic terrain 3D Tiles converter v1","authorityClass":"DERIVED","engineeringUse":False,"regulatoryUse":False,"tileCount":len(rows),"gridSize":args.grid_size,"content":sorted(p.relative_to(args.out_dir).as_posix() for p in paths)}
     (args.out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     write_hashes(args.out_dir, paths + [args.out_dir / "tileset.json", args.out_dir / "manifest.json"])
     print(f"generated {len(rows)} GLBs; zooms={levels}; grid={args.grid_size}; out={args.out_dir}")
