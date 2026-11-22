@@ -62,6 +62,10 @@ FTSMLivingRiverState UTSMExperienceSubsystem::InspectLivingRiverValley(
     // Mere existence is not verification. Native release gate checks each file
     // against its provenance manifest independently before the scene is trusted.
     State.bDataManifestContentsVerified = false;
+    // This is a file-only integrity check, NOT station-datum or engineering approval.
+    // Loading failures stay visible; the rest of the local experience remains usable.
+    State.bGaugeViewLocalShaVerified = UTSMOfflineGaugeReader::LoadPackagedGaugeViews(
+        State.GaugeReadings, State.GaugeViewStatus);
     State.DataState = !State.bClockTimestampValid
         ? TEXT("INVALID_UTC_SCENE_CLOCK")
         : (State.bDataManifestPresent
