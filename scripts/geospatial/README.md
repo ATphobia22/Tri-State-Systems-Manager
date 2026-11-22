@@ -16,14 +16,14 @@ tile-fabric assembly.
 | `lod2-ai-automation.py` | AI-assisted LOD2: SAT2LOD2/HEAT guides + classical RANSAC fallback (`--mode classical`, pure numpy) |
 | `dem_to_transvoxel.py` | DEM → Transvoxel SDF volume (CPU pipeline) |
 | `transvoxel_tables.py` | Lengyel transition-cell classification tables |
-| `citygml_to_3dtiles.py` | CityGML 3.0 Space/SpaceBoundary → 3D Tiles |
+| `citygml_to_3dtiles.py` | CityGML 3.0 Space/SpaceBoundary → **nonrenderable** `citygml-features.candidate.json` staging; GLB/3D Tiles generation pending |
 | `point_tube.py` | PointTube semantic geometry utility |
 | `hecras_georeference.py` | Georeference HEC-RAS cross-sections |
 | `tnm_bulk_download.py` | USGS TNM bulk downloader — see `../flood-forecasting/` |
 
 ## Conventions
 
-- Vertical datum: NAVD88 unless a filename says otherwise.
+- Vertical datum: **required explicit per-source metadata**; do not assume NAVD88 from a filename, state, or repository default. Before 3D Tiles ECEF placement, transform reviewed orthometric NAVD88 using the applicable geoid and horizontal reference epoch to compatible ellipsoidal heights; preserve source CRS and transformation/grid evidence.
 - Regulatory BFE at the anchor site: **369.1 ft NAVD88**
   (FEMA FIS 18129CV000A Table 9 §A). Do not use the retired 375.0 ft
   working target.

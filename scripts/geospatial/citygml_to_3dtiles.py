@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-CityGML 3.0 to 3D Tiles Converter for TSM
+CityGML 3.0 to source-linked 3D building feature staging for TSM
 
 Parses CityGML 3.0 Space/SpaceBoundary elements and converts them
-to OGC 3D Tiles 1.1 with glTF 2.0 content.
+to a metadata-only candidate for subsequent meshing.
 
 Usage:
     python citygml_to_3dtiles.py input.gml --output ./tiles/
@@ -16,9 +16,9 @@ Supports:
 - SpaceBoundary surfaces (WallSurface, RoofSurface, GroundSurface)
 
 Output:
-- tileset.json (3D Tiles 1.1 implicit octree)
-- GLB files with EXT_structural_metadata
-- 16-bit TSM state-word per feature
+- citygml-features.candidate.json (NOT a renderable 3D Tiles tileset)
+- 16-bit TSM state-word per source feature
+No GLBs, implicit subtrees, topology or geodetic transforms are produced.
 """
 
 import argparse
@@ -154,49 +154,51 @@ def space_to_gltf_feature(space: Space) -> dict:
 
 
 def write_tileset(spaces: list, output_dir: Path):
-    """Write 3D Tiles 1.1 tileset.json with implicit octree"""
+    """Stage source-linked feature metadata; never advertise renderable 3D Tiles.
+
+    Kept as a compatibility entry point for importer callers. Only an actual
+    geometry-meshing and validation stage may publish tileset.json.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
-
     features = [space_to_gltf_feature(s) for s in spaces]
-
-    tileset = {
-        "asset": {
-            "version": "1.1",
-            "generator": "TSM CityGML 3.0 Converter",
-        },
-        "schema": {
-            "classes": {
-                "citygml_space": {
-                    "properties": {
-                        "id": {"type": "STRING"},
-                        "type": {"type": "STRING"},
-                        "stateWord": {"type": "SCALAR", "componentType": "UINT16"},
-                        "boundaryCount": {"type": "SCALAR", "componentType": "UINT8"},
-                    }
-                }
-            }
-        },
-        "metadata": {
-            "featureCount": len(features),
-            "sourceFormat": "CityGML 3.0",
-            "stateWordNote": "16-bit TSM state-word per feature (B:14, D:12, C:9, T:6, S:3)",
-        },
+    candidate = {
+        "schema": "tsm.citygml-features.candidate.v1",
+        "sourceFormat": "CityGML 3.0",
+        "renderable": False,
+        "valid3DTiles": False,
+        "assetType": "METADATA_ONLY",
+        "featureCount": len(features),
         "features": features,
+        "blockers": [
+            "GLB_GEOMETRY_NOT_GENERATED",
+            "ROOT_TILE_BOUNDING_VOLUME_NOT_GENERATED",
+            "ROOT_TILE_TRANSFORM_NOT_GENERATED",
+            "IMPLICIT_SUBTREES_NOT_GENERATED",
+            "CRS_DATUM_AND_UNITS_NOT_VERIFIED",
+            "MESH_SEAMS_AND_BUILDING_TOPOLOGY_NOT_VERIFIED",
+        ],
     }
-
-    with open(output_dir / "tileset.json", 'w') as f:
-        json.dump(tileset, f, indent=2)
-
-    print(f"Wrote tileset.json with {len(features)} features to {output_dir}")
+    # Reject stale deceptive tilesets instead of leaving them in packaging output.
+    tileset = output_dir / "tileset.json"
+    if tileset.exists() or tileset.is_symlink():
+        raise ValueError(
+            "Output contains tileset.json: refusing to overwrite or retain "
+            "an unverified renderable tileset alongside a metadata-only candidate"
+        )
+    target = output_dir / "citygml-features.candidate.json"
+    with target.open("x", encoding="utf-8") as out:
+        json.dump(candidate, out, indent=2, allow_nan=False)
+        out.write("\n")
+    print(f"Staged {len(features)} feature metadata records to {target}; no renderable 3D Tiles emitted")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert CityGML 3.0 to OGC 3D Tiles 1.1 for TSM"
+        description="Stage source-linked CityGML 3.0 feature metadata for a separately verified 3D Tiles mesh builder"
     )
     parser.add_argument("input", type=Path, help="Input CityGML 3.0 file (.gml)")
     parser.add_argument("--output", type=Path, default=Path("./tiles"),
-                        help="Output directory for 3D Tiles")
+                        help="Output directory for nonrenderable feature metadata only")
     parser.add_argument("--lod", type=int, default=2,
                         help="Target LOD level (1-3)")
 
@@ -216,7 +218,7 @@ def main():
         space.state_word = (space.state_word & ~(0x7 << 12)) | ((args.lod & 0x7) << 12)
 
     write_tileset(spaces, args.output)
-    print("Done.")
+    print("Metadata staging complete; independent meshing/3D Tiles validation required.")
 
 
 if __name__ == "__main__":
