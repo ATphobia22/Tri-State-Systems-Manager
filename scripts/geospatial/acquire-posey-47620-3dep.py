@@ -96,6 +96,23 @@ def fetch(url: str, timeout: int = 180, attempts: int = 4) -> tuple[bytes, str]:
     raise RuntimeError("bounded retry loop exited unexpectedly")
 
 
+def parse_authoritative_json(raw: bytes, content_type: str, label: str) -> dict[str, Any]:
+    """Missing/invalid upstream response is a source outage, not valid terrain."""
+    if not raw or not raw.strip():
+        raise TransientSourceUnavailable(f"{label} returned an empty response")
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise TransientSourceUnavailable(
+            f"{label} returned non-JSON bytes (content_type={content_type!r})"
+        ) from exc
+    if not isinstance(value, dict):
+        raise TransientSourceUnavailable(f"{label} did not return a JSON object")
+    if value.get("error"):
+        raise RuntimeError(f"{label} returned a structured ArcGIS error")
+    return value
+
+
 def query_one_polygon(layer_url: str, where: str, label: str) -> tuple[dict[str, Any], bytes, str]:
     query = urllib.parse.urlencode({
         "where": where,
@@ -106,9 +123,7 @@ def query_one_polygon(layer_url: str, where: str, label: str) -> tuple[dict[str,
     })
     url = layer_url + "/query?" + query
     raw, content_type = fetch(url, timeout=90)
-    payload = json.loads(raw.decode("utf-8"))
-    if payload.get("error"):
-        raise RuntimeError(f"Census TIGERweb {label} query error: {payload['error']}")
+    payload = parse_authoritative_json(raw, content_type, f"Census TIGERweb {label} query")
     features = payload.get("features")
     if not isinstance(features, list) or len(features) != 1:
         raise RuntimeError(f"Expected exactly one {label} polygon for {where}; received {len(features) if isinstance(features, list) else 'no feature list'}")
@@ -159,8 +174,8 @@ def main() -> int:
     county_metadata_url = COUNTY_LAYER + "?f=json"
     zcta_metadata_raw, zcta_metadata_type = fetch(zcta_metadata_url, timeout=45)
     county_metadata_raw, county_metadata_type = fetch(county_metadata_url, timeout=45)
-    zcta_metadata = json.loads(zcta_metadata_raw.decode("utf-8"))
-    county_metadata = json.loads(county_metadata_raw.decode("utf-8"))
+    zcta_metadata = parse_authoritative_json(zcta_metadata_raw, zcta_metadata_type, "Census ZCTA metadata")
+    county_metadata = parse_authoritative_json(county_metadata_raw, county_metadata_type, "Census county metadata")
     if zcta_metadata.get("error") or county_metadata.get("error"):
         raise RuntimeError("Census TIGERweb layer metadata request failed")
 
@@ -192,7 +207,7 @@ def main() -> int:
 
     service_metadata_url = USGS_SERVICE + "?f=json"
     service_metadata_raw, service_metadata_type = fetch(service_metadata_url, timeout=45)
-    service_metadata = json.loads(service_metadata_raw.decode("utf-8"))
+    service_metadata = parse_authoritative_json(service_metadata_raw, service_metadata_type, "USGS ImageServer metadata")
     if service_metadata.get("error"):
         raise RuntimeError(f"USGS 3DEP service metadata error: {service_metadata['error']}")
     query = urllib.parse.urlencode({
