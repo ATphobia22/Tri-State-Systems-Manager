@@ -8,4 +8,5 @@ COPY migrations migrations
 COPY schemas schemas
 COPY twin twin
 COPY tests tests
+COPY --from=twin_api / /app/state_api
 USER 10001

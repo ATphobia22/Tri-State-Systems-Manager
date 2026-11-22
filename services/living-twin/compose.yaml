@@ -1,7 +1,10 @@
 name: tsm-living-twin
 x-runtime: &runtime
   image: tsm-living-twin:local
-  build: .
+  build:
+    context: .
+    additional_contexts:
+      twin_api: ../../api/twin-api
   environment:
     DATABASE_URL: postgresql://postgres:twin@db:5432/postgres
     KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
@@ -71,6 +74,41 @@ services:
       interval: 3s
       timeout: 4s
       retries: 20
+  redis:
+    image: redis:7.4.3-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+  kernel:
+    <<: *runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    command: ["python", "-m", "twin.kernel"]
+    restart: on-failure
+  state-role:
+    <<: *runtime
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    environment:
+      DATABASE_URL: postgresql://postgres:twin@db:5432/postgres
+      TWIN_STATE_DB_PASSWORD: state-reader-local
+    command: ["python", "-m", "twin.read.provision"]
+  state-api:
+    <<: *runtime
+    depends_on:
+      state-role: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    environment:
+      DATABASE_URL: postgresql://twin_state_api:state-reader-local@db:5432/postgres
+      TWIN_REDIS_URL: redis://redis:6379/0
+      TWIN_REBUILD_TOKEN: "${TWIN_REBUILD_TOKEN:-}"
+      CESIUM_ORIGINS: "${CESIUM_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+    command: ["uvicorn", "state_api.main:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports: ["127.0.0.1:18001:8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health',timeout=2)"]
+      interval: 3s
+      timeout: 4s
+      retries: 20
   tempo:
     image: grafana/tempo:2.8.1
     command: ["-config.file=/etc/tempo.yaml"]
@@ -95,6 +133,8 @@ services:
     profiles: ["test"]
     depends_on:
       api: {condition: service_healthy}
+      state-api: {condition: service_healthy}
+      kernel: {condition: service_started}
       relay: {condition: service_started}
       consumer: {condition: service_started}
       prometheus: {condition: service_started}
@@ -105,6 +145,9 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
       SCHEMA_REGISTRY_URL: http://redpanda:8081
       TWIN_API: http://api:8000
+      STATE_API: http://state-api:8001
+      STATE_DATABASE_URL: postgresql://twin_state_api:state-reader-local@db:5432/postgres
+      TWIN_REBUILD_TOKEN: "${TWIN_REBUILD_TOKEN:-}"
       TWIN_PROMETHEUS: http://prometheus:9090
       TWIN_GRAFANA: http://grafana:3000
       TWIN_TEMPO: http://tempo:3200

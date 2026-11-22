@@ -81,3 +81,128 @@ The regional state schema can accept evidence from USGS, NOAA, FEMA, USACE, stat
 ## Schema changes and rollback
 
 Run `alembic upgrade head` with `DATABASE_URL` set. The SQL sources are in `migrations/sql`. Use `alembic upgrade head --sql` to inspect the upgrade without connecting. `alembic downgrade base` removes the twin schema and its history while retaining shared PostGIS and pgSTAC. Run only on a database you intend to reset, or after backing up the twin schema. The integration suite tests downgrade on an isolated database.
+
+## Twin State API and replay
+
+The CQRS API runs separately at `http://127.0.0.1:18001/docs`. The original port 18000 API still serves raw event history. The kernel advances the current projection from committed PostGIS sequences. Compose provisions a dedicated API database login with read access and permission to insert rebuild requests only. Kafka delivery timing is independent of that checkpoint.
+
+| Endpoint | Read model |
+| --- | --- |
+| `GET /twin/current/hydrology` | Current reach revisions and a separate list of latest gauge observations by sensor, parameter and series |
+| `GET /twin/current/buildings`, `GET /twin/current/terrain` | Current entity revisions with optional EPSG:4326 bounding box |
+| `GET /twin/current?matrix=V` | Current records by matrix, including validation and simulation results |
+| `GET /twin/time/{valid_at}` | Effective-time replay with optional knowledge time, timeline, branch and bounds |
+| `GET /cesium/live/{layer}?bbox=...` | Projected GeoJSON for buildings, hydrology or infrastructure |
+| `WS /twin/live?after={seq}` | Ordered commit notifications through the projection watermark |
+
+Current responses include `watermark`, `view_version` and `next_after`. Send both `next_after` as `after` and `view_version` on the next request. A 409 means the view changed, so restart from page one. The WebSocket sends committed revisions as invalidations. Reload the appropriate projection after an update because a late historical revision may leave current state unchanged. Redis caches results by the projection instance, generation, and sequence. The state API reads from PostGIS if Redis is unavailable.
+
+The projection is idempotent by committed event sequence. Within each observed identity, later effective time wins and the higher commit sequence breaks effective-time ties. Tombstones prevent a late older record from resurrecting a retired entity. Forecast and scenario results remain queryable through time travel in their own timelines. Gauge observations retain their original units, quality, and datum reference.
+
+For local rebuild operations, set a secret `TWIN_REBUILD_TOKEN` before starting Compose. Rebuild endpoints are disabled when it is unset. The admin POST and status requests require `Authorization: Bearer ...`. A POST also requires an `Idempotency-Key` header containing a UUID.
+
+```sh
+curl --fail -X POST http://127.0.0.1:18001/rebuild/projections \
+  -H "Authorization: Bearer $TWIN_REBUILD_TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)"
+```
+
+Poll `GET /rebuild/jobs/{job_id}` with the same authorization. Projection rebuilds replace the projection and checkpoint in one transaction. Readers see the previous complete state until the rebuild commits. `POST /rebuild/stac` requeues the existing asset revisions for pgSTAC via the existing outbox. A completed STAC rebuild job means requeueing committed. The relay performs catalog delivery asynchronously. The job status reports the number of pending deliveries through its captured watermark. Rebuilds do not write source events or create Kafka messages. Use a fresh UUID for a new rebuild and reuse the original UUID for request retries.
+
+The kernel coordinates replay and projection. The existing ingress consumer owns event writes, and the existing relay owns Kafka and pgSTAC delivery. Simulation and validation workers can publish results through the existing event contract. This service does not launch HEC-RAS or adjudicate engineering decisions.
+
+
+## Phases 1–3: canonical state, hydrologic validation and infrastructure asset shells
+
+The connected living-twin service is headless. It is isolated from the native
+Windows offline runtime, which must not depend on HTTP, Redpanda, Redis or a
+local server. PostGIS is the sole authoritative event store; all read models,
+validation records, and AAS documents are projections or derived evidence.
+
+### Canonical state and replay
+
+The CQRS state API exposes current typed state and temporal reconstruction:
+GET /twin/current?matrix=I, GET /twin/time/{valid_at}, and live changes.
+Transactions are tracked by committed sequence and versioned by effective and
+recorded time. State and projection rebuild behavior is exercised by the
+Compose integration tests. Historical inputs must never be overwritten.
+
+### Hydrology: O observation + H model prediction -> V evidence record
+
+Use the source-hashed river snapshot importer to retain USGS observation time,
+unit, approval status, time-series identity, SHA-256, and unresolved gage datum:
+
+    python -m twin.import_usgs ./river-snapshot
+
+The allowed river pilot stations are USGS 03322000, 03378500, and optional
+03377500, when present in the snapshot manifest. The source remains the
+official USGS OGC Water Data API. The importer does not invent readings.
+
+Publish an H model event using the existing twin.publish operator tool with
+timeline forecast/scenario, a unique non-main branch, source provenance, H
+state.reach_id, state.station_id (e.g. USGS-03378500), state.stage_ft for a
+predicted NAVD88 water-surface elevation in feet, state.unit = ft, and
+state.vertical_reference = NAVD88. Preserve run ID, model revision and original
+HEC-RAS input/output evidence. Never label model output as an observation.
+
+Compare exact stored O and H event UUIDs and publish a validation record:
+
+    python -m twin.validate_hydrology --observation OBS_UUID \
+      --prediction MODEL_UUID --gage-zero ./reviewed-zero.json \
+      --validated-at 2026-11-22T07:00:00Z
+
+Reviewed station-specific gage-zero JSON requires station_id, offset_ft,
+datum=NAVD88, reviewed=true, uncertainty_ft, evidence_uri (HTTPS),
+sha256, effective_from, and effective_to. The reviewed flag is an operator
+attestation only: the code DOES NOT independently check that the URL's content
+matches its supplied SHA-256. Independently audit the dated official datum
+source and offset before marking it reviewed.
+
+Without that evidence the comparison returns WITHHELD/GAGE_ZERO_UNREVIEWED;
+with unit/station/time disagreement it also withholds, rather than making a
+false 0.2-foot residual claim. Successful comparisons report model-minus-
+observation residual, absolute error, optional propagated uncertainty, and
+source digests. If observation or model uncertainty is missing, combined
+uncertainty remains null. A V record links the O and H events immutably; the
+operator must explicitly classify model calibration use as fit, withheld, or
+unknown. The default unknown is not independent validation certification.
+
+### Infrastructure versioning and AAS projections
+
+Manifest JSON must contain asset_id (UUID), asset_type, name, version,
+valid_from and verified source provenance. Supported types are bridge,
+levee, gauge, pump_station, road, port. Optional fields include GeoJSON
+EPSG:4326 geometry, properties and typed relationships such as connected_to,
+part_of, crosses, upstream_of, protects and monitors. All source and
+relationship assertions require independent field or agency verification.
+
+    python -m twin.import_assets reviewed-asset.json --aas-preview
+    python -m twin.import_assets reviewed-asset.json
+
+The first command previews the AAS-shaped projection without writing to the
+event store; the second commits an auditable I event. Read current state via:
+
+    GET /twin/assets/{uuid}
+    GET /twin/assets/{uuid}/relationships
+    GET /twin/assets/{uuid}/aas
+
+AAS output contains an AssetAdministrationShell, asset information, a
+referenced infrastructure Submodel, properties and relation references.
+Its conformance status is explicitly AAS_SHAPE_ONLY_NOT_INDEPENDENTLY_
+CONFORMANCE_TESTED. A real BaSyx/IDTA schema and profile interoperability
+test remains necessary before declaring the export standard compliant.
+
+### Acceptance boundaries
+
+Run the integration suite in a development Compose environment:
+
+    docker compose --profile test run --rm tests
+
+The suite now exercises deterministic residuals and withheld datum states,
+duplicate-safe versioned infrastructure events, historical state, AAS endpoint
+readback, and evidence links for V records. Tests use synthetic records and
+offsets, not a verified real-time gauge reading or an accepted hydraulic
+model. The independent release gates remain: authoritative USGS/USACE datum
+verification, real HEC-RAS output integration and uncertainty review,
+published infrastructure inventory coverage, AAS conformance, production
+database operations, and clean offline UE5.8 Win64 Shipping proof.
