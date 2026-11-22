@@ -116,6 +116,13 @@ def inspect(manifest: dict, root: Path, aoi_bbox: list[float]) -> dict:
     if (manifest["horizontal_crs"] not in ("EPSG:2966", "EPSG:26916", "EPSG:3089", "EPSG:4326")
             or manifest["horizontal_units"] not in HORIZONTAL_UNITS):
         blockers.append("UNREVIEWED_HORIZONTAL_CRS_UNITS")
+    # A source can declare a known EPSG code with the wrong axis units.
+    expected_horizontal_units = {
+        "EPSG:2966": "ftUS", "EPSG:26916": "m",
+        "EPSG:3089": "m", "EPSG:4326": "degree"
+    }
+    if expected_horizontal_units.get(manifest["horizontal_crs"]) != manifest["horizontal_units"]:
+        blockers.append("HORIZONTAL_CRS_UNIT_CONTRADICTION")
     if (manifest["vertical_datum"] not in VERTICAL_DATUMS or
             manifest["vertical_units"] not in VERTICAL_UNITS or
             manifest["z_semantics"] not in Z_SEMANTICS or
