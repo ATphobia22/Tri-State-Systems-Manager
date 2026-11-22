@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 from uuid import NAMESPACE_URL, uuid5
 
 from .contracts import canonical, stream_key, validate
+from .usgs_preflight import verify_capture
 from .kafka import Wire, producer, send
 from .settings import INGRESS
 
@@ -17,6 +18,8 @@ NO_DATA = {-999, -9999, -8888}
 
 
 def read_bounded(path):
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(f"USGS source must be a regular local file: {path.name}")
     with path.open("rb") as handle:
         raw = handle.read(MAX_SOURCE_BYTES + 1)
     if len(raw) > MAX_SOURCE_BYTES:
@@ -28,41 +31,25 @@ def event_rows(snapshot: Path):
     manifest = json.loads(read_bounded(snapshot / "manifest.json"))
     if manifest["schema"] != "tsm.river-twin.observations.v1":
         raise ValueError("Unsupported USGS river pilot manifest")
+    # Validate every captured source and every record first; a bad station
+    # cannot leave an unnoticed hole in an otherwise successful publish.
+    preflight = verify_capture(snapshot, manifest, STATIONS, read_bounded)
     events = []
-    if not set(manifest["stations"]) <= set(STATIONS):
-        raise ValueError("Unrecognized river-pilot station")
     for station in STATIONS:
-        if station not in manifest["stations"]:
+        if station not in preflight:
             continue
         entry = manifest["stations"][station]
-        if entry["status"] in ("SOURCE_UNAVAILABLE", "NO_OBSERVATIONS"):
-            continue
-        if entry["status"] != "CAPTURED":
-            raise ValueError("Unknown USGS capture status")
-        url = urlsplit(entry["sourceUrl"])
-        filters = parse_qs(url.query)
-        if (
-            url.scheme != "https" or url.netloc != "api.waterdata.usgs.gov"
-            or url.path != "/ogcapi/v1/collections/continuous/items"
-            or filters.get("monitoring_location_id") != [f"USGS-{station}"]
-            or filters.get("parameter_code") != ["00065"]
-        ):
-            raise ValueError("USGS source URI does not match the pilot station and parameter")
-        raw = read_bounded(snapshot / f"{station}.geojson")
-        digest = hashlib.sha256(raw).hexdigest()
-        if digest != entry["rawSha256"]:
-            raise ValueError(f"USGS snapshot SHA-256 mismatch: {station}")
-        document = json.loads(raw)
-        if document["type"] != "FeatureCollection" or len(document["features"]) != entry["featureCount"]:
-            raise ValueError("Source observation inventory mismatch")
+        digest = preflight[station]["sha256"]
+        document = preflight[station]["document"]
         for feature in document["features"]:
             props = feature["properties"]
+            # Preflight checked all feature identities; do not silently skip.
             if (
                 props.get("monitoring_location_id") != f"USGS-{station}"
                 or props.get("parameter_code") != "00065" or props.get("unit_of_measure") != "ft"
                 or not props.get("time_series_id")
             ):
-                continue
+                raise ValueError("USGS record changed after capture preflight")
             value = props.get("value")
             try:
                 value = float(value) if type(value) in (int, float, str) else None
@@ -90,14 +77,19 @@ def event_rows(snapshot: Path):
             event["event_id"] = str(uuid5(NAMESPACE_URL, canonical(event)))
             validate(event)
             events.append(event)
-    return events
+    return sorted(events, key=lambda row: (row["valid_from"], row["entity_id"]))
 
 
 if __name__ == "__main__":
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument("snapshot", type=Path)
-    directory = cli.parse_args().snapshot
-    events = event_rows(directory)
+    cli.add_argument("--preview", action="store_true", help="Local verification only; no Kafka")
+    options = cli.parse_args()
+    events = event_rows(options.snapshot)
+    if options.preview:
+        print(json.dumps({"preflight": "VALID", "event_count": len(events),
+                          "event_ids": [row["event_id"] for row in events]}))
+        raise SystemExit(0)
     wire, client = Wire(), producer()
     for row in events:
         send(client, INGRESS, stream_key(row), wire.pack(row, INGRESS))

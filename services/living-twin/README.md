@@ -223,3 +223,28 @@ For release gates and commands see
 docs/release/TSM-TWIN-PHASES-1-5-ACCEPTANCE.md.
 Synthetic integration tests are not proof of a real countywide
 building inventory or clean Windows 11 UE5.8 offline executable launch.
+
+
+## Verified USGS capture to native offline observation handoff
+
+The continuous river pilot produces an immutable capture manifest with
+exact station response bytes, UTC window, station status and SHA-256. The
+importer checks every captured row before publishing any event; malformed
+station/parameter/units/timestamps, duplicate observations or incomplete
+source pagination invalidate the capture. USGS no-data sentinels stay null.
+
+In services/living-twin (with Python requirements installed):
+
+    python -m twin.import_usgs /path/to/capture --preview
+    python -m twin.import_usgs /path/to/capture
+    python -m twin.offline_bundle build /path/to/capture /path/to/new-local-data
+    python -m twin.offline_bundle verify /path/to/new-local-data
+    pytest -q tests/test_usgs.py tests/test_offline_bundle.py
+
+The first command does NOT connect to Kafka. The second command publishes
+validated O events to the connected Redpanda/Kafka ingress. The two offline
+commands need no Kafka/network/server; they produce original source files,
+deterministic observation events and SHA-256 receipts. They do not claim
+USGS authenticity, NAVD88 WSE, source-data licensing approval, HEC-RAS
+calibration, public publication clearance or native UE5.8 Shipping.
+See docs/architecture/USGS-TO-NATIVE-OFFLINE-HANDOFF-2026-11-22.md.
