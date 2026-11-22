@@ -23,7 +23,7 @@ tile-fabric assembly.
 
 ## Conventions
 
-- Vertical datum: NAVD88 unless a filename says otherwise.
+- Vertical datum: **required explicit per-source metadata**; do not assume NAVD88 from a filename, state, or repository default. Before 3D Tiles ECEF placement, transform reviewed orthometric NAVD88 using the applicable geoid and horizontal reference epoch to compatible ellipsoidal heights; preserve source CRS and transformation/grid evidence.
 - Regulatory BFE at the anchor site: **369.1 ft NAVD88**
   (FEMA FIS 18129CV000A Table 9 §A). Do not use the retired 375.0 ft
   working target.
