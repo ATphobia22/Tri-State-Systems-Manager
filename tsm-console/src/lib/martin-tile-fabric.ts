@@ -62,9 +62,13 @@ export function resolveMartinTileUrl(
   requireSourceId(source.id);
   if (!source.enabled) throw new Error(`Tile source is disabled: ${source.id}`);
   if (!Number.isInteger(z) || z < 0 || z > 30) throw new Error('Invalid tile zoom.');
-  if (!Number.isInteger(x) || x < 0) throw new Error('Invalid tile x coordinate.');
-  if (!Number.isInteger(y) || y < 0) throw new Error('Invalid tile y coordinate.');
-  if (!/^\/[a-zA-Z0-9._/-]*$/.test(basePath)) throw new Error('Invalid Martin base path.');
+  if (!Number.isInteger(x) || x < 0 || x >= 2 ** z) throw new Error('Invalid tile x coordinate.');
+  if (!Number.isInteger(y) || y < 0 || y >= 2 ** z) throw new Error('Invalid tile y coordinate.');
+  if (!/^\/[a-zA-Z0-9._/-]*$/.test(basePath) ||
+      basePath.slice(1).split('/').some((segment) =>
+        segment === '' || segment === '.' || segment === '..')) {
+    throw new Error('Invalid Martin base path.');
+  }
 
   return `${basePath.replace(/\/$/, '')}/${encodeURIComponent(source.id)}/${z}/${x}/${y}`;
 }
