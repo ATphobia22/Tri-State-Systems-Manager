@@ -25,6 +25,8 @@ signed geoid undulation, in metres, as:
 {
   "groundElevationFt": 382.0,
   "groundElevationDatum": "NAVD88",
+  "groundElevationUnit": "ftUS",
+  "lidarHeightUnit": "ftUS",
   "geoidUndulationM": -30.302,
   "geoidModel": "GEOID18",
   "geoidHorizontalFrame": "NAD83(2011)",
@@ -43,11 +45,12 @@ The generator converts horizontal coordinates from the supplied GeoJSON
 polygon into its existing WGS84 ellipsoid-local ENU visualization frame,
 and sets `base_z_m = H_ftUS * (1200 / 3937) + N_m`. Roof height remains a
 **relative** building height and is not geoid shifted a second time.
-The existing builder uses `FT_TO_M = 0.3048` for legacy source elevations;
-its source field names are generally `Ft`. An independent unit audit of
-whether each field means international feet versus U.S. survey feet is
-**still required** before engineering use. This patch does not silently alter
-that legacy unit interpretation.
+The corrected branch **requires** `groundElevationUnit: "ftUS"` and
+`lidarHeightUnit: "ftUS"` and converts both heights with the exact U.S.
+survey-foot factor `1200/3937`. The former 0.3048 metres/international-foot
+conversion remains only for explicitly labeled legacy uncorrected previews.
+The original source's units still require independent proof; a declaration
+is not automatically a verified measurement.
 
 The accepted metadata is **not verified by the generator**: a provenance URL
 does not prove the supplied numeric N was actually computed from that source.
