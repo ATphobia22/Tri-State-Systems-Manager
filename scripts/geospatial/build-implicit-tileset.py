@@ -3,12 +3,12 @@
 
 Research-validated 2026-10-07. Produces:
   tileset.json                    (root with implicitTiling, NO legacy extension)
-  subtrees/{level}/{x}/{y}.subtree  (availability bitstreams)
+  subtrees/{level}/{x}/{y}.json  (availability bitstreams)
   content/{level}/{x}/{y}.glb       (merged GLBs per tile)
 
 Template URIs (per OGC 3D Tiles 1.1 spec):
   "content": {"uri": "content/{level}/{x}/{y}.glb"}
-  "subtrees": {"uri": "subtrees/{level}/{x}/{y}.subtree"}
+  "subtrees": {"uri": "subtrees/{level}/{x}/{y}.json"}
 
 The legacy "3DTILES_implicit_tiling" extensionsUsed declaration is REMOVED:
 implicit tiling is core in 3D Tiles 1.1 (per Cesium spec repo).
@@ -318,7 +318,7 @@ def write_subtree(
     subtree_x: int,
     subtree_y: int,
 ):
-    """Write a JSON-encoded 3D Tiles subtree with Morton-ordered bitstreams."""
+    """Write a JSON-format 3D Tiles subtree with Morton-ordered external binary bitstreams."""
     tile_bits: list[int] = []
     content_bits: list[int] = []
     for depth in range(SUBTREE_LEVELS):
@@ -475,7 +475,7 @@ def main():
         subtree_roots.add((sl, x // factor, y // factor))
 
     for sl, sx, sy in sorted(subtree_roots):
-        spath = subtree_dir / str(sl) / str(sx) / f"{sy}.subtree"
+        spath = subtree_dir / str(sl) / str(sx) / f"{sy}.json"
         write_subtree(spath, nodes, subtree_roots, sl, sx, sy)
 
     # Root tileset.json with implicitTiling (NO legacy extension)
@@ -506,7 +506,7 @@ def main():
                 "subdivisionScheme": "QUADTREE",
                 "subtreeLevels": SUBTREE_LEVELS,
                 "availableLevels": args.max_depth + 1,
-                "subtrees": {"uri": "subtrees/{level}/{x}/{y}.subtree"},
+                "subtrees": {"uri": "subtrees/{level}/{x}/{y}.json"},
             },
         },
     }

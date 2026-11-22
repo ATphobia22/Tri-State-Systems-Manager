@@ -64,7 +64,7 @@ class ImplicitTilesetContractTests(unittest.TestCase):
                 (1, 1, 1): {"has_content": False},
             }
             child_roots = {(2, 0, 0), (2, 1, 0)}
-            subtree_path = root / "subtrees" / "0" / "0" / "0.subtree"
+            subtree_path = root / "subtrees" / "0" / "0" / "0.json"
             MODULE.write_subtree(subtree_path, nodes, child_roots, 0, 0, 0)
             subtree = json.loads(subtree_path.read_text())
             self.assertEqual(subtree["tileAvailability"], {"bitstream": 0})
@@ -193,6 +193,10 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             )
             tileset = json.loads(output.read_text())
             result = tileset["root"]
+            self.assertEqual(result["implicitTiling"]["subtrees"]["uri"],
+                             "subtrees/{level}/{x}/{y}.json")
+            self.assertTrue((output.parent / "subtrees/0/0/0.json").is_file())
+            self.assertFalse(list(output.parent.rglob("*.subtree")))
             self.assertEqual(result["transform"], root_transform)
             self.assertIn("box", result["boundingVolume"])
             self.assertEqual(result["refine"], "ADD")
