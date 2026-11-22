@@ -18,6 +18,20 @@
 | FEMA NFHL | https://msc.fema.gov/ | Effective FIRM panels, floodway/BFE and incorporated LOMCs. Never replace the regulatory map with an advisory or screening raster. |
 | OGC 3D Tiles | https://www.ogc.org/standards/3DTiles/ | GLB, source-linked feature identity, implicit hierarchy, geometric error and subtree availability. Verify published tiles with a conforming validator and a headed renderer. |
 
+## Verified live service metadata contracts (2026-11-22)
+
+These are **provider-returned service definitions**, not proof that every requested Posey or tri-state tile has been downloaded. A configured URL alone does not establish a valid source raster or a regulatory designation.
+
+| Source | Confirmed direct endpoint and relevant layer IDs | Evidence and ingestion rule |
+|---|---|---|
+| USGS 3DEP dynamic bare-earth service | https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer | Published service metadata reports an October 26, 2026 data cut-off and WMS/WCS support. It is a dynamic multi-resolution mosaic, not a replacement for source-DEM metadata or verified submerged bathymetry. |
+| USGS seamless 1 m S1M | https://data.usgs.gov/datacatalog/data/USGS%3A4f34caac-f28f-4ea0-8d82-eafb2b8f9a5d | **This product is EPSG:6350** (NAD83(2011) CONUS Albers), with NAVD88 (EPSG:5703) and GEOID18 vertical lineage. Do **not** mislabel S1M as EPSG:26916. Some original project-based 1 m DEMs use UTM; always inspect each asset independently. |
+| Indiana GIO DEM footprint tile index | https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0 | ID 0; name 'Indiana DEM Tile Footprints 2016-2020'. Spatial source is EPSG:3857, no Z. Use `urlpath`, `filename`, `image_year`, `pixel_size` only as **index metadata**; fetch real DEM headers, hashes and vertical datums separately. |
+| FEMA effective NFHL service | https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer | Verified service root: Cross-Sections (14), Base Flood Elevations (16), Flood Hazard Zones (28), LOMAs (34), FIRM Panels (3). Resolve fields, effective dates, LOMC incorporation and service revisions at acquisition; never infer jurisdictional acceptance from generic symbology. The alternate `/gis/nfhl/rest/` URL from the supplied directory was not independently verified. |
+| USACE NLD official public feature service | https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer | Alignment Lines (7), Embankments (11), Floodwalls (12), Leveed Areas (16). Service lists NAD83 EPSG:4269 and a vertical reference identifier; validate per-layer Z/units and surveyed crest attributes before using for design. |
+
+A projected CRS reference such as EPSG:2966 (NAD83 / Indiana West ftUS) and EPSG:2968 (NAD83(HARN) / Indiana West ftUS) identifies **different horizontal realizations**. Treat a file labeled EPSG:2968 as HARN, not interchangeable with EPSG:2966 merely because both are Indiana West feet. Exact source WKT, transformation grids, coordinate epoch and metadata must govern the operation. A 2D EPSG identifier does not certify the source vertical datum.
+
 ## Datum chain and coordinate contract
 
 1. Preserve the **native** horizontal CRS and realization for every physical input. Known relevant examples include Indiana West EPSG:2966, Illinois East NAD83(2011) service EPSG:6455 and Kentucky Single Zone EPSG:3089. These are examples, **not assumptions** for every object/file; source metadata can differ.
