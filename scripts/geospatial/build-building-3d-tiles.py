@@ -40,7 +40,8 @@ from shapely.ops import triangulate
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
-FT_TO_M = 0.3048
+FT_TO_M = 0.3048  # historical preview-only interpretation
+FTUS_TO_M = 1200.0 / 3937.0  # exact US-survey-foot conversion
 
 # Fixed LOD1 visualization constants (documented estimates, not surveyed).
 DEFAULT_EXTRUSION_FT = 10.0
@@ -273,6 +274,9 @@ def geoid_placement(props: dict) -> tuple[float, str]:
         raise ValueError("GEOID undulation must be a finite source-declared metre value")
     if props.get("groundElevationDatum") != "NAVD88":
         raise ValueError("NAVD88 groundElevationDatum required for GEOID placement")
+    if (props.get("groundElevationUnit") != "ftUS" or
+            props.get("lidarHeightUnit") != "ftUS"):
+        raise ValueError("GEOID-adjusted ground and roof elevations require explicit ftUS units")
     if (props.get("geoidModel") != "GEOID18" or
             props.get("geoidHorizontalFrame") != "NAD83(2011)"):
         raise ValueError("GEOID18 NAD83(2011) model and horizontal frame required")
@@ -510,8 +514,9 @@ def main() -> None:
         axes = enu_basis(lon0, lat0)
         # NGS relation h = H + N; N is signed and must be in metres.
         # This is a nominal visualization correction, not an approved 3D frame transform.
-        base_z_m = elev_ft * FT_TO_M + geoid_n_m
-        top_z_m = base_z_m + height_ft * FT_TO_M
+        unit_factor = FTUS_TO_M if placement_status == "SOURCE_DECLARED_GEOID18_VISUAL_ONLY" else FT_TO_M
+        base_z_m = elev_ft * unit_factor + geoid_n_m
+        top_z_m = base_z_m + height_ft * unit_factor
         try:
             positions, normals_list = build_prism(polygons, base_z_m, top_z_m, origin, axes)
         except ValueError as exc:
