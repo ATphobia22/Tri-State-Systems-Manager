@@ -188,17 +188,17 @@ def write_tileset(spaces: list, output_dir: Path):
     target = output_dir / "citygml-features.candidate.json"
     with target.open("x", encoding="utf-8") as out:
         json.dump(candidate, out, indent=2, allow_nan=False)
-        out.write("\\n")
+        out.write("\n")
     print(f"Staged {len(features)} feature metadata records to {target}; no renderable 3D Tiles emitted")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert CityGML 3.0 to OGC 3D Tiles 1.1 for TSM"
+        description="Stage source-linked CityGML 3.0 feature metadata for a separately verified 3D Tiles mesh builder"
     )
     parser.add_argument("input", type=Path, help="Input CityGML 3.0 file (.gml)")
     parser.add_argument("--output", type=Path, default=Path("./tiles"),
-                        help="Output directory for 3D Tiles")
+                        help="Output directory for nonrenderable feature metadata only")
     parser.add_argument("--lod", type=int, default=2,
                         help="Target LOD level (1-3)")
 
