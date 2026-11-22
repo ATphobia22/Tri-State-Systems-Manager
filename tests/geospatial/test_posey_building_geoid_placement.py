@@ -16,6 +16,7 @@ def feature(*, undulation: float | None = None, partial: bool = False) -> dict:
     p = {
         "igioObjectId": 501, "groundElevationFt": 382.0,
         "groundElevationDatum": "NAVD88",
+        "groundElevationUnit": "ftUS",
         "lidarHeightFt": 18.0, "lidarHeightStatus": "OK",
         "heightProvenance": "OBSERVED", "lidarHeightDatum": "NAVD88",
         "lidarHeightUnit": "ftUS",
@@ -59,8 +60,12 @@ class GeoidPlacementTests(unittest.TestCase):
         self.assertEqual(new.returncode, 0, new.stderr)
         x = a["root"]["children"][0]
         y = b["root"]["children"][0]
+        # Legacy uncorrected preview uses international ft; corrected source
+        # explicitly declares U.S. survey feet for ground and relative roof.
+        expected = (-30.302 + (382.0 + 18.0 / 2.0) *
+                    ((1200.0 / 3937.0) - 0.3048))
         self.assertAlmostEqual(y["boundingVolume"]["box"][2] -
-                               x["boundingVolume"]["box"][2], -30.302, places=5)
+                               x["boundingVolume"]["box"][2], expected, places=5)
         self.assertEqual(y["extras"]["tsm"]["geoidUndulationM"], -30.302)
         self.assertEqual(y["extras"]["tsm"]["verticalPlacementStatus"],
                          "SOURCE_DECLARED_GEOID18_VISUAL_ONLY")
@@ -88,6 +93,22 @@ class GeoidPlacementTests(unittest.TestCase):
         self.assertNotEqual(proc.returncode, 0)
         self.assertIsNone(tileset)
         self.assertIn("NAVD88", rejection["rejected"][0]["reason"])
+
+    def test_wrong_ground_units_refuses_geoid_application(self):
+        invalid = feature(undulation=-30.302)
+        invalid["properties"]["groundElevationUnit"] = "international-foot"
+        proc, tileset, rejection = build(invalid)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIsNone(tileset)
+        self.assertIn("ftUS", rejection["rejected"][0]["reason"])
+
+    def test_unknown_roof_units_refuses_geoid_application(self):
+        invalid = feature(undulation=-30.302)
+        invalid["properties"]["lidarHeightUnit"] = "m"
+        proc, tileset, rejection = build(invalid)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIsNone(tileset)
+        self.assertIn("ftUS", rejection["rejected"][0]["reason"])
 
     def test_incorrect_horizontal_frame_blocks_geoid_application(self):
         invalid = feature(undulation=-30.302)
