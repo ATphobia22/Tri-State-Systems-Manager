@@ -12,8 +12,10 @@ from prometheus_client import make_asgi_app
 from .contracts import JSON_SCHEMA
 from .observability import setup
 from .store import changes, connect, snapshot
+from .regional_api import router as regional_router
 
 app = FastAPI(title="TSM Living Twin", version="1")
+app.include_router(regional_router)
 setup("living-twin-api")
 FastAPIInstrumentor.instrument_app(app, excluded_urls="health,metrics")
 app.mount("/metrics", make_asgi_app())
