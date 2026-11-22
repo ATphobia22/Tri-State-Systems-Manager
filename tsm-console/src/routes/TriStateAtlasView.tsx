@@ -15,6 +15,8 @@ import ScenarioStudioPanel from '../components/ScenarioStudioPanel';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { TSM_DATA_FABRICS, type FabricPlane } from '../lib/data-fabric-registry';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { encodePlusCode } from '../lib/plusCodes';
+import { resolveAtlasPlusCode } from '../lib/atlas-location-code';
 import './TriStateAtlasView.css';
 
 type Lens = 'explore' | 'engineer' | 'review';
@@ -125,10 +127,37 @@ export default function TriStateAtlasView(): JSX.Element {
   const [fabricPlane, setFabricPlane] = useState<FabricPlane>('EVIDENCE_DATA_GOVERNANCE');
   const [riverOpen, setRiverOpen] = useState(false);
   const [mapStatus, setMapStatus] = useState('Map initialization pending; source availability unknown.');
+  const [plusCodeInput, setPlusCodeInput] = useState('');
+  const [plusCodeError, setPlusCodeError] = useState('');
+  const [customRegion, setCustomRegion] = useState<RegionView | null>(null);
   const onMapStatus = useCallback((status: string) => setMapStatus(status), []);
   const selectedSource: MapPlaneLayer | undefined = MAP_PLANE_FABRIC.find((layer) => layer.id === sourceId);
   const terrain = getTerrainRgbStatus();
-  const region = REGIONAL_VIEWS.find((item) => item.id === regionId) ?? REGIONAL_VIEWS[0]!;
+  const region = regionId === 'plus-code' && customRegion
+    ? customRegion : REGIONAL_VIEWS.find((item) => item.id === regionId) ?? REGIONAL_VIEWS[0]!;
+  const currentPlusCode = encodePlusCode(region.center[1], region.center[0]);
+  const navigateToPlusCode = (event: React.FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    try {
+      const target = resolveAtlasPlusCode(plusCodeInput);
+      setCustomRegion({
+        id: 'plus-code',
+        label: `Plus Code ${target.code}`,
+        center: [target.longitude, target.latitude],
+        zoom: 16,
+        pitch: 50,
+        bearing: 0,
+        imagery: false,
+        notes: 'Offline Plus Code cell center. Navigation only, not a surveyed point or parcel location. State-specific imagery remains off until you select an official community preset.',
+      });
+      setRegionId('plus-code');
+      setCinematicTour(false);
+      setPlusCodeInput(target.code);
+      setPlusCodeError('');
+    } catch (error) {
+      setPlusCodeError(error instanceof Error ? error.message : 'Invalid Plus Code');
+    }
+  };
   const visibleForRegion = useMemo(() => region.imagery ? layers : Object.fromEntries(
     Object.entries(layers).map(([id, enabled]) => [id, id.startsWith('indiana-') ? false : enabled]),
   ), [region.imagery, layers]);
@@ -200,8 +229,22 @@ export default function TriStateAtlasView(): JSX.Element {
           <label htmlFor="tsm-atlas-region">Travel to a community</label>
           <select id="tsm-atlas-region" value={regionId} onChange={(event) => { setCinematicTour(false); setRegionId(event.target.value); }}>
             {REGIONAL_VIEWS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            {customRegion && <option value="plus-code">{customRegion.label}</option>}
           </select>
           <p className="tsm-atlas-region-note">{region.notes}</p>
+          <details className="tsm-atlas-plus-code">
+            <summary>Offline Plus Code navigator</summary>
+            <p>Find a place by its full 10- or 11-character Plus Code. No Google Maps key, request, or account is needed.</p>
+            <form onSubmit={navigateToPlusCode}>
+              <label htmlFor="tsm-atlas-plus-code">Full Plus Code</label>
+              <input id="tsm-atlas-plus-code" type="text" value={plusCodeInput} maxLength={16} spellCheck={false}
+                autoCapitalize="characters" placeholder="e.g. 86CQ..." aria-describedby="tsm-atlas-plus-code-hint"
+                onChange={(event) => { setPlusCodeInput(event.target.value); setPlusCodeError(''); }} />
+              <button type="submit">Go to Plus Code</button>
+            </form>
+            <p id="tsm-atlas-plus-code-hint" className="tsm-atlas-note">Current community preset center: <code>{currentPlusCode}</code> · {region.center[1].toFixed(6)}° N, {region.center[0].toFixed(6)}° E (signed WGS84). Codes identify approximate cells, not property boundaries or survey control.</p>
+            {plusCodeError && <p role="alert" className="tsm-atlas-location-error">{plusCodeError}</p>}
+          </details>
           <fieldset className="tsm-atlas-regional-layers">
             <legend>Repository-staged regional evidence</legend>
             <label><input type="checkbox" checked={regionalLayers.gauges}
@@ -250,6 +293,10 @@ export default function TriStateAtlasView(): JSX.Element {
           <p className="tsm-atlas-note">WGS84 plan-view shapes; height, cost, property consent, hydraulic performance and regulatory authority are NOT calculated. GeoJSON download stays on your device.</p>
           <h2>Real map layers</h2>
           <p>Registered layers come from TSM's existing spatial fabric. Switch sources on/off; unavailable endpoints are not replaced with invented geometry.</p>
+          <div className="tsm-atlas-source-legend" aria-label="Map layer authority legend">
+            <span>Observation ≠ regulatory floodplain</span><span>Planning ≠ permit</span>
+            <span>Derived/3D preview ≠ surveyed elevation</span>
+          </div>
           <div className="tsm-atlas-map-layers">
             {MAP_PLANE_FABRIC.map((item) => {
               const blocked = !item.mapRenderable || (item.id === 'terrain-rgb' && (!terrain.enabled || !region.imagery)) || (item.id.startsWith('indiana-') && !region.imagery);
@@ -259,7 +306,7 @@ export default function TriStateAtlasView(): JSX.Element {
                   checked={!blocked && Boolean(visibleForRegion[item.id])}
                   onChange={(event) => setLayers((current) => ({ ...current, [item.id]: event.target.checked }))} />
                 <span><strong>{item.title}</strong>
-                  <small>{item.authority} · {blocked ? 'Unavailable / not map-renderable' : 'Configured source'}</small></span>
+                  <small>{item.authority} · {blocked ? 'Unavailable / not map-renderable' : 'Registered; live tile/feature fetch unverified'}</small></span>
               </label>;
             })}
           </div>
@@ -268,7 +315,13 @@ export default function TriStateAtlasView(): JSX.Element {
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
-            <div aria-live="polite"><strong data-testid="atlas-region-title">{region.label} · 4D regional twin</strong><small>Source-backed basemap and infrastructure planning · EPSG:3857</small></div>
+            <div aria-live="polite"><strong data-testid="atlas-region-title">{region.label} · 4D regional twin</strong><small>MapLibre presentation EPSG:3857 · stored geospatial references WGS84 · source authority remains separate</small></div>
+            <label className="tsm-atlas-mesh-toggle tsm-atlas-mesh-visible">
+              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)}
+                aria-label="Show source-linked partial Posey 3D building preview" />
+              <span>Posey 3D buildings <small>Partial 12,450-tile LoD1 preview · not a complete height-verified census</small></span>
+            </label>
+            <Link className="tsm-atlas-tour tsm-atlas-cesium-jump" to="/cesium" aria-label="Open dedicated Cesium 3D building and terrain viewer">Cesium 3D viewer ↗</Link>
             <button type="button" className="tsm-atlas-tour" aria-pressed={cinematicTour}
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
@@ -278,10 +331,6 @@ export default function TriStateAtlasView(): JSX.Element {
               {sceneToolsOpen ? 'Hide visual settings' : 'Show visual settings'}
             </button>
             {sceneToolsOpen && <div id="tsm-atlas-scene-tools" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', width: '100%' }}>
-            <label className="tsm-atlas-mesh-toggle">
-              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
-              3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
-            </label>
             <label className="tsm-civic-fx-label" htmlFor="tsm-civic-scene-fx">Virtual atmosphere · visual only
               <select id="tsm-civic-scene-fx" value={visualFx} onChange={(event) => setVisualFx(event.target.value as VisualFx)}>
                 <option value="clear">Clear · original map colors</option>
@@ -315,6 +364,7 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>
           <div className="tsm-atlas-map-status" role="status" aria-live="polite">
             <strong>Map adapter:</strong> {mapStatus}
+            <span className="tsm-atlas-runtime-note"> Map appearance never certifies data coverage, positional accuracy, or model validity.</span>
           </div>
           <p className="tsm-atlas-note">Source map features are observational, contextual, planning, regulatory, or derived depending on their registry authority. Visible does not mean validated; 3D roof estimates and flood screening must not be interpreted as engineering measurements.</p>
         </section>

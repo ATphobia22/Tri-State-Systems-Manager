@@ -272,3 +272,23 @@
 .tsm-atlas .tsm-atlas-controls[hidden],
 .tsm-atlas .tsm-atlas-inspector[hidden],
 .tsm-atlas [hidden] { display: none !important; }
+
+/* Offline location-code navigator and evidence-governed cartography. */
+.tsm-atlas-plus-code{margin:0.75rem 0 1.25rem;padding:0.7rem 0.9rem;border:1px solid #44798b;border-radius:12px;background:#0b2d40}
+.tsm-atlas-plus-code summary{cursor:pointer;font-weight:750;color:#d6faf4;min-height:32px}
+.tsm-atlas-plus-code p{margin:0.5rem 0;color:#c6dbe5}
+.tsm-atlas-plus-code form{display:grid;grid-template-columns:1fr;gap:0.45rem;margin:0.7rem 0}
+.tsm-atlas-plus-code input{min-width:0;width:100%;min-height:44px;background:#eef9ff;color:#142f43;border:2px solid #6cabb4;border-radius:8px;padding:0.45rem 0.65rem;font-family:ui-monospace,monospace}
+.tsm-atlas-plus-code button{background:#176073;color:#f5ffff;border:1px solid #83e9e1;border-radius:8px;min-height:44px;cursor:pointer;font-weight:750}
+.tsm-atlas-plus-code button:hover{background:#23798d}
+.tsm-atlas-plus-code code{overflow-wrap:anywhere;color:#ffd695}
+.tsm-atlas-location-error{color:#ffd1be!important;font-weight:750}
+.tsm-atlas-source-legend{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.85rem}
+.tsm-atlas-source-legend span{font-size:0.75rem;line-height:1.4;background:#1c4255;border:1px solid #557a91;border-radius:8px;padding:0.3rem 0.5rem;color:#dcf7ff}
+.tsm-atlas .tsm-atlas-cesium-jump{display:inline-flex;align-items:center;text-decoration:none;background:#14516a;color:#e0fafa;padding:0.52rem 0.75rem;border:1px solid #73c5cd;border-radius:8px;min-height:44px;font-weight:750}
+.tsm-atlas-runtime-note{display:block;color:#d6e6ef;font-size:0.78rem;margin-top:0.35rem}
+
+.tsm-atlas-stage-toolbar .tsm-atlas-mesh-visible{display:inline-flex;align-items:center;gap:0.55rem;padding:0.4rem 0.7rem;border:1px solid #71b6c2;background:#0d354b;border-radius:8px;min-height:44px;cursor:pointer}
+.tsm-atlas-stage-toolbar .tsm-atlas-mesh-visible input{width:1.1rem;height:1.1rem;flex-shrink:0}
+.tsm-atlas-stage-toolbar .tsm-atlas-mesh-visible span{display:flex;flex-direction:column;color:#e3f9ff;font-size:0.82rem;font-weight:750;line-height:1.3}
+.tsm-atlas-stage-toolbar .tsm-atlas-mesh-visible small{color:#c6dce6;font-size:0.67rem;font-weight:500}

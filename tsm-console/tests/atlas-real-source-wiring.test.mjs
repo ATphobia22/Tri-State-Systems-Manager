@@ -112,7 +112,10 @@ test('regional static source geometries are WGS84, not elevations or simulated f
 
 
 test('real regional LoD1 tiles are opt-in and partial, not fabricated full county LoD3', () => {
-  assert.match(atlas, /3D building meshes/);
+  assert.match(atlas, /Posey 3D buildings/);
+  assert.match(atlas, /partial 12,450-tile LoD1 preview/i);
+  assert.match(atlas, /showPartialBuildingMeshes, setShowPartialBuildingMeshes/);
+  assert.match(atlas, /aria-label="Show source-linked partial Posey 3D building preview"/);
   assert.match(atlas, /regionalBuildingMeshes=\{showPartialBuildingMeshes\}/);
   assert.match(map, /void import\('\.\.\/lib\/tiles-3d-renderer-layer'\)/);
   assert.match(map, /buildings-lidar-12450\/tileset\.json/);

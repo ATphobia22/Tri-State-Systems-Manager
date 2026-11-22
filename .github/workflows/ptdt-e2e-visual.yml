@@ -78,6 +78,10 @@ jobs:
 
       - name: Install pinned Cypress runtime
         if: ${{ steps.cypress.outputs.configured == 'true' }}
+        # Pinned Cypress binary smoke test can exceed its default 30 seconds on
+        # a cold Ubuntu runner. Keep verification required; allow 120 seconds.
+        env:
+          CYPRESS_VERIFY_TIMEOUT: '120000'
         run: |
           set -euo pipefail
           npx --no-install cypress install
