@@ -127,9 +127,28 @@ The formulas, limitations and code links are in [Section 4](#4-math-and-science-
 | **SCENARIO** | An illustrative what-if model with assumptions, not a forecast. |
 | **REGULATORY** | An actual decision or action issued by an authorized agency; **TSM never manufactures this status**. |
 
+### November 22, 2026 — source-alignment and release-gate update
+
+The [current main branch](https://github.com/ATphobia22/Tri-State-Systems-Manager/tree/main) now includes the following **merged changes**. These are code and documentation changes, **not** a claim that all eight counties have finished terrain, complete LoD2–LoD4 buildings, live flood modeling, or an independently accepted Windows Shipping installer.
+
+| Merged PR | Change | Evidence boundary |
+|---|---|---|
+| [#717](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/717) | OGC 3D Tiles implicit subtree JSON files and URIs use the `.json` extension. | Format interoperability correction; no proof of complete tiles or actual geometry. |
+| [#718](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/718) | Posey IGIO footprint identity aliases and declared CRS consistency checks. | Inventory identity/geometry does not imply all **23,082** source footprints have valid measured building heights. |
+| [#719](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/719) | Three-station USGS capture/projection receipt for the connected living twin. | Station readings, source timestamps and gage-zero vertical datums still require source-specific verification; native offline replay remains independent. |
+| [#720](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/720) | [Official IN/IL/KY terrain, geodesy and 3D/4D/5D acceptance protocol](docs/geospatial/TRISTATE-OFFICIAL-TERRAIN-BUILDING-ACCEPTANCE-2026-11-22.md). | An acceptance specification is not measured evidence that all gates passed. |
+| [#721](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/721) | Live-versus-pinned IGIO Posey footprint geometry parity gate. | The comparison must run against the real authoritative source snapshot. |
+| [#722](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/722) | Transvoxel real-DEM receipt reads its horizontal CRS from GeoTIFF metadata instead of hardcoding EPSG:2968. | A correct CRS label does not prove a valid transformation, horizontal/vertical control, or seam tolerance. |
+
+**Datum and tile policy:** USGS 3DEP **S1M** is published in **EPSG:6350** (NAD83(2011) / CONUS Albers) with NAVD88 vertical lineage; do not assume all USGS project DEMs or Indiana state tiles share that CRS. **EPSG:2966** (NAD83 / Indiana West ftUS) and **EPSG:2968** (NAD83(HARN) / Indiana West ftUS) are distinct horizontal realizations. Read the actual WKT, units, vertical datum and geoid model from each source, then retain the coordinate-operation and checkpoint evidence. Hydroflattened DEM water surfaces do **not** supply submerged bathymetry. For authoritative endpoint details, consult the [November 22 source-service table](docs/geospatial/TRISTATE-OFFICIAL-TERRAIN-BUILDING-ACCEPTANCE-2026-11-22.md#verified-live-service-metadata-contracts-2026-11-22).
+
+**Remaining integration work:** [#696 COPC height recovery](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/696), [#685–#688 overlapping UE5.8 Editor/RVT branches](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls), [#723 OGC region bounds](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/723), and [#724 geoid/seam placement](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/724) require their own code review, evidence and CI acceptance. Keep scientific completeness, Cesium headed-browser behavior, published Pages artifacts, and clean network-disabled UE5.8 Shipping startup as **separate release gates**.
+
+**CI note (checked November 22):** At the time of this README update, the latest inspected main check suite reported **21 successful, one failed (`Attest production artifact`), one cancelled, and one skipped** out of 24 checks. That is **not an all-green release**; consult [Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) for the exact latest commit and logs.
+
 ### Current code versus independently verified release evidence
 
-**Documentation updated November 17, 2026.** This README update is based on [main commit `57e349fc5c375384893d22de68ddb9840f3abb77`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/57e349fc5c375384893d22de68ddb9840f3abb77), which includes the [map-first redesign PR #632](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/632). On that PR, the Parse Gate and headed Chrome UI interactions passed. **Always consult the current [main Actions runs](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) for the newest status.**
+**Historical November 17, 2026 documentation snapshot.** The paragraph below is based on [main commit `57e349fc5c375384893d22de68ddb9840f3abb77`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/57e349fc5c375384893d22de68ddb9840f3abb77), which includes the [map-first redesign PR #632](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/632). On that PR, the Parse Gate and headed Chrome UI interactions passed. **Always consult the current [main Actions runs](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) for the newest status.**
 
 The detailed scientific/production receipt below is intentionally **frozen to November 16, 2026** and its immutable release commit. It describes that release's proof, **not** every later push or every deployed file. Missing bathymetry, independently verified checkpoints, complete Posey building heights, regulatory approvals and clean offline UE5.8 Shipping acceptance remain separate evidence gates.
 
