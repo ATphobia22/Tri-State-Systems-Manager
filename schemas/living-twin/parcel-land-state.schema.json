@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/schemas/living-twin/parcel-land-state.schema.json",
+  "title": "ParcelLandState",
+  "description": "Derived / scenario land management state. Never OBSERVED or REGULATORY.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["parcelId", "geometryHash", "moisture", "nutrients", "compaction", "stress", "cropHistory", "soilTexture", "lastUpdated", "provenance"],
+  "properties": {
+    "parcelId": { "type": "string", "minLength": 1 },
+    "geometryHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "moisture": { "type": "number", "minimum": 0, "maximum": 1 },
+    "nutrients": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["n", "p", "k", "om", "ph"],
+      "properties": {
+        "n": { "type": "number", "minimum": 0, "maximum": 1 },
+        "p": { "type": "number", "minimum": 0, "maximum": 1 },
+        "k": { "type": "number", "minimum": 0, "maximum": 1 },
+        "om": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ph": { "type": "number", "minimum": 3.5, "maximum": 9.5 }
+      }
+    },
+    "compaction": { "type": "number", "minimum": 0, "maximum": 1 },
+    "stress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["drought", "weed", "pest", "disease"],
+      "properties": {
+        "drought": { "type": "number", "minimum": 0, "maximum": 1 },
+        "weed": { "type": "number", "minimum": 0, "maximum": 1 },
+        "pest": { "type": "number", "minimum": 0, "maximum": 1 },
+        "disease": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "cropHistory": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "type": "string" }
+    },
+    "soilTexture": { "type": "string", "enum": ["sandy", "loam", "clay", "unknown"] },
+    "lastUpdated": { "type": "string", "format": "date-time" },
+    "provenance": {
+      "type": "object",
+      "required": ["method", "sourceIds", "commitSha"],
+      "properties": {
+        "method": { "type": "string" },
+        "sourceIds": { "type": "array", "items": { "type": "string" } },
+        "commitSha": { "type": "string", "pattern": "^[a-f0-9]{7,40}$" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
