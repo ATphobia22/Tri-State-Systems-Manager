@@ -12,40 +12,46 @@ Water Surface Elevation (ft NAVD88) = Stage (ft) + Gage Datum (ft NAVD88)
 
 Unknown until both the gage datum and the vertical datum are validated.
 
-## Verified gage datums (parent-verified, 2026-10-24)
+## Discovered station altitudes versus reviewed gage zeros
 
-| Station | Name | Gage datum (ft NAVD88) |
-|---|---|---|
-| 03378500 | Wabash River at New Harmony, IN | 352.71 |
-| 03381700 | Ohio River at Old Shawneetown, IL | 309.10 |
-| 03322000 | Ohio River at Evansville, IN | 328.32 |
-| 03304300 | Ohio River at Newburgh, IN | 329.20 |
-| 03377500 | Wabash River at Mt. Carmel, IL | 368.98 |
+The following numbers appear in prior data discovery and are **not an
+approved conversion table**. The source/product semantics differ.
 
-Implementation: `backend/governance/site_constants.py`,
-`backend/evidence/gage_datum.py` (TypeScript counterpart:
-`packages/gates/src/index.ts` `convertGageHeightToNavd88`).
+| Station | Site | Historical reference elevation (ft NAVD88) | Conversion status |
+|---|---|---:|---|
+| 03378500 | Wabash at New Harmony, IN | Site altitude 352.71; candidate gage zero 352.67 | **WITHHELD**: published candidate and station altitude are different quantities; effective epoch and independently reviewed gage-zero tie are unresolved |
+| 03381700 | Ohio at Old Shawneetown, IL | 309.10 station reference | **WITHHELD** |
+| 03322000 | Ohio at Evansville, IN | 328.32 station altitude | **WITHHELD** |
+| 03304300 | Ohio at Newburgh, IN | 329.20 station reference | **WITHHELD** |
+| 03377500 | Wabash at Mt. Carmel, IL | 368.98 station reference | **WITHHELD** |
 
-## Worked example
+The separate `backend/governance/site_constants.py` module deliberately has
+`GAGE_DATUMS_FT_NAVD88 = {}`. The app must not derive NAVD88 WSE from
+the station-altitude discovery table. Even if a historical project memo
+lists a candidate value, do not imply that current parameter 00065 time
+series and an old vertical datum are reconciled.
 
-Stage 15.0 ft at 03378500 → WSE = 352.71 + 15.0 = **367.71 ft NAVD88**.
+**Illustrative mathematics only**: stage 15.00 ft plus an assumed gage zero
+352.67 ft would equal 367.67 ft NAVD88; using 352.71 yields 367.71 ft.
+These are **different calculations based on different assumptions**;
+neither is an approved observed water-surface elevation until the station
+gage-zero and reference epoch are independently established.
 
-## Validation rule
+## Required engineering checks
 
-Missing datum → `UNAVAILABLE`. Wrong vertical datum → `UNAVAILABLE`
-(`DATUM_MISMATCH`). Non-finite stage → `UNAVAILABLE`. The function never
-raises for a missing datum and never returns an estimated elevation
-(resilient policy; fail-closed is banned).
+Obtain actual station-specific USGS datum/benchmark metadata with source URI,
+acquisition timestamp, gage-zero value, survey method, vertical datum,
+uncertainty, effective date interval, independent review and original byte
+hash. Prove the applicable current observation time falls inside that interval,
+then enforce the correct datum in the selected HEC-RAS result geometry.
+The USGS policy https://water.usgs.gov/water-resources/memos/memo.php?id=4447
+provides datum establishment standards, including an applicable 0.16 ft
+(0.05 m) two-sigma geodetic vertical accuracy requirement; this **does not**
+authorize using 0.16 ft as the allowed complete hydraulic-model residual.
 
-## Known discrepancy (flagged, not hidden)
-
-`tsm-console/src/lib/gage-datums.ts` (2026-10-15) records a 352.67 ft
-CANDIDATE gage-zero relationship for 03378500 from USGS SIR 2016-5119 with
-an unclosed product-semantic conflict, and marks conversion unpublished.
-The 352.71 ft value above is the parent-verified datum. The discrepancy is
-open for reconciliation; the TS file's caution is not silently overwritten.
-Station altitudes (e.g. Evansville's 328.32 ft land-surface altitude) are
-never silently treated as parameter-00065 gage-zero conversions.
+Missing, conflicting, or unpublished datum evidence causes **only the WSE
+conversion** to be unavailable. The raw timestamped stage can still be
+displayed and the viewer continues operating.
 
 ## Required metadata on every conversion
 
