@@ -81,3 +81,32 @@ The regional state schema can accept evidence from USGS, NOAA, FEMA, USACE, stat
 ## Schema changes and rollback
 
 Run `alembic upgrade head` with `DATABASE_URL` set. The SQL sources are in `migrations/sql`. Use `alembic upgrade head --sql` to inspect the upgrade without connecting. `alembic downgrade base` removes the twin schema and its history while retaining shared PostGIS and pgSTAC. Run only on a database you intend to reset, or after backing up the twin schema. The integration suite tests downgrade on an isolated database.
+
+## Twin State API and replay
+
+The CQRS API runs separately at `http://127.0.0.1:18001/docs`. The original port 18000 API still serves raw event history. The kernel advances the current projection from committed PostGIS sequences. Compose provisions a dedicated API database login with read access and permission to insert rebuild requests only. Kafka delivery timing is independent of that checkpoint.
+
+| Endpoint | Read model |
+| --- | --- |
+| `GET /twin/current/hydrology` | Current reach revisions and a separate list of latest gauge observations by sensor, parameter and series |
+| `GET /twin/current/buildings`, `GET /twin/current/terrain` | Current entity revisions with optional EPSG:4326 bounding box |
+| `GET /twin/current?matrix=V` | Current records by matrix, including validation and simulation results |
+| `GET /twin/time/{valid_at}` | Effective-time replay with optional knowledge time, timeline, branch and bounds |
+| `GET /cesium/live/{layer}?bbox=...` | Projected GeoJSON for buildings, hydrology or infrastructure |
+| `WS /twin/live?after={seq}` | Ordered commit notifications through the projection watermark |
+
+Current responses include `watermark`, `view_version` and `next_after`. Send both `next_after` as `after` and `view_version` on the next request. A 409 means the view changed, so restart from page one. The WebSocket sends committed revisions as invalidations. Reload the appropriate projection after an update because a late historical revision may leave current state unchanged. Redis caches results by the projection instance, generation, and sequence. The state API reads from PostGIS if Redis is unavailable.
+
+The projection is idempotent by committed event sequence. Within each observed identity, later effective time wins and the higher commit sequence breaks effective-time ties. Tombstones prevent a late older record from resurrecting a retired entity. Forecast and scenario results remain queryable through time travel in their own timelines. Gauge observations retain their original units, quality, and datum reference.
+
+For local rebuild operations, set a secret `TWIN_REBUILD_TOKEN` before starting Compose. Rebuild endpoints are disabled when it is unset. The admin POST and status requests require `Authorization: Bearer ...`. A POST also requires an `Idempotency-Key` header containing a UUID.
+
+```sh
+curl --fail -X POST http://127.0.0.1:18001/rebuild/projections \
+  -H "Authorization: Bearer $TWIN_REBUILD_TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)"
+```
+
+Poll `GET /rebuild/jobs/{job_id}` with the same authorization. Projection rebuilds replace the projection and checkpoint in one transaction. Readers see the previous complete state until the rebuild commits. `POST /rebuild/stac` requeues the existing asset revisions for pgSTAC via the existing outbox. A completed STAC rebuild job means requeueing committed. The relay performs catalog delivery asynchronously. The job status reports the number of pending deliveries through its captured watermark. Rebuilds do not write source events or create Kafka messages. Use a fresh UUID for a new rebuild and reuse the original UUID for request retries.
+
+The kernel coordinates replay and projection. The existing ingress consumer owns event writes, and the existing relay owns Kafka and pgSTAC delivery. Simulation and validation workers can publish results through the existing event contract. This service does not launch HEC-RAS or adjudicate engineering decisions.
