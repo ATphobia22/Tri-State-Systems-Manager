@@ -1,0 +1,92 @@
+name: Posey Official Source Inventory
+
+# Source identity is not a 3D roof-height certification.
+on:
+  pull_request:
+    paths:
+      - "scripts/geospatial/posey_official_inventory.py"
+      - "scripts/geospatial/posey_renderable_receipt.py"
+      - "tests/test_posey_official_inventory.py"
+      - "tests/test_posey_renderable_receipt.py"
+      - "data/authorities/indiana-posey-source-register-2026-11-22.json"
+      - ".github/workflows/posey-official-source-inventory.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/geospatial/posey_official_inventory.py"
+      - "scripts/geospatial/posey_renderable_receipt.py"
+      - "tests/test_posey_official_inventory.py"
+      - "tests/test_posey_renderable_receipt.py"
+      - "data/authorities/indiana-posey-source-register-2026-11-22.json"
+  workflow_dispatch:
+    inputs:
+      download_full_geometry:
+        description: "Fetch every official Posey footprint geometry page and its SHA-256 receipt"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    name: Test live-source inventory contracts offline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12"
+      - name: Static syntax validation
+        run: python -m py_compile scripts/geospatial/posey_official_inventory.py scripts/geospatial/posey_renderable_receipt.py tests/test_posey_official_inventory.py tests/test_posey_renderable_receipt.py
+      - name: Run synthetic identity and tamper tests
+        run: |
+          python -m unittest discover -s tests -p test_posey_official_inventory.py -v
+          python -m unittest discover -s tests -p test_posey_renderable_receipt.py -v
+
+  acquire-official:
+    name: Acquire source-derived inventory and evidence receipts
+    if: github.event_name == 'workflow_dispatch'
+    needs: source-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12"
+      - name: Acquire official source-derived count and geometry
+        env:
+          DOWNLOAD_FULL_GEOMETRY: ${{ inputs.download_full_geometry }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/posey-official
+          args=()
+          if [ "$DOWNLOAD_FULL_GEOMETRY" = "true" ]; then
+            args+=(--geometry-dir /tmp/posey-official/raw-pages)
+          fi
+          python scripts/geospatial/posey_official_inventory.py \
+            --output /tmp/posey-official/posey-source-inventory.json \
+            "${args[@]}"
+          cd /tmp/posey-official
+          sha256sum -c posey-source-inventory.json.sha256
+          python - <<'PY'
+          import json
+          p=json.load(open("posey-source-inventory.json"))
+          assert p["source_identity_complete"]
+          assert p["official_feature_count"] > 0
+          assert not p["survey_grade"] and not p["regulatory_use"]
+          print("Official OBJECTID count:", p["official_feature_count"])
+          print("Geometry pages complete:", p["geometry_download_complete"])
+          PY
+      - name: Archive receipts even if source acquisition fails
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-posey-source-inventory-${{ github.run_id }}
+          path: /tmp/posey-official/
+          if-no-files-found: warn
+          retention-days: 90
+          compression-level: 1
