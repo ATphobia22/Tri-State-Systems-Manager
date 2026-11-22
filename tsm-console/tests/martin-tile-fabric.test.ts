@@ -80,6 +80,11 @@ describe('XYZ tile bounds and source isolation', () => {
     }
   });
 
+  it('preserves existing trailing slash path normalization for valid source roots', () => {
+    expect(resolveMartinTileUrl(source, 12, 1100, 1450, '/tiles/'))
+      .toBe('/tiles/indiana-bafm/12/1100/1450');
+  });
+
   it('rejects traversal, duplicate separators and ambiguous Martin URL base paths', () => {
     for (const base of ['/tiles/../admin', '/tiles//admin', '/tiles/./parcel', '/tiles/..']) {
       expect(() => resolveMartinTileUrl(source, 12, 1100, 1450, base))
