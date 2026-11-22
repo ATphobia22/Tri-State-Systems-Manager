@@ -12,7 +12,7 @@ from .kafka import Wire, producer, send
 from .settings import INGRESS
 
 MAX_SOURCE_BYTES = 4 * 1024 * 1024
-STATIONS = ("03322000", "03378500")
+STATIONS = ("03322000", "03378500", "03377500")
 NO_DATA = {-999, -9999, -8888}
 
 
@@ -29,7 +29,11 @@ def event_rows(snapshot: Path):
     if manifest["schema"] != "tsm.river-twin.observations.v1":
         raise ValueError("Unsupported USGS river pilot manifest")
     events = []
+    if not set(manifest["stations"]) <= set(STATIONS):
+        raise ValueError("Unrecognized river-pilot station")
     for station in STATIONS:
+        if station not in manifest["stations"]:
+            continue
         entry = manifest["stations"][station]
         if entry["status"] in ("SOURCE_UNAVAILABLE", "NO_OBSERVATIONS"):
             continue
