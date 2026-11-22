@@ -5,14 +5,18 @@ on:
   pull_request:
     paths:
       - "scripts/geospatial/posey_official_inventory.py"
+      - "scripts/geospatial/posey_renderable_receipt.py"
       - "tests/test_posey_official_inventory.py"
+      - "tests/test_posey_renderable_receipt.py"
       - "data/authorities/indiana-posey-source-register-2026-11-22.json"
       - ".github/workflows/posey-official-source-inventory.yml"
   push:
     branches: [main]
     paths:
       - "scripts/geospatial/posey_official_inventory.py"
+      - "scripts/geospatial/posey_renderable_receipt.py"
       - "tests/test_posey_official_inventory.py"
+      - "tests/test_posey_renderable_receipt.py"
       - "data/authorities/indiana-posey-source-register-2026-11-22.json"
   workflow_dispatch:
     inputs:
@@ -36,9 +40,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Static syntax validation
-        run: python -m py_compile scripts/geospatial/posey_official_inventory.py tests/test_posey_official_inventory.py
+        run: python -m py_compile scripts/geospatial/posey_official_inventory.py scripts/geospatial/posey_renderable_receipt.py tests/test_posey_official_inventory.py tests/test_posey_renderable_receipt.py
       - name: Run synthetic identity and tamper tests
-        run: python -m unittest discover -s tests -p test_posey_official_inventory.py -v
+        run: |
+          python -m unittest discover -s tests -p test_posey_official_inventory.py -v
+          python -m unittest discover -s tests -p test_posey_renderable_receipt.py -v
 
   acquire-official:
     name: Acquire source-derived inventory and evidence receipts
