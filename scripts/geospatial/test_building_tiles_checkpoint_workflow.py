@@ -19,7 +19,7 @@ class BuildingTilesWorkflowTests(unittest.TestCase):
             self.text,
         )
         self.assertIsNotNone(m)
-        hard_gate = self.text.index("- name: Gate on 23,082 height-linked features")
+        hard_gate = self.text.index("- name: Gate on all source-derived height-linked features")
         self.assertLess(m.start(), hard_gate)
 
     def test_retention_and_resume_remain_available(self):
@@ -29,9 +29,12 @@ class BuildingTilesWorkflowTests(unittest.TestCase):
         self.assertIn("Restore checkpoint from a previous failed run", self.text)
 
     def test_acceptance_must_not_be_weakened(self):
-        self.assertIn('if len(ok) != 23082:', self.text)
-        self.assertIn("ACCEPTANCE MET: 23,082/23,082 height-linked", self.text)
+        self.assertIn('if len(ok) != expected:', self.text)
+        self.assertIn("ACCEPTANCE MET: {expected}/{expected} source-derived height-linked", self.text)
         self.assertIn("Validate final tileset with Cesium validator", self.text)
+        self.assertIn("posey_official_inventory.py", self.text)
+        self.assertIn("official_sorted_objectids_sha256", self.text)
+        self.assertNotIn("EXPECTED_BUILDINGS: '23082'", self.text)
 
     def test_workflow_only_edit_does_not_start_five_hour_run(self):
         push = self.text.split("\n  push:\n", 1)[1].split("\npermissions:", 1)[0]
