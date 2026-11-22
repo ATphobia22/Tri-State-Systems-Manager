@@ -1,0 +1,13 @@
+{
+  "schema": "tsm-geodetic-evidence-v1",
+  "source_id": "indiana-dnr-posey-potentiometric",
+  "source_crs": 26916,
+  "target_crs": 2966,
+  "coordinate_transformation_available": true,
+  "vertical_datum": "UNVERIFIED",
+  "vertical_units": "UNVERIFIED",
+  "control_validation": "UNVERIFIED",
+  "source_integrity": "PASS",
+  "licensing_review": "PENDING",
+  "human_approval": false
+}
