@@ -81,3 +81,11 @@ def test_incorrect_crs_and_missing_uncertainty_not_adopted(tmp_path):
     report = inspect(entry, tmp_path, [-88, 37.7, -87.9, 37.9])
     assert "UNREVIEWED_HORIZONTAL_CRS_UNITS" in report["blockers"]
     assert "VERTICAL_UNCERTAINTY_NOT_EVIDENCED" in report["blockers"]
+
+
+def test_epsg_and_horizontal_axis_units_cannot_contradict(tmp_path):
+    entry = fixture(tmp_path)
+    entry["horizontal_crs"] = "EPSG:4326"
+    entry["horizontal_units"] = "ftUS"
+    report = inspect(entry, tmp_path, [-88, 37.7, -87.9, 37.9])
+    assert "HORIZONTAL_CRS_UNIT_CONTRADICTION" in report["blockers"]
