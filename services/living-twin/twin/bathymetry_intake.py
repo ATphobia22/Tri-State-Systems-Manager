@@ -119,7 +119,7 @@ def inspect(manifest: dict, root: Path, aoi_bbox: list[float]) -> dict:
     # A source can declare a known EPSG code with the wrong axis units.
     expected_horizontal_units = {
         "EPSG:2966": "ftUS", "EPSG:26916": "m",
-        "EPSG:3089": "m", "EPSG:4326": "degree"
+        "EPSG:3089": "ftUS", "EPSG:4326": "degree"
     }
     if expected_horizontal_units.get(manifest["horizontal_crs"]) != manifest["horizontal_units"]:
         blockers.append("HORIZONTAL_CRS_UNIT_CONTRADICTION")
