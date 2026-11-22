@@ -1,0 +1,87 @@
+name: Posey Official IGIO Geometry Parity
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 10 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/verify_posey_live_igio_geometry.py'
+      - 'scripts/geospatial/test_verify_posey_live_igio_geometry.py'
+      - '.github/workflows/posey-igio-live-geometry-parity.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/verify_posey_live_igio_geometry.py'
+      - 'scripts/geospatial/test_verify_posey_live_igio_geometry.py'
+      - '.github/workflows/posey-igio-live-geometry-parity.yml'
+permissions:
+  contents: read
+concurrency:
+  group: posey-igio-geometry-parity-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --disable-pip-version-check --no-input 'pytest==9.0.3'
+      - name: Verify offline source-identity, geometry and unstable-edit contracts
+        run: |
+          python3 -m py_compile scripts/geospatial/verify_posey_live_igio_geometry.py
+          python3 -m pytest -q scripts/geospatial/test_verify_posey_live_igio_geometry.py
+  compare-official-source:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Retrieve the hash-pinned official Posey GeoJSON release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/posey-source"
+          downloaded=0
+          for attempt in 1 2 3; do
+            if gh release download igio-posey-20261006 \
+              --repo ATphobia22/Tri-State-Systems-Manager \
+              --pattern 'posey-buildings-igio-23082.geojson' \
+              --dir "$RUNNER_TEMP/posey-source" --clobber; then
+              downloaded=1
+              break
+            fi
+            sleep $((2 * attempt))
+          done
+          if [[ "$downloaded" != 1 ]]; then
+            echo 'PINNED_SOURCE_UNAVAILABLE: archived IGIO snapshot not retrieved' >&2
+            exit 1
+          fi
+          echo 'd8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f  '"$RUNNER_TEMP/posey-source/posey-buildings-igio-23082.geojson" | sha256sum --check -
+      - name: Requery all 23082 official polygons and reject source drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/verify_posey_live_igio_geometry.py \
+            --archive "$RUNNER_TEMP/posey-source/posey-buildings-igio-23082.geojson" \
+            --receipt "$RUNNER_TEMP/posey-source/live-posey-geometry-parity.json" \
+            --expected-count 23082
+      - name: Preserve the read-only source parity receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-igio-live-geometry-parity-${{ github.run_id }}
+          path: ${{ runner.temp }}/posey-source/live-posey-geometry-parity.json
+          if-no-files-found: warn
+          retention-days: 90
