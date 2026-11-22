@@ -206,3 +206,20 @@ model. The independent release gates remain: authoritative USGS/USACE datum
 verification, real HEC-RAS output integration and uncertainty review,
 published infrastructure inventory coverage, AAS conformance, production
 database operations, and clean offline UE5.8 Win64 Shipping proof.
+
+
+## Phase 4 geospatial indexing and Phase 5 independent evidence
+
+Run python -m twin.import_geospatial source-layer.json --preview before
+publishing reviewed geometry/3D Tile/parcel/terrain/floodplain source links.
+The matrix E link records EPSG:4326 geometry, native source CRS, vertical
+datum/units, source feature identity, source SHA-256, upstream event IDs,
+optional artifact checksum and reviewed or unresolved transformation status.
+No silent CRS transformation or synthetic building height creation occurs.
+GET /twin/geospatial?bbox=west,south,east,north&kind=3d_tiles is a bounded
+GiST-indexed read-only API. Links with assets are cataloged through pgSTAC.
+
+For release gates and commands see
+docs/release/TSM-TWIN-PHASES-1-5-ACCEPTANCE.md.
+Synthetic integration tests are not proof of a real countywide
+building inventory or clean Windows 11 UE5.8 offline executable launch.

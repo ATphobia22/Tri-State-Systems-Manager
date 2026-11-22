@@ -1,0 +1,54 @@
+name: Native world review snapshot
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/native-world-review-snapshot.yml'
+      - 'scripts/native/stage_native_world_review.py'
+      - 'scripts/native/audit_local_3d_tiles.py'
+      - 'scripts/native/audit_implicit_subtrees.py'
+      - 'scripts/native/native-data-manifest.mjs'
+      - 'scripts/geospatial/stage_cesium_posey_buildings.py'
+      - 'scripts/geospatial/validate_feature_linkage.py'
+      - 'scripts/geospatial/validate_spatial_coherence.py'
+      - 'scripts/geospatial/tsm_geodesy.py'
+      - 'tsm-console/public/3d-tiles/terrain-3dep/**'
+      - 'data/fabrics/downloads/posey-preview-2026-11-13/**'
+      - 'data/geo/geoid18/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/native
+            scripts/geospatial
+            tsm-console/public/3d-tiles/terrain-3dep
+            data/fabrics/downloads/posey-preview-2026-11-13
+            data/geo/geoid18
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Install pinned spatial dependencies
+        run: python -m pip install 'numpy==2.1.3' 'pyproj==3.8.0'
+      - name: Assemble source-backed offline review layers
+        run: |
+          curl --silent --show-error --fail --location --retry 3 --max-time 90 \
+            'https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson' \
+            --output "$RUNNER_TEMP/posey-footprints.geojson"
+          python scripts/native/stage_native_world_review.py \
+            --footprints "$RUNNER_TEMP/posey-footprints.geojson" --output tsm-world-review
+      - name: Preserve portable visualization snapshot
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-world-review-visualization-only
+          path: tsm-world-review/
+          if-no-files-found: error
