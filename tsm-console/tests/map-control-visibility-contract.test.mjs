@@ -98,3 +98,23 @@ test('Flood simulator exposes source-backed Cesium 3D without opening engineerin
   assert.match(flood, /\$\{import\.meta\.env\.BASE_URL\}cesium\//);
   assert.match(flood, /\[controlsOpen, setControlsOpen\] = useState\(false\)/);
 });
+
+
+test('Atlas surfaces pre-load basemap failures and safely falls back to IGIO imagery', () => {
+ const source = read('src/components/TriStateDigitalTwinMap.tsx');
+ const mapConstruction = source.indexOf('const map = new maplibregl.Map(');
+ const earlyError = source.indexOf("map.on('error', (event) => {", mapConstruction);
+ const firstLoad = source.indexOf("map.on('load', () => {", mapConstruction);
+ assert.ok(mapConstruction !== -1 && earlyError > mapConstruction && earlyError < firstLoad,
+   'Remote style failures must be handled before the first MapLibre load event');
+ assert.match(source, /map\.setStyle\(baseStyle\(\)\)/,
+   'A source-backed fallback must be requested when OpenFreeMap style fails');
+ assert.match(source, /style load timed out after 12 seconds/);
+ assert.match(source, /window\.clearTimeout\(initialStyleWatchdog\)/);
+ assert.match(source, /if \(!map\.getSource\('indiana-imagery'\)\)/,
+   'Fallback raster imagery must not register duplicate sources');
+ assert.match(source, /if \(!map\.getLayer\('indiana-imagery-layer'\)\)/,
+   'Fallback imagery layer must not be duplicated');
+ assert.match(source, /Degraded regional map: OpenFreeMap unavailable/,
+   'The public viewer must disclose degraded coverage instead of claiming valid terrain');
+});

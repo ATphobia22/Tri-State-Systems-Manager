@@ -455,9 +455,36 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       cooperativeGestures: true,
       fadeDuration: 300,
     });
+    // The remote regional style can fail before the first 'load' event; register
+    // diagnostics and a bounded source-backed fallback before waiting for load.
+    let initialStyleReady = false;
+    let regionalStyleRecoveryAttempted = false;
+    const recoverInitialStyle = (reason: string): void => {
+      if (initialStyleReady) return;
+      if (props.regionalAtlas && !regionalStyleRecoveryAttempted) {
+        regionalStyleRecoveryAttempted = true;
+        setStatus(`OpenFreeMap regional style unavailable (${reason}); attempting Indiana imagery fallback. Outside Indiana coverage may be absent.`);
+        try {
+          map.setStyle(baseStyle());
+        } catch (error) {
+          setStatus(`MapLibre fallback could not initialize: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        return;
+      }
+      setStatus(`MapLibre initial map unavailable: ${reason}. Check the configured source, tile access and browser WebGL support.`);
+    };
+    map.on('error', (event) => {
+      if (initialStyleReady) return;
+      recoverInitialStyle(event.error instanceof Error ? event.error.message : 'initial basemap error');
+    });
+    const initialStyleWatchdog = window.setTimeout(
+      () => recoverInitialStyle('style load timed out after 12 seconds'), 12000,
+    );
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
     map.on('load', () => {
+      initialStyleReady = true;
+      window.clearTimeout(initialStyleWatchdog);
       mapRef.current = map;
       setMapReady(true);
       const lighting = getCinematicLighting(lightPresetRef.current);
@@ -477,18 +504,22 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         // OpenFreeMap vector style is the cross-state basemap. Preserve native
         // Indiana imagery as an optional overlaid raster, never an IL/KY source.
         const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
-        map.addSource('indiana-imagery', {
-          type: 'raster',
-          tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
-          tileSize: 512,
-          attribution: 'Indiana Geographic Information Office',
-        });
-        map.addLayer({
-          id: 'indiana-imagery-layer',
-          type: 'raster',
-          source: 'indiana-imagery',
-          layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
-        });
+        if (!map.getSource('indiana-imagery')) {
+          map.addSource('indiana-imagery', {
+            type: 'raster',
+            tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
+            tileSize: 512,
+            attribution: 'Indiana Geographic Information Office',
+          });
+        }
+        if (!map.getLayer('indiana-imagery-layer')) {
+          map.addLayer({
+            id: 'indiana-imagery-layer',
+            type: 'raster',
+            source: 'indiana-imagery',
+            layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
+          });
+        }
         // These GeoJSON sources are committed and WGS84-checked. Neither
         // source supplies a live river level, bathymetric depth raster, or BFE.
         const base = import.meta.env.BASE_URL;
@@ -557,7 +588,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const terrain = getTerrainRgbStatus();
       const terrainAllowed = !props.regionalAtlas || Boolean(showIndianaImageryRef.current);
       setTerrainEnabled(terrain.enabled && terrainAllowed);
-      setStatus(terrain.enabled && terrainAllowed ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.' : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
+      setStatus(regionalStyleRecoveryAttempted
+        ? 'Degraded regional map: OpenFreeMap unavailable; using Indiana source imagery only. Outside Indiana coverage is not available.'
+        : terrain.enabled && terrainAllowed
+          ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.'
+          : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
 
       if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
@@ -692,6 +727,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     });
 
     return () => {
+      window.clearTimeout(initialStyleWatchdog);
       featureRequestsRef.current.cancelAll();
       npsAbortRef.current?.abort();
       npsLoadedRef.current = false;
