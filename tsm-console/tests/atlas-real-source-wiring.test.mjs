@@ -18,7 +18,12 @@ const svg = read('../docs/assets/tsm-source-backed-atlas.svg');
 
 test('Atlas is navigable in the actual React Router and application sidebar', () => {
   assert.match(router, /path: 'atlas'/);
-  assert.match(router, /import\('\.\.\/routes\/TriStateAtlasView'\)/);
+  assert.match(router, /import\('\.\.\/routes\/AtlasGraphicsGuard'\)/);
+  const guard = read('src/routes/AtlasGraphicsGuard.tsx');
+  assert.match(guard, /import\('\.\/TriStateAtlasView'\)/);
+  assert.match(guard, /supportsWebGL2/);
+  assert.match(guard, /River Watch/);
+  assert.match(guard, /Beverly Ann Tucker Memorial/);
   assert.match(layout, /to: '\/atlas'/);
 });
 
