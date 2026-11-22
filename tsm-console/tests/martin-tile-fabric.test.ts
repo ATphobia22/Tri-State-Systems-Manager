@@ -62,3 +62,33 @@ describe('3D Tiles URL validation', () => {
     }
   });
 });
+
+
+describe('XYZ tile bounds and source isolation', () => {
+  const source = { id: 'indiana-bafm', kind: 'vector' as const, enabled: true };
+
+  it('accepts the canonical XYZ world edges without wrapping or truncation', () => {
+    expect(resolveMartinTileUrl(source, 0, 0, 0)).toBe('/tiles/indiana-bafm/0/0/0');
+    expect(resolveMartinTileUrl(source, 20, 2 ** 20 - 1, 2 ** 20 - 1))
+      .toBe('/tiles/indiana-bafm/20/1048575/1048575');
+  });
+
+  it('rejects impossible XYZ tile coordinates, not just negative values', () => {
+    for (const [z, x, y] of [[0, 1, 0], [1, 0, 2], [12, 4096, 1],
+                              [12, 1, 4096], [30, 2 ** 30, 0]]) {
+      expect(() => resolveMartinTileUrl(source, z, x, y)).toThrow(/Invalid tile [xy] coordinate/);
+    }
+  });
+
+  it('preserves existing trailing slash path normalization for valid source roots', () => {
+    expect(resolveMartinTileUrl(source, 12, 1100, 1450, '/tiles/'))
+      .toBe('/tiles/indiana-bafm/12/1100/1450');
+  });
+
+  it('rejects traversal, duplicate separators and ambiguous Martin URL base paths', () => {
+    for (const base of ['/tiles/../admin', '/tiles//admin', '/tiles/./parcel', '/tiles/..']) {
+      expect(() => resolveMartinTileUrl(source, 12, 1100, 1450, base))
+        .toThrow(/Invalid Martin base path/);
+    }
+  });
+});

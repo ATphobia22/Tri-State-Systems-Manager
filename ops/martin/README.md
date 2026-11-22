@@ -87,3 +87,23 @@ curl -sS http://127.0.0.1:3000/catalog | head
 ```
 
 Validate YAML against the Martin config schema for the pinned image tag before production promote.
+
+
+## Public tile security and native runtime separation (2026-11-22)
+
+The anonymous parcel MVT excludes owner names, site addresses and E-911
+records. Only parcel identity, APN, acreage, evidenced ground elevation and
+source SHA-256 remain public; restricted record access must use a separately
+reviewed and permissioned service.
+
+Martin provides the connected HTTP/PostGIS/PMTiles/MBTiles service. It is
+not embedded in the offline Unreal Engine 5.8 Shipping application, which
+must use independently validated and licensed local assets directly without
+localhost/Node/WebView2, with full source provenance.
+
+The parcel function in this directory assumes Indiana EPSG:2966 geometry.
+Illinois and Kentucky layers need their own individually reviewed native
+source CRS and transformations. Never reuse EPSG:2966 without verifying
+native source, horizontal/vertical geodetic reference and unit semantics.
+
+See docs/architecture/TSM-DITTO-MARTIN-NATIVE-RUNTIME-2026-11-22.md.

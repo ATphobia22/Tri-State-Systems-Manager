@@ -1,5 +1,8 @@
 -- TSM dynamic cadastral MVT source for Martin.
 -- Geometry storage is expected to be EPSG:2966 (NAD83 / Indiana West, ftUS).
+-- This anonymous public tile function intentionally excludes owner names and
+-- site addresses. Restricted E-911/address records belong behind independent
+-- authorization, not in downloadable public MVT attributes.
 -- Elevation attributes are explicitly in feet NAVD88; the browser converts them
 -- to meters only at the MapLibre rendering boundary.
 
@@ -19,7 +22,10 @@ DECLARE
     tile_bounds_2966 geometry;
     mvt bytea;
 BEGIN
-    IF z < 0 OR z > 30 OR x < 0 OR y < 0 THEN
+    -- XYZ tile positions are finite; invalid x/y must never reach
+    -- ST_TileEnvelope or an unbounded geographic query.
+    IF z < 0 OR z > 30 OR x < 0 OR y < 0
+       OR x >= (1::bigint << z) OR y >= (1::bigint << z) THEN
         RAISE EXCEPTION 'Invalid XYZ tile coordinates: z=%, x=%, y=%', z, x, y;
     END IF;
 
@@ -32,9 +38,7 @@ BEGIN
         SELECT
             p.parcel_id,
             p.apn,
-            p.owner_name,
             p.acreage,
-            p.site_address,
             p.ground_elevation_navd88 AS ground_elevation_navd88_ft,
             p.evidence_sha256,
             ST_AsMVTGeom(
@@ -66,9 +70,7 @@ IS '{
       "fields": {
         "parcel_id": "String",
         "apn": "String",
-        "owner_name": "String",
         "acreage": "Number",
-        "site_address": "String",
         "ground_elevation_navd88_ft": "Number",
         "evidence_sha256": "String"
       }
