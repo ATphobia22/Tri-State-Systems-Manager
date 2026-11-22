@@ -1,0 +1,101 @@
+{
+  "schema_version": "tsm.indiana-authoritative-source-register.v1",
+  "snapshot_date_utc": "2026-11-22",
+  "county": "Posey",
+  "source_selection_policy": "Official state service or state-managed public source only; store raw evidence and source date before promoting. IDs and counts are never hand-pinned.",
+  "sources": [
+    {
+      "id": "igio_lidar_footprints",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0",
+      "role": "building_2d_footprints",
+      "source_crs_rule": "read spatialReference from live layer; request geometry outSR=4326",
+      "validation": "live_count_matches_all_unique_objectids_and_geometry_pages",
+      "measurement_limitation": "no_Z_no_survey_height",
+      "status": "LIVE_METADATA_VERIFIED;_DATA_ACQUISITION_NOT_COMPLETE"
+    },
+    {
+      "id": "igio_parcels",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer",
+      "role": "parcel_cadastral_reference",
+      "validation": "county_filter_and_parcel_identity_source_version",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "igio_addresses",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer",
+      "role": "geocoded_addresses",
+      "validation": "county_filter_and_address_id_review",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "igio_roads",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer",
+      "role": "road_centerlines",
+      "validation": "county_intersection_topology_and_snapshot_version",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "igio_boundaries",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer",
+      "role": "official_county_geometry",
+      "validation": "select_Posey_county_polygon_and_reproject_from_source_CRS",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "igio_elevation",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://registry.opendata.aws/in-elevation/",
+      "role": "bare_earth_lidar_dem_and_point_clouds",
+      "validation": "tile_intersection_CRS_vertical_datum_units_source_digest_and_control_points",
+      "status": "BUCKET_INVENTORY_ONLY_NOT_FULL_DOWNLOAD"
+    },
+    {
+      "id": "igio_imagery",
+      "agency": "Indiana Geographic Information Office",
+      "uri": "https://gisdata.in.gov/server/rest/services/Hosted/Indiana_Orthoimagery_Tile_Footprints/FeatureServer",
+      "role": "dated_orthoimagery_footprints",
+      "validation": "county_intersection_year_and_asset_checksums",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "indiana_dnr_infip",
+      "agency": "Indiana Department of Natural Resources Division of Water",
+      "uri": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/",
+      "role": "floodplain_reference_and_state_assessment",
+      "validation": "preserve_FEMA_effective_vs_DNR_best_available_classification",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "indiana_dnr_bafl",
+      "agency": "Indiana Department of Natural Resources Division of Water",
+      "uri": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+      "role": "state_best_available_floodplain_planning",
+      "validation": "non_NFIP_regulatory_separate_from_FEMA_effective",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "indiana_dnr_hh_library",
+      "agency": "Indiana Department of Natural Resources Division of Water",
+      "uri": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources",
+      "role": "state_model_library_and_Hec_RAS_geometry_tool",
+      "validation": "model_revision_and_inputs_provenance_required",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    },
+    {
+      "id": "indiana_doworc",
+      "agency": "Indiana Department of Natural Resources Division of Water",
+      "uri": "https://www.arcgis.com/home/item.html?id=d0b1b480cb77454f92126b297ac42daf",
+      "role": "permit_and_water_research_records",
+      "validation": "per_record_native_CRS_units_source_and_decision_status",
+      "status": "REFERENCED_NOT_DOWNLOADED"
+    }
+  ],
+  "source_bytes_verified_in_this_registry": false,
+  "regulatory_determination": false,
+  "external_approval": false
+}
