@@ -98,3 +98,16 @@ test('Flood simulator exposes source-backed Cesium 3D without opening engineerin
   assert.match(flood, /\$\{import\.meta\.env\.BASE_URL\}cesium\//);
   assert.match(flood, /\[controlsOpen, setControlsOpen\] = useState\(false\)/);
 });
+
+
+test('Regional Atlas keeps pre-load neutral fallback and prevents duplicate imagery registration', () => {
+  const map = read('src/components/TriStateDigitalTwinMap.tsx');
+  const construct = map.indexOf('const map = new maplibregl.Map(');
+  const failureHandler = map.indexOf("map.on('error', (event) => {", construct);
+  const readyHandler = map.indexOf("map.on('load', () => {", construct);
+  assert.ok(construct >= 0 && failureHandler > construct && failureHandler < readyHandler);
+  assert.match(map, /map\.setStyle\(createAtlasFallbackStyle\(\)\)/);
+  assert.match(map, /neutral map; street basemap and tile coverage are NOT verified/);
+  assert.match(map, /if \(!map\.getSource\('indiana-imagery'\)\)/);
+  assert.match(map, /if \(!map\.getLayer\('indiana-imagery-layer'\)\)/);
+});

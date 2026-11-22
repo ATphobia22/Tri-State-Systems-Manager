@@ -506,18 +506,22 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         // OpenFreeMap vector style is the cross-state basemap. Preserve native
         // Indiana imagery as an optional overlaid raster, never an IL/KY source.
         const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
-        map.addSource('indiana-imagery', {
-          type: 'raster',
-          tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
-          tileSize: 512,
-          attribution: 'Indiana Geographic Information Office',
-        });
-        map.addLayer({
-          id: 'indiana-imagery-layer',
-          type: 'raster',
-          source: 'indiana-imagery',
-          layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
-        });
+        if (!map.getSource('indiana-imagery')) {
+          map.addSource('indiana-imagery', {
+            type: 'raster',
+            tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
+            tileSize: 512,
+            attribution: 'Indiana Geographic Information Office',
+          });
+        }
+        if (!map.getLayer('indiana-imagery-layer')) {
+          map.addLayer({
+            id: 'indiana-imagery-layer',
+            type: 'raster',
+            source: 'indiana-imagery',
+            layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
+          });
+        }
         // These GeoJSON sources are committed and WGS84-checked. Neither
         // source supplies a live river level, bathymetric depth raster, or BFE.
         const base = import.meta.env.BASE_URL;
