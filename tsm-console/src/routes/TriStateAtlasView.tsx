@@ -316,6 +316,11 @@ export default function TriStateAtlasView(): JSX.Element {
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
             <div aria-live="polite"><strong data-testid="atlas-region-title">{region.label} · 4D regional twin</strong><small>MapLibre presentation EPSG:3857 · stored geospatial references WGS84 · source authority remains separate</small></div>
+            <label className="tsm-atlas-mesh-toggle tsm-atlas-mesh-visible">
+              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)}
+                aria-label="Show source-linked partial Posey 3D building preview" />
+              <span>Posey 3D buildings <small>Partial 12,450-tile LoD1 preview · not a complete height-verified census</small></span>
+            </label>
             <Link className="tsm-atlas-tour tsm-atlas-cesium-jump" to="/cesium" aria-label="Open dedicated Cesium 3D building and terrain viewer">Cesium 3D viewer ↗</Link>
             <button type="button" className="tsm-atlas-tour" aria-pressed={cinematicTour}
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
@@ -326,10 +331,6 @@ export default function TriStateAtlasView(): JSX.Element {
               {sceneToolsOpen ? 'Hide visual settings' : 'Show visual settings'}
             </button>
             {sceneToolsOpen && <div id="tsm-atlas-scene-tools" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', width: '100%' }}>
-            <label className="tsm-atlas-mesh-toggle">
-              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
-              3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
-            </label>
             <label className="tsm-civic-fx-label" htmlFor="tsm-civic-scene-fx">Virtual atmosphere · visual only
               <select id="tsm-civic-scene-fx" value={visualFx} onChange={(event) => setVisualFx(event.target.value as VisualFx)}>
                 <option value="clear">Clear · original map colors</option>
