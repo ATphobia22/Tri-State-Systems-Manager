@@ -18,7 +18,7 @@ Source: Indiana Geographic Information Office, **Indiana Building Footprints 201
 - Layer geometry: Polygon, EPSG:3857 server source, `hasZ=false`; request `outSR=4326` when acquiring actual polygon rings.
 - Metadata `editingInfo.lastEditDate`: `1776627426353` (provider timestamp, not a verified survey acquisition date).
 
-These observations **do not** prove that the 2026 live layer is byte-identical, topologically identical, or source-vintage-equivalent to TSM's pinned October 2026 23,082-feature GeoJSON. They do not establish LiDAR roof heights, vertical datum, survey quality or regulatory acceptance. Do not substitute 2025 imagery-derived Tier 1 footprints, Microsoft, or Overture as if they were this layer.
+The count-only and ID-only requests alone do not establish polygon equivalence; a separate full comparison is recorded below. They do not establish LiDAR roof heights, vertical datum, survey quality or regulatory acceptance. Do not substitute 2025 imagery-derived Tier 1 footprints, Microsoft, or Overture as if they were this layer.
 
 ## Exact identity query reproduction
 
@@ -52,3 +52,13 @@ The acquisition tool outputs `properties.igioObjectId` while `reconcile_posey_bu
 4. Validate generated 3D Tiles/GLBs with an OGC-compatible validator, then prove WebGL Cesium headed runtime and native Windows 11 offline UE5.8 separately.
 
 Official references: [IGIO footprint layer](https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0); [IGIO source metadata](https://www.arcgis.com/sharing/rest/content/items/384f2d5041a14c34bd9e807c568784da/info/metadata/metadata.xml?format=default&output=html); [USGS 3DEP LiDAR Base Specification](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online).
+
+## Independent full source-geometry comparison (2026-11-22)
+
+Retrieved the archived project release directly from GitHub, independently hashed its **13,652,166 bytes**, and verified its exact pinned SHA-256: `d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f`. The archive contains 23,082 unique positive integer `objectid` values. Its sorted-id SHA-256 equals the live official source digest shown above.
+
+Queried the authoritative FeatureServer `/query` endpoint in **47 disjoint batches** of at most 500 `objectIds`, requesting `outFields=objectid,county,lidaryear`, `returnGeometry=true`, `outSR=4326`, and `f=geojson`. Compared each returned GeoJSON `geometry` directly against the pinned archive by `objectid`, along with the `county` and `lidaryear` values.
+
+Results: **23,082/23,082 exact coordinate-and-geometry JSON matches**; no missing, extra, or duplicate OBJECTIDs; **0** changed geometry features, **0** source-year differences, **0** county differences, and **0** request errors. The source contained **23,071 Polygon** and **11 MultiPolygon** features. The layer-reported edit timestamp was **1776627426353 ms** (2026-04-19T19:37:06.353Z); this is *not* proof of the lidar acquisition date.
+
+**Scope:** Source geometry/ID/compared-attribute equivalence only. This does **not** independently certify ground or roof heights, geoid/vertical reference, survey accuracy, regulatory suitability, LOD2/LOD3 mesh validity, or UE Shipping deployment. The known Building 3D Tiles acceptance blocker is downstream of source footprint acquisition and remains open.
