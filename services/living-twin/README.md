@@ -248,3 +248,22 @@ deterministic observation events and SHA-256 receipts. They do not claim
 USGS authenticity, NAVD88 WSE, source-data licensing approval, HEC-RAS
 calibration, public publication clearance or native UE5.8 Shipping.
 See docs/architecture/USGS-TO-NATIVE-OFFLINE-HANDOFF-2026-11-22.md.
+
+
+## Headless offline gauge reader projection
+
+After building and verifying the USGS bundle above, create a local
+station-and-time-series JSON view with no network or running service:
+
+    python -m twin.offline_view /path/to/new-local-data --stale-after-seconds 3600 > gauge-view.json
+    python -m twin.offline_view /path/to/new-local-data --as-of 2025-01-01T13:01:00Z
+    pytest -q tests/test_offline_view.py tests/test_offline_bundle.py
+
+The view separates SOURCE_UNAVAILABLE, NO_OBSERVATIONS, NOT_IN_CAPTURE,
+MISSING_MEASUREMENT, STALE and RECENT_OBSERVATION. The last is a display
+freshness classification, not a USGS quality or source-liveness guarantee.
+It never fuses separate time series, promotes nulls to zero, or converts
+gage height into NAVD88 WSE. It includes source hashes and observation IDs
+for a future native direct-file reader, but **does not implement or certify**
+that UE5.8 Windows Shipping reader. See
+docs/architecture/USGS-OFFLINE-GAUGE-VIEW-RESEARCH-2026-11-22.md.
