@@ -1,0 +1,27 @@
+name: Canonical Twin Contracts
+on:
+  pull_request:
+    paths:
+      - 'schemas/core/**'
+      - 'schemas/assets/**'
+      - 'tests/test_canonical_contracts.py'
+      - '.github/workflows/canonical-twin-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'schemas/core/**'
+      - 'schemas/assets/**'
+      - 'tests/test_canonical_contracts.py'
+      - '.github/workflows/canonical-twin-contracts.yml'
+permissions:
+  contents: read
+jobs:
+  schema-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'jsonschema[format]>=4.22,<5'
+      - run: python -m unittest discover -s tests -p test_canonical_contracts.py -v

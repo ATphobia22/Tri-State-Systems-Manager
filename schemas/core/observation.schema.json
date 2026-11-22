@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tristatesystems.org/v1/observation",
+  "title": "TSM Observation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "observationId",
+    "authority",
+    "observedAt",
+    "parameter",
+    "value",
+    "units",
+    "sourceUri",
+    "evidenceId",
+    "quality"
+  ],
+  "properties": {
+    "observationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority": {
+      "enum": [
+        "USGS",
+        "NOAA",
+        "FEMA",
+        "USACE",
+        "INDIANA_DNR",
+        "KENTUCKY_DGI",
+        "ILLINOIS_DNR",
+        "IGIO",
+        "KGS",
+        "ISGS",
+        "OTHER"
+      ]
+    },
+    "observedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "parameter": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": "number"
+    },
+    "units": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceUri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "evidenceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "quality": {
+      "enum": [
+        "LIVE_OBSERVATION",
+        "STALE",
+        "SOURCE_UNAVAILABLE",
+        "PROVISIONAL",
+        "REJECTED"
+      ]
+    },
+    "stationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verticalDatum": {
+      "type": "string",
+      "description": "Use GAGE_DATUM when stage has no verified conversion; never infer NAVD88"
+    },
+    "horizontalCrs": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty": {
+      "type": "number",
+      "minimum": 0
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tristatesystems.org/v1/asset-shell",
+  "title": "TSM Asset Administration Shell v1 (AAS-inspired, not certified AAS)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assetId",
+    "assetType"
+  ],
+  "properties": {
+    "assetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assetType": {
+      "enum": [
+        "BRIDGE",
+        "ROAD",
+        "PORT",
+        "PLANT",
+        "GAUGE",
+        "LEVEE",
+        "BUILDING"
+      ]
+    },
+    "state": {
+      "type": "object"
+    },
+    "telemetry": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "targetAssetId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetAssetId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "geometryAssetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceVersion": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

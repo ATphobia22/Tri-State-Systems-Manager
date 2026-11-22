@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tristatesystems.org/v1/evidence",
+  "title": "TSM Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidenceId",
+    "authority",
+    "sourceUri",
+    "sha256",
+    "retrievedAt",
+    "reviewStatus"
+  ],
+  "properties": {
+    "evidenceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceUri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewStatus": {
+      "enum": [
+        "UNREVIEWED",
+        "REVIEWED",
+        "REJECTED"
+      ]
+    },
+    "reviewed": {
+      "type": "boolean",
+      "deprecated": true,
+      "description": "Legacy convenience only; reviewStatus is authoritative"
+    },
+    "reviewerId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}
