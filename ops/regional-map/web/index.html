@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tri-State offline map</title>
+<link rel="stylesheet" href="/maplibre/maplibre-gl.css">
+<style>body{font:1rem system-ui;margin:0;display:flex;flex-direction:column;height:100dvh}header{padding:.7rem;background:#edf3f2}form,output{margin:.3rem}#map{flex:1}#steps{max-height:18vh;overflow:auto}button,input{padding:.4rem}</style>
+<header><form><label>Address or Plus Code <input required></label> <button>Locate</button></form>
+<button id="origin" disabled>Set route origin here</button> <button id="route" disabled>Route from origin to here</button>
+<output aria-live="polite">Select a location.</output><ol id="steps"></ol></header><div id="map"></div>
+<script src="/maplibre/maplibre-gl.js"></script><script src="/olc.js"></script><script src="map.js"></script></html>
