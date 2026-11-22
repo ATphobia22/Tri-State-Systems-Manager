@@ -1,0 +1,36 @@
+name: TSM Terrain ECEF Geoid Seam Proof
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/build-terrain-3d-tiles.py'
+      - 'scripts/geospatial/test_terrain_ecef_vertex_alignment.py'
+      - '.github/workflows/terrain-ecef-geoid-seam-proof.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/build-terrain-3d-tiles.py'
+      - 'scripts/geospatial/test_terrain_ecef_vertex_alignment.py'
+      - '.github/workflows/terrain-ecef-geoid-seam-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-geodetic-mesh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --disable-pip-version-check --no-input 'numpy==2.1.3' 'pytest==9.0.3'
+      - name: Compile terrain converter and prove exact ECEF placement and shared boundaries
+        run: |
+          python3 -m py_compile scripts/geospatial/build-terrain-3d-tiles.py
+          python3 -m pytest -q --import-mode=importlib scripts/geospatial/test_terrain_ecef_vertex_alignment.py
+      - name: Keep engineering evidence status explicit
+        run: |
+          echo 'PASS: synthetic ECEF projection and adjacent-tile position contracts (not source terrain validation)'
+          echo 'NOT VERIFIED: authoritative per-pixel DEM datum, mesh seams with real heterogeneous DEM tiles, regulator or UE5.8 Shipping'
