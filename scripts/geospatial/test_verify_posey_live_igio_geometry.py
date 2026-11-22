@@ -1,11 +1,18 @@
 """Synthetic, offline regression tests for official building snapshot parity audit."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from verify_posey_live_igio_geometry import audit
+SPEC = importlib.util.spec_from_file_location(
+    "posey_live_igio_verifier", Path(__file__).with_name("verify_posey_live_igio_geometry.py")
+)
+assert SPEC and SPEC.loader
+VERIFY = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(VERIFY)
+audit = VERIFY.audit
 
 
 def building(oid, coords=None, year="2020"):
