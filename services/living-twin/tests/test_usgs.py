@@ -18,9 +18,10 @@ def test_usgs_snapshot_is_hash_bound_replayable_and_retains_gage_reference(tmp_p
     source.write_bytes(raw)
     (tmp_path / "manifest.json").write_text(json.dumps({
         "schema":"tsm.river-twin.observations.v1", "finishedAt":"2025-01-01T15:00:00Z",
+        "window":["2025-01-01T11:00:00Z","2025-01-01T13:00:00Z"],
         "stations":{
             "03322000":{"status":"CAPTURED", "featureCount":1,
-                        "sourceUrl":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?monitoring_location_id=USGS-03322000&parameter_code=00065",
+                        "sourceUrl":"https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?f=json&monitoring_location_id=USGS-03322000&parameter_code=00065&time=2025-01-01T11%3A00%3A00Z%2F2025-01-01T13%3A00%3A00Z&limit=1000",
                         "rawSha256":hashlib.sha256(raw).hexdigest()},
             "03378500":{"status":"SOURCE_UNAVAILABLE"},
         },
