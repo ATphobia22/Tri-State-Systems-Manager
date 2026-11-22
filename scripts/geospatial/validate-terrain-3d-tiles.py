@@ -1,23 +1,37 @@
 #!/usr/bin/env python3
 """Strict validation for the generated TSM OGC 3D Tiles terrain artifact."""
 from __future__ import annotations
-import argparse, hashlib, json, struct
+import argparse, hashlib, json, math, struct
 from pathlib import Path
 
 def walk(node, uris):
-    if not isinstance(node, dict): raise ValueError("tile node must be an object")
-    volume = node.get("boundingVolume", {})
-    box, sphere = volume.get("box"), volume.get("sphere")
-    if box is not None:
-        if not isinstance(box, list) or len(box) != 12 or not all(isinstance(v, (int, float)) for v in box):
-            raise ValueError("box bounding volume must contain 12 numbers")
-    elif sphere is not None:
-        if not isinstance(sphere, list) or len(sphere) != 4 or not all(isinstance(v, (int, float)) for v in sphere) or sphere[3] < 0:
-            raise ValueError("sphere bounding volume must contain center xyz and non-negative radius")
-    else:
-        raise ValueError("every tile requires a box, region, or sphere bounding volume")
-    if not isinstance(node.get("geometricError"), (int, float)) or node["geometricError"] < 0:
-        raise ValueError("invalid geometricError")
+    if not isinstance(node, dict): raise ValueError("tile node must be an obj    volume = node.get("boundingVolume")
+    if not isinstance(volume, dict):
+        raise ValueError("tile boundingVolume must be an object")
+    kinds = [key for key in ("box", "sphere", "region") if key in volume]
+    if len(kinds) != 1:
+        raise ValueError("tile must specify exactly one box, sphere, or region bounding volume")
+    kind = kinds[0]
+    values = volume[kind]
+    required_length = {"box": 12, "sphere": 4, "region": 6}[kind]
+    if (not isinstance(values, list) or len(values) != required_length
+            or any(type(v) not in (int, float) or not math.isfinite(v) for v in values)):
+        raise ValueError(f"{kind} bounding volume must contain {required_length} finite numbers")
+    if kind == "sphere" and values[3] < 0:
+        raise ValueError("sphere radius cannot be negative")
+    if kind == "region":
+        west, south, east, north, minimum_height, maximum_height = values
+        # OGC 3D Tiles 1.1: longitudes/latitudes are radians; heights are meters.
+        # west > east legitimately describes a region crossing the antimeridian.
+        if (not -math.pi <= west <= math.pi
+                or not -math.pi <= east <= math.pi
+                or not -math.pi / 2 <= south <= north <= math.pi / 2
+                or minimum_height > maximum_height):
+            raise ValueError("invalid region longitude/latitude radians or height order")
+    error = node.get("geometricError")
+    if type(error) not in (int, float) or not math.isfinite(error) or error < 0:
+        raise ValueError("geometricError must be a finite nonnegative number")
+ror")
     content = node.get("content")
     uri = content.get("uri") if isinstance(content, dict) else None
     if uri:
