@@ -5,7 +5,8 @@ import argparse, hashlib, json, math, struct
 from pathlib import Path
 
 def walk(node, uris):
-    if not isinstance(node, dict): raise ValueError("tile node must be an obj    volume = node.get("boundingVolume")
+    if not isinstance(node, dict): raise ValueError("tile node must be an object")
+    volume = node.get("boundingVolume")
     if not isinstance(volume, dict):
         raise ValueError("tile boundingVolume must be an object")
     kinds = [key for key in ("box", "sphere", "region") if key in volume]
@@ -31,7 +32,6 @@ def walk(node, uris):
     error = node.get("geometricError")
     if type(error) not in (int, float) or not math.isfinite(error) or error < 0:
         raise ValueError("geometricError must be a finite nonnegative number")
-ror")
     content = node.get("content")
     uri = content.get("uri") if isinstance(content, dict) else None
     if uri:
