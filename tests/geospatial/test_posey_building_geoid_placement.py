@@ -15,6 +15,7 @@ BUILDER = Path(__file__).resolve().parents[2] / "scripts/geospatial/build-buildi
 def feature(*, undulation: float | None = None, partial: bool = False) -> dict:
     p = {
         "igioObjectId": 501, "groundElevationFt": 382.0,
+        "groundElevationDatum": "NAVD88",
         "lidarHeightFt": 18.0, "lidarHeightStatus": "OK",
         "heightProvenance": "OBSERVED", "lidarHeightDatum": "NAVD88",
         "lidarHeightUnit": "ftUS",
@@ -79,6 +80,14 @@ class GeoidPlacementTests(unittest.TestCase):
         self.assertNotEqual(proc.returncode, 0)
         self.assertIsNone(tileset)
         self.assertIn("GEOID", rejection["rejected"][0]["reason"])
+
+    def test_wrong_ground_vertical_datum_refuses_geoid_application(self):
+        invalid = feature(undulation=-30.302)
+        invalid["properties"]["groundElevationDatum"] = "NGVD29"
+        proc, tileset, rejection = build(invalid)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIsNone(tileset)
+        self.assertIn("NAVD88", rejection["rejected"][0]["reason"])
 
     def test_incorrect_horizontal_frame_blocks_geoid_application(self):
         invalid = feature(undulation=-30.302)
