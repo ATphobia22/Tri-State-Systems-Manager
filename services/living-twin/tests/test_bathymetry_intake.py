@@ -89,3 +89,14 @@ def test_epsg_and_horizontal_axis_units_cannot_contradict(tmp_path):
     entry["horizontal_units"] = "ftUS"
     report = inspect(entry, tmp_path, [-88, 37.7, -87.9, 37.9])
     assert "HORIZONTAL_CRS_UNIT_CONTRADICTION" in report["blockers"]
+
+
+def test_kentucky_epsg_3089_uses_us_survey_feet_not_meters(tmp_path):
+    entry = fixture(tmp_path)
+    entry["horizontal_crs"] = "EPSG:3089"
+    entry["horizontal_units"] = "ftUS"
+    correct = inspect(entry, tmp_path, [-88, 37.7, -87.9, 37.9])
+    assert "HORIZONTAL_CRS_UNIT_CONTRADICTION" not in correct["blockers"]
+    entry["horizontal_units"] = "m"
+    incorrect = inspect(entry, tmp_path, [-88, 37.7, -87.9, 37.9])
+    assert "HORIZONTAL_CRS_UNIT_CONTRADICTION" in incorrect["blockers"]
