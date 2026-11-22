@@ -91,6 +91,13 @@ def verify_bundle(directory: Path) -> dict:
     metadata = json.loads(_read(directory / "bundle.json", MAX_SOURCE_BYTES))
     if metadata.get("schema") != SCHEMA or metadata.get("version") != 1:
         raise ValueError("Unsupported offline bundle schema")
+    if (metadata.get("matrix") != "O" or metadata.get("timeline") != "observed" or
+            metadata.get("stageDatum") != "USGS_STATION_GAGE_DATUM_UNCONVERTED" or
+            metadata.get("navd88WseIncluded") is not False or
+            metadata.get("hydraulicSimulationIncluded") is not False or
+            metadata.get("publicPublication") != "REVIEW_REQUIRED" or
+            metadata.get("runtime") != "FILES_ONLY_NO_SERVER"):
+        raise ValueError("Misleading or altered offline engineering authority declaration")
     records = metadata.get("files")
     needed = {"events.ndjson", "source/manifest.json"}
     permitted = needed | {f"source/{station}.geojson" for station in STATIONS}
@@ -103,6 +110,13 @@ def verify_bundle(directory: Path) -> dict:
         data = _read(directory / name, MAX_EVENTS_BYTES if name == "events.ndjson" else MAX_SOURCE_BYTES)
         if not isinstance(receipt, dict) or receipt.get("sha256") != _hash(data) or receipt.get("size") != len(data):
             raise ValueError("Offline evidence SHA-256 or byte size mismatch")
+    capture = json.loads(_read(directory / "source/manifest.json", MAX_SOURCE_BYTES))
+    expected_states = {
+        "USGS-" + station: {"status": entry["status"], "sourceSha256": entry.get("rawSha256")}
+        for station, entry in capture["stations"].items()
+    }
+    if metadata.get("capturedAt") != capture["finishedAt"] or metadata.get("sourceStates") != expected_states:
+        raise ValueError("Offline source status or acquisition time is not source-receipted")
     regenerated = event_rows(directory / "source")
     expected = "".join(canonical(event) + "\n" for event in regenerated).encode("utf-8")
     if (expected != _read(directory / "events.ndjson", MAX_EVENTS_BYTES) or
