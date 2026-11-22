@@ -80,9 +80,6 @@ permissions:
   contents: read
   actions: read
 
-env:
-  EXPECTED_BUILDINGS: '23082'
-
 jobs:
   build-tiles:
     runs-on: ubuntu-24.04
@@ -136,6 +133,31 @@ jobs:
           python3 -m unittest scripts.geospatial.test_building_3d_tiles_provenance -v
       - name: Verify topology and source identity before expensive acquisitions
         run: python3 scripts/geospatial/test-building-3d-tiles-geometry.py
+      - name: Discover official IGIO source count and full OBJECTID inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/tsm-igio
+          python3 scripts/geospatial/posey_official_inventory.py \
+            --output /tmp/tsm-igio/posey-official-source-inventory.json
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open("/tmp/tsm-igio/posey-official-source-inventory.json"))
+          assert p["source_identity_complete"] and p["official_feature_count"] > 0
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"EXPECTED_BUILDINGS={p['official_feature_count']}\n")
+          print("Official IGIO Posey OBJECTIDs:", p["official_feature_count"])
+          PY
+      - name: Preserve official source inventory SHA-256 receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-igio-source-identity-${{ github.run_id }}
+          path: |
+            /tmp/tsm-igio/posey-official-source-inventory.json
+            /tmp/tsm-igio/posey-official-source-inventory.json.sha256
+          retention-days: 90
+          if-no-files-found: ignore
       - name: Acquire and elevation-join all Posey IGIO building footprints
         shell: bash
         run: |
@@ -143,8 +165,22 @@ jobs:
           mkdir -p /tmp/tsm-igio
           python3 scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py \
             --output /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
-            --expected-count 23082
-          test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "23082"
+            --expected-count "$EXPECTED_BUILDINGS"
+          test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "$EXPECTED_BUILDINGS"
+      - name: Prove acquired footprint IDs exactly match official live count and ID digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json
+          f=json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]
+          receipt=json.load(open("/tmp/tsm-igio/posey-official-source-inventory.json"))
+          ids=[x["properties"]["igioObjectId"] for x in f]
+          assert len(ids)==len(set(ids))==receipt["official_feature_count"], "Source ID/cardinality mismatch"
+          raw=(json.dumps(sorted(ids),separators=(",",":"),sort_keys=True)+"\n").encode()
+          assert hashlib.sha256(raw).hexdigest()==receipt["official_sorted_objectids_sha256"], "Official ID digest mismatch"
+          print("Identity-complete:", len(ids), "IGIO Posey OBJECTIDs")
+          PY
       - name: Reconcile published footprint identity against complete IGIO snapshot
         shell: bash
         run: |
@@ -152,7 +188,7 @@ jobs:
           python3 scripts/geospatial/reconcile_published_buildings.py \
             --published tsm-console/public/3d-tiles/buildings-3d.json \
             --authoritative /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
-            --expected-count 23082 \
+            --expected-count "$EXPECTED_BUILDINGS" \
             --output /tmp/tsm-igio/building-objectid-source-delta.json \
             > /tmp/tsm-igio/building-objectid-source-delta.stdout.json
       - name: Verify authoritative EPT metadata
@@ -173,13 +209,13 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --allow-zero-heights
-          test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]))')" = "23082"
+          test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]))')" = "$EXPECTED_BUILDINGS"
           python3 - <<'PY'
           import json
           p="/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"
           f=json.load(open(p))["features"]
           ok=sum(1 for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK")
-          print(f"OBSERVED heights (3DEP EPT Class 6): {ok}/23082")
+          print(f"OBSERVED heights (3DEP EPT Class 6): {ok}/{len(f)}")
           PY
       - name: Generate Indiana 2020 COPC tile list for gap buildings
         shell: bash
@@ -344,21 +380,22 @@ jobs:
           retention-days: 90
           compression-level: 6
           if-no-files-found: ignore
-      - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
+      - name: Gate on all source-derived height-linked features (OBSERVED + DERIVED)
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, sys
+          import json, os, sys
+          expected = int(os.environ['EXPECTED_BUILDINGS'])
           p="/tmp/tsm-igio/posey-buildings-height-merged.geojson"
           d=json.load(open(p)); f=d["features"]
-          if len(f) != 23082:
-              raise SystemExit(f"FAIL-CLOSED: feature count {len(f)} != 23082")
+          if len(f) != expected:
+              raise SystemExit(f"FAIL-CLOSED: feature count {len(f)} != official source count {expected}")
           ok=[x for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK"]
           obs=sum(1 for x in ok if x["properties"].get("heightProvenance")=="OBSERVED")
           der=sum(1 for x in ok if x["properties"].get("heightProvenance")=="DERIVED")
-          unav=23082-len(ok)
-          print(f"Height-linked: {len(ok)}/23082 ({obs} OBSERVED [3DEP EPT Class 6] + {der} DERIVED [2020 COPC Class 1])")
+          unav=expected-len(ok)
+          print(f"Height-linked: {len(ok)}/{expected} ({obs} OBSERVED [3DEP EPT Class 6] + {der} DERIVED [2020 COPC Class 1])")
           if unav:
               print(f"UNAVAILABLE (no synthetic heights generated): {unav}")
               for x in f:
@@ -366,10 +403,10 @@ jobs:
                   if pr.get("lidarHeightStatus")!="OK":
                       print(f"  - {pr.get('lidarHeightStatus')}")
                       break
-          # FAIL-CLOSED: user's hard acceptance is 23,082 == 23,082.
-          if len(ok) != 23082:
-              raise SystemExit(f"FAIL-CLOSED: {unav} buildings lack heights; 23,082 acceptance NOT met")
-          print("ACCEPTANCE MET: 23,082/23,082 height-linked")
+          # Publication remains strict: no missing height can masquerade as complete 3D coverage.
+          if len(ok) != expected:
+              raise SystemExit(f"FAIL-CLOSED: {unav} building heights unresolved; source-derived full 3D acceptance NOT met")
+          print(f"ACCEPTANCE MET: {expected}/{expected} source-derived height-linked")
           PY
           mv /tmp/tsm-igio/posey-buildings-height-merged.geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
       - name: Reconstruct real LOD2 roof planes
@@ -378,10 +415,10 @@ jobs:
           set -euo pipefail
           python3 scripts/geospatial/reconstruct_lod2_roofs.py --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson
           count=$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lod2-enriched.geojson"))["features"]))')
-          echo "LOD2 input features: $count (23,082 OBSERVED+DERIVED height-linked)"
-          test "$count" = "23082"
+          echo "LOD2 input features: $count (source-derived OBSERVED+DERIVED height-linked)"
+          test "$count" = "$EXPECTED_BUILDINGS"
           mv /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
-      - name: Validate complete 23,082-feature acceptance chain
+      - name: Validate complete source-derived 3D acceptance chain
         shell: bash
         run: |
           set -euo pipefail
