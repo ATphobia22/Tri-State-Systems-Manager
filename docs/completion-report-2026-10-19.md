@@ -86,8 +86,8 @@ All blueprint modules now exported from `tiles-3d-renderer-layer.ts`:
 - `VramTelemetryMonitor`, `evaluateDegradation`, `captureTelemetry`
 
 **CityGML Importer** (`scripts/geospatial/citygml_to_3dtiles.py`)
-- Verified working: compiles, CLI functional
-- Converts CityGML 3.0 → 3D Tiles 1.1 with state-word encoding
+- Historical claim corrected 2026-11-22: the importer only parses CityGML and stages source feature/state-word metadata.
+- It **does not** generate GLBs or a renderable OGC 3D Tiles 1.1 hierarchy; the old `tileset.json` output was invalid and is no longer emitted. Independent geometry generation, CRS/datum checks, OGC validation and a headed viewer test remain required.
 
 ### TypeScript Verification
 - `npx tsc --noEmit` exits 0 (fully clean)
