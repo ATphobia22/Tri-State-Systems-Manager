@@ -60,6 +60,9 @@ def mesh_plane_segments(mesh: Any, axis: int, plane: float, tolerance: float) ->
             raise ValueError(f"nonfinite/invalid vertex {n}")
         verts.append(tuple(map(float, p)))
     segments = []
+    # Coplanar triangles describe filled interface faces, not seam polylines.
+    # Retain their external boundary and cancel shared internal diagonals.
+    coplanar_edges: dict[tuple, list[tuple]] = {}
     for n, tri in enumerate(triangles):
         if (not isinstance(tri, list) or len(tri) != 3 or
                 any(not isinstance(i, int) or isinstance(i, bool) or i < 0 or i >= len(verts) for i in tri) or
@@ -72,9 +75,21 @@ def mesh_plane_segments(mesh: Any, axis: int, plane: float, tolerance: float) ->
         if all(d > tolerance for d in signed) or all(d < -tolerance for d in signed):
             continue
         if all(abs(d) <= tolerance for d in signed):
-            # A triangle coplanar with the interface contributes all edges;
-            # union-coverage matching handles differing triangulation.
-            segments.extend((v[i], v[(i + 1) % 3]) for i in range(3))
+            # Identical coplanar faces with different diagonals represent the
+            # same continuous surface. Count each undirected edge by its
+            # tolerance-quantized endpoints: interior edges occur twice,
+            # whereas perimeter edges occur once. Three or more coincident
+            # edges indicate non-manifold source geometry, not a valid seam.
+            for i in range(3):
+                a, b = v[i], v[(i + 1) % 3]
+                key = tuple(sorted((
+                    tuple(round(x / tolerance) for x in a),
+                    tuple(round(x / tolerance) for x in b),
+                )))
+                matches = coplanar_edges.setdefault(key, [])
+                matches.append((a, b))
+                if len(matches) > 2:
+                    raise ValueError("non-manifold coplanar edge")
             continue
         hits: list[tuple[float, ...]] = []
         for i in range(3):
@@ -92,6 +107,9 @@ def mesh_plane_segments(mesh: Any, axis: int, plane: float, tolerance: float) ->
             segments.append(tuple(unique))
         elif len(unique) > 2:
             raise ValueError(f"ambiguous plane intersection in triangle {n}")
+    # Internal triangulation edges must never manufacture false cracks.
+    segments.extend(edges[0] for edges in coplanar_edges.values()
+                    if len(edges) == 1)
     return segments
 
 
