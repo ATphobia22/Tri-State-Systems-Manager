@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { createAtlasFallbackStyle, isAtlasBasemapError } from '../lib/atlas-basemap-recovery';
 import { BuildingInspectionPanel } from './BuildingInspectionPanel';
 import GeoTruthLayerControl from './GeoTruthLayerControl';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
@@ -457,7 +458,35 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     });
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
+    // A failed remote style must not leave the public Atlas in "Initializing"
+    // forever. Recover to an explicitly labeled neutral background and allow
+    // staged public GIS features to initialize; never fabricate map tiles.
+    let startupComplete = false;
+    let usedNeutralFallback = false;
+    let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
+    const recoverBasemap = (reason: string): void => {
+      if (!props.regionalAtlas || startupComplete || usedNeutralFallback) return;
+      usedNeutralFallback = true;
+      setStatus(`Regional basemap unavailable: ${reason}. Recovering public GIS overlays on a neutral map; street basemap and tile coverage are NOT verified.`);
+      try {
+        map.setStyle(createAtlasFallbackStyle());
+      } catch (error) {
+        setStatus(`Atlas basemap recovery failed: ${error instanceof Error ? error.message : String(error)}. No geographic basemap claimed.`);
+      }
+    };
+    map.on('error', (event) => {
+      if (startupComplete) return;
+      const message = event.error instanceof Error ? event.error.message : 'Unknown MapLibre initialization error';
+      if (isAtlasBasemapError(message)) recoverBasemap(message.slice(0, 180));
+      else setStatus(`Map initialization warning: ${message.slice(0, 180)}. Loading remains unverified.`);
+    });
+    recoveryTimer = setTimeout(() => {
+      if (!startupComplete) recoverBasemap('remote style did not finish loading');
+    }, 14000);
+
     map.on('load', () => {
+      startupComplete = true;
+      if (recoveryTimer) clearTimeout(recoveryTimer);
       mapRef.current = map;
       setMapReady(true);
       const lighting = getCinematicLighting(lightPresetRef.current);
@@ -557,7 +586,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const terrain = getTerrainRgbStatus();
       const terrainAllowed = !props.regionalAtlas || Boolean(showIndianaImageryRef.current);
       setTerrainEnabled(terrain.enabled && terrainAllowed);
-      setStatus(terrain.enabled && terrainAllowed ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.' : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
+      setStatus(usedNeutralFallback
+        ? 'Neutral map fallback loaded. The external street basemap did not initialize; staged GIS overlays may be available, but terrain, tiles and vertical datum remain unverified.'
+        : terrain.enabled && terrainAllowed
+          ? 'Map style initialized. Terrain-RGB template configured; actual tiles, coverage and vertical datum require independent verification.'
+          : 'Map style initialized; terrain unavailable or outside preview coverage. Visible sources and tile fetches require independent verification.');
 
       if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
@@ -692,6 +725,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     });
 
     return () => {
+      if (recoveryTimer) clearTimeout(recoveryTimer);
       featureRequestsRef.current.cancelAll();
       npsAbortRef.current?.abort();
       npsLoadedRef.current = false;
