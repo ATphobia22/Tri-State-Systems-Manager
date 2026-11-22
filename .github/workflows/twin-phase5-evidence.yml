@@ -1,0 +1,36 @@
+name: Twin phase 5 evidence contract
+on:
+  pull_request:
+    paths:
+      - 'scripts/release/verify_phase5_evidence.py'
+      - 'scripts/release/test_verify_phase5_evidence.py'
+      - '.github/workflows/twin-phase5-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/verify_phase5_evidence.py'
+      - 'scripts/release/test_verify_phase5_evidence.py'
+      - '.github/workflows/twin-phase5-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fail-closed-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/release/verify_phase5_evidence.py
+            scripts/release/test_verify_phase5_evidence.py
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e
+        with:
+          python-version: '3.12'
+      - name: Compile and test evidence contracts
+        run: |
+          python -m py_compile scripts/release/verify_phase5_evidence.py scripts/release/test_verify_phase5_evidence.py
+          python -m unittest discover -s scripts/release -p test_verify_phase5_evidence.py -v
+      - name: Distinguish tests from acceptance
+        run: echo 'Contract tested; external release evidence still required.'
