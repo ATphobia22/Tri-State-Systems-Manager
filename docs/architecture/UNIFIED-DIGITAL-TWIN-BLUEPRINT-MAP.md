@@ -15,7 +15,7 @@ This document maps each blueprint section to existing TSM repository components 
 | OGC 3D Tiles 1.1 (glTF 2.0, implicit octree) | ✅ Implemented | `scripts/geospatial/build-*-3d-tiles.py` |
 | CityGML 3.0 importer | ✅ Implemented | `scripts/geospatial/citygml_to_3dtiles.py` |
 
-**Status (2026-10-22):** CityGML importer complete. No open gaps in this section.
+**Correction (2026-11-22):** CityGML source feature staging is implemented, but the importer does **not** generate glTF mesh content, bounds, transforms or implicit subtrees. Its former `tileset.json` was not a valid renderable 3D Tiles dataset. It now emits `citygml-features.candidate.json` with explicit blockers. Complete mesh generation and independent OGC/spec validation are OPEN.
 
 ---
 
