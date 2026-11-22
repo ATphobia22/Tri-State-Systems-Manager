@@ -267,3 +267,37 @@ gage height into NAVD88 WSE. It includes source hashes and observation IDs
 for a future native direct-file reader, but **does not implement or certify**
 that UE5.8 Windows Shipping reader. See
 docs/architecture/USGS-OFFLINE-GAUGE-VIEW-RESEARCH-2026-11-22.md.
+
+## Reconciled live USGS snapshot projection checkpoint (2026-11-22)
+
+For a **connected** river-twin development or scheduled source-verification
+runner, capture the three official stations 03322000, 03378500, 03377500
+using `python scripts/hydrology/river_twin_snapshot.py capture /absolute/path/to/snapshot`
+from the repository root. Each capture stores the raw official OGC Water Data
+API response bytes and manifest SHA-256. It remains a historic capture, not a
+present-day gauge value or datum-adjusted surface elevation.
+
+Inside `services/living-twin` start the **optional connected** runtime and
+project a reviewed capture:
+
+```sh
+docker compose up -d --build consumer kernel
+docker compose run --rm -T --no-deps \
+  -v /absolute/path/to/snapshot:/snapshot:ro \
+  consumer python -m twin.project_usgs /snapshot
+docker compose down --volumes
+```
+
+The projection receipt binds the immutable source manifest to deterministic
+observation event IDs, committed event digests, a consistent database checkpoint
+and observed-vs-projected sequence values. A superseded observation need not be
+the current gauge record. Run `python -m pytest -q tests/test_river_projection.py`
+to verify the captured 66-row fixture, but note that the state-API integration
+test skips unless `STATE_API` is configured and the full Compose stack is
+running. Actual scheduled live-source capture, production PostGIS/Redpanda
+retention, USGS sensor timestamps, independent geodetic calibration, external
+software interoperability, and native UE5.8 shipping remain separately gated.
+
+This **networked** projection workflow is not a dependency of the zero-server
+native Windows reader: `python -m twin.offline_view` and verified local source
+bundles remain the separate direct-file offline path described above.

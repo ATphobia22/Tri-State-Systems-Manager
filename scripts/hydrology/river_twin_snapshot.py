@@ -21,7 +21,7 @@ from backend.engineering.stage_calibration_gate import (  # noqa: E402
     MAX_BYTES, digest, offset_time, series,
 )
 
-STATIONS = ("03322000", "03378500")
+STATIONS = ("03322000", "03378500", "03377500")
 ENDPOINT = "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items"
 NO_DATA = {-999, -9999, -8888}
 UTC = timezone.utc
