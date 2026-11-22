@@ -18,6 +18,38 @@ def canonical(obj):
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
 
 
+ID_ALIASES = ("igioObjectId", "OBJECTID", "objectid")
+
+
+def declared_crs(doc):
+    """Honor GeoJSON WGS84 default, but reject conflicting explicit CRS claims."""
+    fields = []
+    if doc.get("geometryCrs") is not None:
+        fields.append(doc["geometryCrs"])
+    root = doc.get("crs")
+    if root is not None:
+        if isinstance(root, dict) and root.get("type") == "name":
+            root = (root.get("properties") or {}).get("name")
+        fields.append(root)
+    if not fields:
+        return "EPSG:4326", True
+    if not all(isinstance(x, str) and x.startswith("EPSG:") for x in fields):
+        return None, False
+    return fields[0], len(set(fields)) == 1
+
+
+def extract_objectid(props):
+    values = [props[k] for k in ID_ALIASES if k in props]
+    if not values:
+        return None, False
+    # Disallow bool, floats and strings: a source ID must be an exact integer.
+    if any(isinstance(x, bool) or not isinstance(x, int) or x < 0 for x in values):
+        return None, True
+    if len(set(values)) > 1:
+        return None, True
+    return values[0], False
+
+
 def load(path):
     raw = path.read_bytes()
     doc = json.loads(raw)
@@ -26,18 +58,26 @@ def load(path):
     index = {}
     duplicates = []
     missing = 0
+    conflicting = 0
     for feature in doc["features"]:
         props = feature.get("properties") or {}
-        oid = props.get("OBJECTID", props.get("objectid"))
-        if isinstance(oid, bool) or not isinstance(oid, int):
+        oid, conflict = extract_objectid(props)
+        if conflict:
+            conflicting += 1
+            continue
+        if oid is None:
             missing += 1
             continue
         if oid in index:
             duplicates.append(oid)
         geometry = feature.get("geometry")
         index[oid] = sha256(canonical(geometry))
+    crs, crs_consistent = declared_crs(doc)
     return {
         "path": str(path),
+        "resolved_crs": crs,
+        "crs_metadata_consistent": crs_consistent,
+        "conflicting_identity_count": conflicting,
         "file_sha256": sha256(raw),
         "feature_count": len(doc["features"]),
         "unique_objectids": len(index),
@@ -54,13 +94,20 @@ def reconcile(left_path, right_path):
     changed = sorted(oid for oid in shared if a[oid] != b[oid])
     only_left = sorted(set(a) - set(b))
     only_right = sorted(set(b) - set(a))
+    crs_compatible = (
+        left["crs_metadata_consistent"] and right["crs_metadata_consistent"]
+        and left["resolved_crs"] is not None
+        and left["resolved_crs"] == right["resolved_crs"]
+    )
     equivalent = not (only_left or only_right or changed or
                       left["missing_objectid_count"] or right["missing_objectid_count"] or
-                      left["duplicate_objectids"] or right["duplicate_objectids"])
+                      left["conflicting_identity_count"] or right["conflicting_identity_count"] or
+                      left["duplicate_objectids"] or right["duplicate_objectids"]) and crs_compatible
     return {
         "schema": "tsm.posey-objectid-geometry-reconciliation.v1",
         "comparison": "exact GeoJSON geometry JSON canonical digest; no topology tolerance or CRS transformation",
         "left": left, "right": right,
+        "crs_compatible": crs_compatible,
         "common_objectids": len(shared),
         "changed_geometry_objectids": changed,
         "left_only_objectids": only_left,
