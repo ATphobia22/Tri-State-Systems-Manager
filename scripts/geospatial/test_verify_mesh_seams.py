@@ -100,5 +100,50 @@ class MeshSeamGeometryTests(unittest.TestCase):
         self.assertTrue(any("unique" in x for x in r["errors"]))
 
 
+    def test_coplanar_quad_has_no_false_internal_diagonal_seam(self):
+        # Two identical planar faces are triangulated along opposite diagonals.
+        # Internal diagonals are not mesh-interface cracks.
+        vertices = [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0],
+                    [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
+        interface = {
+            "id": "opposite-diagonal-coplanar",
+            "direction": "+x", "planeCoordinateM": 0.0,
+            "left": {"vertices": vertices, "triangles": [[0, 1, 2], [0, 2, 3]]},
+            "right": {"vertices": vertices, "triangles": [[0, 1, 3], [1, 2, 3]]},
+        }
+        result = compare_interface(interface, 0.0001)
+        self.assertEqual(result["status"], "MATCH")
+        self.assertEqual(result["leftSegments"], 4)
+        self.assertEqual(result["rightSegments"], 4)
+        self.assertEqual(result["uncoveredLengthM"], 0.0)
+
+    def test_coplanar_missing_triangle_still_detects_real_hole(self):
+        vertices = [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0],
+                    [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]]
+        interface = {
+            "id": "coplanar-partial-face",
+            "direction": "-x", "planeCoordinateM": 0.0,
+            "left": {"vertices": vertices, "triangles": [[0, 1, 2], [0, 2, 3]]},
+            "right": {"vertices": vertices, "triangles": [[0, 1, 3]]},
+        }
+        result = compare_interface(interface, 0.0001)
+        self.assertEqual(result["status"], "CRACK_OR_NONCOLLINEAR_SEGMENT")
+        self.assertGreater(result["uncoveredLengthM"], 0.0)
+
+    def test_non_manifold_coplanar_edge_rejected(self):
+        vertices = [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0], [0.0, 1.0, 1.0], [0.0, 0.5, -1.0]]
+        interface = {
+            "id": "non-manifold-coplanar",
+            "direction": "+x", "planeCoordinateM": 0.0,
+            "left": {"vertices": vertices,
+                     "triangles": [[0, 1, 2], [1, 0, 4], [0, 1, 3]]},
+            "right": {"vertices": vertices, "triangles": [[0, 1, 2]]},
+        }
+        result = evaluate({"toleranceM": 0.0001, "interfaces": [interface]})
+        self.assertEqual(result["status"], "INCOMPLETE")
+        self.assertTrue(any("non-manifold coplanar edge" in e for e in result["errors"]))
+
+
 if __name__ == "__main__":
     unittest.main()
