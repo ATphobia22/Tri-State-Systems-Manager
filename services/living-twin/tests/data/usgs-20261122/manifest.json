@@ -1,0 +1,29 @@
+{
+  "schema": "tsm.river-twin.observations.v1",
+  "window": [
+    "2026-11-22T03:26:44.503021Z",
+    "2026-11-22T09:26:44.503021Z"
+  ],
+  "startedAt": "2026-11-22T09:26:44.503021Z",
+  "stations": {
+    "03322000": {
+      "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?f=json&monitoring_location_id=USGS-03322000&parameter_code=00065&time=2026-11-22T03%3A26%3A44.503021Z%2F2026-11-22T09%3A26%3A44.503021Z&limit=1000",
+      "status": "CAPTURED",
+      "rawSha256": "a036413c32eaaa543c51cfc5b89cc5d88451b14d327556d406f96a4429ec0385",
+      "featureCount": 23
+    },
+    "03378500": {
+      "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?f=json&monitoring_location_id=USGS-03378500&parameter_code=00065&time=2026-11-22T03%3A26%3A44.503021Z%2F2026-11-22T09%3A26%3A44.503021Z&limit=1000",
+      "status": "CAPTURED",
+      "rawSha256": "b832e1d5e6fb0b34b086f730930f1c493c20828e6970a46b64eef3bb279a0b51",
+      "featureCount": 21
+    },
+    "03377500": {
+      "sourceUrl": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?f=json&monitoring_location_id=USGS-03377500&parameter_code=00065&time=2026-11-22T03%3A26%3A44.503021Z%2F2026-11-22T09%3A26%3A44.503021Z&limit=1000",
+      "status": "CAPTURED",
+      "rawSha256": "f223b1ac51c6740dd9f3cc52f8d4ca9452b43332106b070c97955a98c9b44d0f",
+      "featureCount": 22
+    }
+  },
+  "finishedAt": "2026-11-22T09:26:53.329644Z"
+}
