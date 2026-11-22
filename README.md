@@ -412,3 +412,5 @@ See the [checkpoint input contract](docs/geodesy/INDEPENDENT-CHECKPOINT-ACCURACY
 **In memory of Beverly Ann Tucker.**
 
 **Professional geology review authority (tri-state):** The [licensed-geologist authority index](data/standards/tsm-professional-geologist-authorities-2026-11-16.json) links the distinct Indiana, Illinois and Kentucky licensing boards and statutes. ASBOG examinations, archival maps and code quality checks do not verify a person's current credentials, professional scope or responsible charge. No automated license or professional certification is issued by TSM.
+
+**Native world review.** Assemble the [offline Unreal review snapshot](docs/release/NATIVE-WORLD-REVIEW-SNAPSHOT.md) from the committed terrain subset and source-linked Posey building preview.
