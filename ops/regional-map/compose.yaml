@@ -1,0 +1,29 @@
+services:
+  tiles:
+    image: ghcr.io/maplibre/martin:v0.16.0
+    command: ["/data/tristate-valley.pmtiles", "/data/tristate-terrain.pmtiles", "--font", "/data/fonts", "--sprite", "/data/icons"]
+    volumes: ["./data:/data:ro"]
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend:v5.27.1@sha256:b1ca5d72da456e82f81b8732a095c2357b00710099efa844040d1eb40b4b5386
+    command: ["osrm-routed", "--algorithm", "mld", "/data/region.osrm"]
+    volumes: ["./data:/data:ro"]
+  nominatim:
+    image: mediagis/nominatim:5.3
+    shm_size: 1gb
+    environment:
+      PBF_PATH: /data/region.osm.pbf
+      UPDATE_MODE: none
+      IMPORT_WIKIPEDIA: "false"
+      NOMINATIM_PASSWORD: ${NOMINATIM_PASSWORD:?Set a local alphanumeric password}
+    volumes: ["./data:/data:ro", "geocoder:/var/lib/postgresql/16/main"]
+  viewer:
+    image: nginx:1.28-alpine
+    ports: ["127.0.0.1:8090:80"]
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web:/usr/share/nginx/html:ro
+      - ../../tsm-console/node_modules/maplibre-gl/dist:/usr/share/nginx/html/maplibre:ro
+      - ../../tsm-console/src/lib/vendor/openlocationcode.js:/usr/share/nginx/html/olc.js:ro
+    depends_on: [tiles, osrm, nominatim]
+volumes:
+  geocoder:
