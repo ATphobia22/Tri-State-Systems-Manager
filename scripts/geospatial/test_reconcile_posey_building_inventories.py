@@ -45,3 +45,65 @@ def test_duplicate_identity_is_not_equivalent(tmp_path):
     result = module.reconcile(a, b)
     assert not result["equivalent_identity_and_geometry"]
     assert result["left"]["duplicate_objectids"] == [1]
+
+
+def test_acquisition_igio_objectid_alias_reconciles_identical_geometry(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    fa = feature(740382)
+    fb = feature(740382)
+    fa["properties"] = {"igioObjectId": 740382, "county": "Posey"}
+    fb["properties"] = {"objectid": 740382, "county": "Posey"}
+    for path, item in ((a, fa), (b, fb)):
+        path.write_text(json.dumps({"type": "FeatureCollection", "geometryCrs": "EPSG:4326", "features": [item]}))
+    report = module.reconcile(a, b)
+    assert report["equivalent_identity_and_geometry"]
+    assert report["common_objectids"] == 1
+
+
+def test_conflicting_source_identity_aliases_fail_evidence_gate(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    bad = feature(740382)
+    bad["properties"] = {"igioObjectId": 740382, "objectid": 999999}
+    inventory(a, [bad])
+    inventory(b, [feature(740382)])
+    report = module.reconcile(a, b)
+    assert not report["equivalent_identity_and_geometry"]
+    assert report["left"]["conflicting_identity_count"] == 1
+
+
+def test_mismatched_crs_cannot_approve_same_numeric_geometry(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    a.write_text(json.dumps({"type": "FeatureCollection", "geometryCrs": "EPSG:4326", "features": [feature(5)]}))
+    b.write_text(json.dumps({"type": "FeatureCollection", "geometryCrs": "EPSG:3857", "features": [feature(5)]}))
+    report = module.reconcile(a, b)
+    assert not report["equivalent_identity_and_geometry"]
+    assert report["crs_compatible"] is False
+
+
+def test_conflicting_crs_fields_within_snapshot_rejected(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    a.write_text(json.dumps({"type": "FeatureCollection", "geometryCrs": "EPSG:4326",
+                             "crs": {"type": "name", "properties": {"name": "EPSG:2968"}},
+                             "features": [feature(5)]}))
+    b.write_text(json.dumps({"type": "FeatureCollection", "geometryCrs": "EPSG:4326", "features": [feature(5)]}))
+    report = module.reconcile(a, b)
+    assert not report["equivalent_identity_and_geometry"]
+    assert report["left"]["crs_metadata_consistent"] is False
+
+
+def test_matching_igio_id_aliases_on_same_feature_are_accepted(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    same = feature(740382)
+    same["properties"]["igioObjectId"] = 740382
+    inventory(a, [same])
+    inventory(b, [feature(740382)])
+    assert module.reconcile(a, b)["equivalent_identity_and_geometry"]
+
+
+def test_boolean_source_identity_is_not_accepted(tmp_path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    bad = feature(True)
+    bad["properties"] = {"igioObjectId": True}
+    inventory(a, [bad])
+    inventory(b, [feature(1)])
+    assert not module.reconcile(a, b)["equivalent_identity_and_geometry"]
