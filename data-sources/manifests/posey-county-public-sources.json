@@ -1,0 +1,402 @@
+{
+  "schemaVersion": "1.0.0",
+  "sourceId": "posey-county-public-sources",
+  "accessDate": "2026-11-22",
+  "countyGeoid": "18129",
+  "mountVernonPlaceGeoid": "1851732",
+  "authorityClass": "SOURCE_EVIDENCE_ONLY",
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "enabledByDefault": false,
+  "sourceDirectory": "data-sources/downloads/posey-18129",
+  "screenshotSources": [
+    {
+      "domain": "census.gov",
+      "publisher": "Census Bureau",
+      "role": "demographic and TIGER product documentation",
+      "urls": [
+        "https://www.census.gov/quickfacts/poseycountyindiana",
+        "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2026.html"
+      ]
+    },
+    {
+      "domain": "gisdata.in.gov",
+      "publisher": "Indiana GIO",
+      "role": "framework metadata and footprint inventory",
+      "urls": [
+        "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer/0",
+        "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0"
+      ]
+    },
+    {
+      "domain": "gisimageryingov.s3.amazonaws.com",
+      "publisher": "Indiana GIO",
+      "role": "catalog listing and 2023 Mount Vernon orthophoto",
+      "urls": [
+        "https://gisimageryingov.s3.amazonaws.com/?list-type=2&delimiter=%2F&prefix=imageryoptimized%2Fstatewide%2F&max-keys=100",
+        "https://gisimageryingov.s3.amazonaws.com/imageryoptimized/statewide/2023/SPW/06in/in2023_27170977_06.tif"
+      ]
+    },
+    {
+      "domain": "gis.iu.edu",
+      "publisher": "Indiana University",
+      "role": "historic imagery and Sanborn catalogs",
+      "urls": [
+        "https://gis.iu.edu/s/isdp/page/2011gibsonposey",
+        "https://gis.iu.edu/s/isdp/page/sanborn"
+      ]
+    },
+    {
+      "domain": "nass.usda.gov",
+      "publisher": "USDA NASS",
+      "role": "2025 cropland classification metadata and linked public service",
+      "urls": [
+        "https://www.nass.usda.gov/Research_and_Science/Cropland/metadata/metadata_CDL25_FGDC-STD-001-1998.htm",
+        "https://croplandcros.scinet.usda.gov/",
+        "https://pdi.scinet.usda.gov/image/rest/services/CDL_WM/ImageServer/query?f=json&where=Year%3D2025&outFields=OBJECTID%2CName%2CYear%2CLowPS%2CHighPS%2CCategory&returnGeometry=false"
+      ]
+    },
+    {
+      "domain": "stats.indiana.edu",
+      "publisher": "Indiana Business Research Center",
+      "role": "secondary demographic context",
+      "urls": [
+        "https://www.stats.indiana.edu/profiles/profiles.asp?button1=Get+Profile&county_changer=18129&id=2&menu_level=smenu1&page_path=Area+Profiles&panel_number=1&path_id=11&scope_choice=a"
+      ]
+    },
+    {
+      "domain": "unitedstatescountymaps.com",
+      "publisher": "United States County Maps",
+      "role": "generalized Census cartography",
+      "urls": [
+        "https://unitedstatescountymaps.com/county/indiana/posey-county/",
+        "https://unitedstatescountymaps.com/geography/18129.json"
+      ]
+    },
+    {
+      "domain": "in.gov",
+      "publisher": "Indiana GIO and Indiana State Library",
+      "role": "harvest, historical maps and roadway references",
+      "urls": [
+        "https://www.in.gov/gis/geoinsights/posts/data-harvest/",
+        "https://www.in.gov/library/collections-and-services/indiana/indiana-county-maps-atlases-and-plat-books/posey-county-maps/",
+        "https://www.in.gov/indot/files/2025-Indiana-Roadway-Map.pdf"
+      ]
+    },
+    {
+      "domain": "www2.census.gov",
+      "publisher": "Census Bureau",
+      "role": "versioned source archive",
+      "urls": [
+        "https://www2.census.gov/geo/tiger/TIGER2025/PLACE/tl_2025_18_place.zip",
+        "https://www2.census.gov/geo/tiger/TIGER2026/ROADS/tl_2026_18129_roads.zip"
+      ]
+    },
+    {
+      "domain": "censusreporter.org",
+      "publisher": "Census Reporter",
+      "role": "secondary ACS tables and margins of error",
+      "urls": [
+        "https://censusreporter.org/profiles/05000US18129-posey-county-in/"
+      ]
+    },
+    {
+      "domain": "arcgis.com",
+      "publisher": "IndianaMap; hosted service publisher not verified",
+      "role": "official IGIO footprint item and a separate discovery service",
+      "urls": [
+        "https://www.arcgis.com/sharing/rest/content/items/384f2d5041a14c34bd9e807c568784da?f=json",
+        "https://services.arcgis.com/5BYw7o0uNAgcAttE/ArcGIS/rest/services/Posey_County_Reference_Data/FeatureServer?f=pjson"
+      ]
+    },
+    {
+      "domain": "secure.in.gov",
+      "publisher": "INDOT",
+      "role": "roadway and historical map indexes",
+      "urls": [
+        "https://secure.in.gov/indot/resources/maps/",
+        "https://secure.in.gov/indot/resources/historic-maps/"
+      ]
+    },
+    {
+      "domain": "bsu.libguides.com",
+      "publisher": "Ball State University Libraries",
+      "role": "GIS research guide",
+      "urls": [
+        "https://bsu.libguides.com/GIS/Access"
+      ]
+    },
+    {
+      "domain": "countymapsus.com",
+      "publisher": "County Maps US",
+      "role": "secondary Census county cartography",
+      "urls": [
+        "https://countymapsus.com/county/indiana/posey-county/"
+      ]
+    },
+    {
+      "domain": "parcelchart.com",
+      "publisher": "Parcel Chart",
+      "role": "secondary directory for county records",
+      "urls": [
+        "https://www.parcelchart.com/places/in/posey/",
+        "https://www.poseycountyin.gov/county-offices/auditors-office/"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "census-2026/18129/roads/tl_2026_18129_roads.zip",
+      "sourceUrl": "https://www2.census.gov/geo/tiger/TIGER2026/ROADS/tl_2026_18129_roads.zip",
+      "kind": "source-shapefile-zip",
+      "sizeBytes": 617694,
+      "sha256": "9f414c3fb2311bacbf2b2f0ae8b1338d53abaca230088042d9720e0bdcacda2f",
+      "featureCount": 2817,
+      "nativeCrs": "EPSG:4269",
+      "sourceVintage": "2026",
+      "license": "U.S. Government public domain"
+    },
+    {
+      "path": "census-2026/18129/linearwater/tl_2026_18129_linearwater.zip",
+      "sourceUrl": "https://www2.census.gov/geo/tiger/TIGER2026/LINEARWATER/tl_2026_18129_linearwater.zip",
+      "kind": "source-shapefile-zip",
+      "sizeBytes": 142498,
+      "sha256": "564c4de5d653b183e56f614d7e652e70454aaa9635b11a2dedb5dff9036fd72a",
+      "featureCount": 336,
+      "nativeCrs": "EPSG:4269",
+      "sourceVintage": "2026",
+      "license": "U.S. Government public domain"
+    },
+    {
+      "path": "census-2026/18129/areawater/tl_2026_18129_areawater.zip",
+      "sourceUrl": "https://www2.census.gov/geo/tiger/TIGER2026/AREAWATER/tl_2026_18129_areawater.zip",
+      "kind": "source-shapefile-zip",
+      "sizeBytes": 117932,
+      "sha256": "1688e54b1f9811335eb4277565a5b7b66daaaca68ec579195afae31decd9ec39",
+      "featureCount": 257,
+      "nativeCrs": "EPSG:4269",
+      "sourceVintage": "2026",
+      "license": "U.S. Government public domain"
+    },
+    {
+      "path": "census-2026/acquisition-receipt.json",
+      "sourceUrl": "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2026.html",
+      "kind": "acquisition-receipt",
+      "sizeBytes": 2569,
+      "sha256": "4a7b4442677e62ef46af36deb48de8858c1c1b9d964f80bed7549ba954c27229"
+    },
+    {
+      "path": "census-2026/SHA256SUMS.txt",
+      "sourceUrl": "https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2026.html",
+      "kind": "checksum-inventory",
+      "sizeBytes": 326,
+      "sha256": "87fc92134faaa443e1b7b1ce44339fa0de757b232782acb8274ec855bd94a265"
+    },
+    {
+      "path": "census-2026/posey-tigerweb-current.geojson",
+      "sourceUrl": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?where=GEOID%3D%2718129%27&outFields=GEOID%2CNAME&outSR=4326&f=geojson",
+      "kind": "current-service-extract",
+      "sizeBytes": 75320,
+      "sha256": "0129d5c448c9ec3626482f5e6bdd5cb840012360ac7e12c07c09ab1e943ccc74",
+      "outputCrs": "EPSG:4326",
+      "featureCount": 1,
+      "sourceVintage": "MUTABLE_CURRENT"
+    },
+    {
+      "path": "census-2025/mount-vernon-city.geojson",
+      "sourceUrl": "https://www2.census.gov/geo/tiger/TIGER2025/PLACE/tl_2025_18_place.zip",
+      "kind": "normalized-shapefile-extract",
+      "sizeBytes": 9350,
+      "sha256": "7072ce8dec0fb5c9266cfe0fc9d1f8d7f8a7f07af2e19959dc65f06338d08041",
+      "nativeCrs": "EPSG:4269",
+      "outputCrs": "EPSG:4326",
+      "featureCount": 1,
+      "sourceVintage": "2025",
+      "sourceArchiveSha256": "2428563ed4db0a74b2041dec577e4230103329eb2875ac1827076bf477f82201"
+    },
+    {
+      "path": "igio/igio-mount-vernon-2023-ortho-clip.tif",
+      "sourceUrl": "https://gisimageryingov.s3.amazonaws.com/imageryoptimized/statewide/2023/SPW/06in/in2023_27170977_06.tif",
+      "kind": "imagery-derivative",
+      "sizeBytes": 2703107,
+      "sha256": "fe72f6c110ef9961479c97106d1ef08564ca62f247665c8a223799a67e920ea9",
+      "sourceVintage": "2023",
+      "nativeCrs": "EPSG:2968",
+      "outputCrs": "EPSG:2968",
+      "license": "CC0",
+      "sourcePixelSizeFtUS": 0.5,
+      "outputPixelSizeFtUS": 1,
+      "sourceWindowPixels": [
+        2400,
+        1400,
+        1700,
+        1900
+      ],
+      "rasterSize": [
+        850,
+        950
+      ],
+      "nativeBoundsFtUS": [
+        2718700,
+        978350,
+        2719550,
+        979300
+      ],
+      "bands": "RGBI",
+      "resampling": "nearest"
+    },
+    {
+      "path": "igio/igio-mount-vernon-cog-info.json",
+      "sourceUrl": "https://gisimageryingov.s3.amazonaws.com/imageryoptimized/statewide/2023/SPW/06in/in2023_27170977_06.tif",
+      "kind": "gdal-raster-metadata",
+      "sizeBytes": 12568,
+      "sha256": "573f3eb65e54f7f0fc32aaa7b24c98ff511304ef40d35e5203fa843c698ea39b"
+    },
+    {
+      "path": "igio/igio-mount-vernon-source.tfw",
+      "sourceUrl": "https://gisimageryingov.s3.amazonaws.com/imageryoptimized/statewide/2023/SPW/06in/in2023_27170977_06.tfw",
+      "kind": "source-world-file",
+      "sizeBytes": 34,
+      "sha256": "bc0ba8a1a3c93e2b32a59649aee409e7b3170e9b33ca4d5b9219d77041c57bd4"
+    },
+    {
+      "path": "igio/igio-imagery-prefixes.xml",
+      "sourceUrl": "https://gisimageryingov.s3.amazonaws.com/?list-type=2&delimiter=%2F&prefix=imageryoptimized%2Fstatewide%2F&max-keys=100",
+      "kind": "bucket-prefix-list",
+      "sizeBytes": 1855,
+      "sha256": "252fdf78eba31d37972cb633431afbd55dd1cf8458efe643da9e6a4ba9fa0b9e"
+    },
+    {
+      "path": "igio/igio-roads-current-layer.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer/0?f=pjson",
+      "kind": "mutable-layer-metadata",
+      "sizeBytes": 27259,
+      "sha256": "9dc223e47298de14d8cf03e4e3e300f09d9b5d017819db6e69cc4d78ac202cd8"
+    },
+    {
+      "path": "igio/igio-building-metadata.json",
+      "sourceUrl": "https://www.arcgis.com/sharing/rest/content/items/384f2d5041a14c34bd9e807c568784da?f=json",
+      "kind": "official-catalog-item",
+      "sizeBytes": 2638,
+      "sha256": "f9fdacb0bae6890cf9a8750ee8f38ba2dbfa57c702ec50767a7eaf5b2d9266f6"
+    },
+    {
+      "path": "igio/igio-building-posey-count.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0/query?where=UPPER%28county%29%3D%27POSEY%27&returnCountOnly=true&f=json",
+      "kind": "source-count-only",
+      "sizeBytes": 15,
+      "sha256": "193d3cc8d526abb8bc7e5976e2c6b0ead062bccf5b70c27eed63d02be64f5c9b",
+      "featureCount": 23082
+    },
+    {
+      "path": "igio/igio-addresses-current-service-metadata.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "mutable-service-metadata",
+      "sizeBytes": 3512,
+      "sha256": "78995029b39ac8f2b1158f312cb5f0cbd28502ee4e6942da2a9549b82da5729a"
+    },
+    {
+      "path": "igio/igio-addresses-current-service-metadata.manifest.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "acquisition-receipt",
+      "sizeBytes": 919,
+      "sha256": "5f505deffeddc2ee65e0549f702616a0cd0f355a9ac0e11c6871bd57e00113ef"
+    },
+    {
+      "path": "igio/igio-administrative-current-service-metadata.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "mutable-service-metadata",
+      "sizeBytes": 4462,
+      "sha256": "46af91c7dda3abe802d78985acf778dfcddbdb1d40bf6342e12b1ebea25bea2c"
+    },
+    {
+      "path": "igio/igio-administrative-current-service-metadata.manifest.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "acquisition-receipt",
+      "sizeBytes": 936,
+      "sha256": "40ad41c2c415f7a943dc2b5109eafe5e269e3c4d4c9e5511913f3de20132f073"
+    },
+    {
+      "path": "igio/igio-parcels-current-service-metadata.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "mutable-service-metadata",
+      "sizeBytes": 3846,
+      "sha256": "8222743e401e905cc5ca99f997e9fd813c89f18299075899af6e0e8e16439da3"
+    },
+    {
+      "path": "igio/igio-parcels-current-service-metadata.manifest.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "acquisition-receipt",
+      "sizeBytes": 920,
+      "sha256": "9ecd6ee4fc71840e0f4219fd85d0ead78f0c21974f3be8a15713552f81fed678"
+    },
+    {
+      "path": "igio/igio-roads-current-service-metadata.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "mutable-service-metadata",
+      "sizeBytes": 3705,
+      "sha256": "66e2fa38984dfc07260880b54bdf1fa5ae526b4c3cddfab88ac6b77a69d2c375"
+    },
+    {
+      "path": "igio/igio-roads-current-service-metadata.manifest.json",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer?f=pjson",
+      "kind": "acquisition-receipt",
+      "sizeBytes": 899,
+      "sha256": "df0e9f00d5cd2f088de197d0eb9a60672dbbb2febe43f8603095afeefec13ca3"
+    },
+    {
+      "path": "usda/usda-posey-cdl-2025.tif",
+      "sourceUrl": "https://pdi.scinet.usda.gov/image/rest/services/CDL_WM/ImageServer/exportImage?f=image&bbox=-9807024.499905813%2C4547126.111310253%2C-9761383.508680573%2C4612109.9573404845&bboxSR=3857&imageSR=3857&size=1200%2C1700&format=tiff&pixelType=U8&interpolation=RSP_NearestNeighbor&mosaicRule=%7B%22mosaicMethod%22%3A+%22esriMosaicLockRaster%22%2C+%22lockRasterIds%22%3A+%5B40%5D%7D&renderingRule=%7B%22rasterFunction%22%3A+%22None%22%7D",
+      "kind": "categorical-raster-export",
+      "sizeBytes": 2295746,
+      "sha256": "a0a6f82a9de23025c44a75d7c67a3126903c3a99fe914b6b8a5f47569641ad50",
+      "sourceVintage": "2025",
+      "outputCrs": "EPSG:3857",
+      "nativeSourceResolutionMeters": 10,
+      "rasterSize": [
+        1200,
+        1700
+      ],
+      "outputPixelSizeProjectedMeters": 38.22579,
+      "classValueCount": 38,
+      "lockedSourceObjectId": 40,
+      "coverage": "Posey County bounding rectangle, including adjoining land and water",
+      "resampling": "nearest",
+      "license": "USDA NASS public domain"
+    },
+    {
+      "path": "usda/usda-posey-cdl-2025-catalog.json",
+      "sourceUrl": "https://pdi.scinet.usda.gov/image/rest/services/CDL_WM/ImageServer/query?f=json&where=Year%3D2025&outFields=OBJECTID%2CName%2CYear%2CLowPS%2CHighPS%2CCategory&returnGeometry=false",
+      "kind": "image-service-vintage-metadata",
+      "sizeBytes": 1110,
+      "sha256": "cc02a7b5214c93655109ae3bab1aeec237da685b80663227e77b2e3eaf3b4637",
+      "lockedSourceObjectId": 40
+    },
+    {
+      "path": "indiana-state-library/mount-vernon-1873.jpg",
+      "sourceUrl": "https://indianamemory.contentdm.oclc.org/digital/iiif/p15078coll8/6007/full/1600,/0/default.jpg",
+      "kind": "historical-map-scan",
+      "sizeBytes": 381931,
+      "sha256": "1e8a3ecc6c3e6eb00ad6a2b582d12f432811b74c4734a256d41e34a90907e058",
+      "sourceVintage": "1873",
+      "catalogUrl": "https://indianamemory.contentdm.oclc.org/digital/collection/p15078coll8/id/6007"
+    },
+    {
+      "path": "indiana-state-library/posey-road-survey-1936.jpg",
+      "sourceUrl": "https://indianamemory.contentdm.oclc.org/digital/iiif/p15078coll8/824/full/1600,/0/default.jpg",
+      "kind": "historical-map-scan",
+      "sizeBytes": 452450,
+      "sha256": "e3753bddf69c816ab5ace92af8f25de4f3df18bf519c5ba51d3a063d2b833c23",
+      "sourceVintage": "1936 survey",
+      "catalogUrl": "https://indianamemory.contentdm.oclc.org/digital/collection/p15078coll8/id/824/"
+    }
+  ],
+  "limitations": [
+    "TIGER road features are cartographic records. The change from 3,024 in 2024 to 2,817 in 2026 is a vintage difference, with no claim about road removals or exact county coverage.",
+    "TIGER water geometry provides surface-water context. It supplies neither bathymetry nor hydraulic water-surface elevations.",
+    "The 2023 orthophoto sample has a horizontal CRS and contains no elevation data. The local window establishes neither complete county coverage nor 2025 leaf-off imagery.",
+    "The USDA categorical raster is resampled to the declared export grid. Historical map scans and secondary demographic, parcel and cartography references are for context.",
+    "The IGIO footprint count verifies the size of a filtered source response. Roof and ground elevations, source ID reconciliation and building 3D Tiles acceptance remain independent.",
+    "Indiana framework metadata receipts establish reachable service contracts. They contain no countywide parcel or address records."
+  ]
+}

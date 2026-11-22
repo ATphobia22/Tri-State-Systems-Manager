@@ -11,6 +11,7 @@ import hashlib
 import io
 import json
 import math
+import re
 from pathlib import Path
 import zipfile
 
@@ -47,6 +48,10 @@ def read_tiger(path: Path, county: str, kind: str, *, state: str | None = None) 
     from pyproj import CRS, Transformer
 
     state = state or COUNTIES[county][0]
+    source_name = re.fullmatch(r"tl_([0-9]{4})_([0-9]{5})_([a-z]+)\.zip", path.name)
+    if source_name is None or source_name.group(2, 3) != (county, kind):
+        raise ValueError(f"TIGER archive name does not match requested county and layer: {path}")
+    vintage = source_name[1]
     if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_SOURCE_BYTES:
         raise ValueError(f"Missing or invalid source ZIP: {path}")
     with zipfile.ZipFile(path) as archive:
@@ -60,6 +65,8 @@ def read_tiger(path: Path, county: str, kind: str, *, state: str | None = None) 
         for m in members:
             suffix = Path(m.filename).suffix.lower()
             if suffix in (".shp", ".shx", ".dbf", ".prj"):
+                if Path(m.filename).stem != path.stem:
+                    raise ValueError(f"TIGER shapefile member does not match archive: {m.filename}")
                 if suffix in by_suffix:
                     raise ValueError("Ambiguous shapefile member")
                 by_suffix[suffix] = m.filename
@@ -91,14 +98,14 @@ def read_tiger(path: Path, county: str, kind: str, *, state: str | None = None) 
                 raise ValueError("Geometry falls outside regional sanity bounds")
             identifier = str(props.get("LINEARID", props.get("TLID", seq)))
             output.append({
-                "type": "Feature", "id": f"TIGER2024:{county}:{kind}:{identifier}",
+                "type": "Feature", "id": f"TIGER{vintage}:{county}:{kind}:{identifier}",
                 "properties": {
                     "source_id": identifier, "county_geoid": county,
                     "state": state, "kind": kind,
                     **({"name": props.get("FULLNAME") or None, "mtfcc": props.get("MTFCC") or None}
                        if kind == "roads" else {}),
                     "source_authority": "U.S. Census Bureau",
-                    "source_vintage": "2024", "source_review": "UNREVIEWED",
+                    "source_vintage": vintage, "source_review": "UNREVIEWED",
                 },
                 "geometry": mapping(geo),
             })

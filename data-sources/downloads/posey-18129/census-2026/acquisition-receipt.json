@@ -1,0 +1,77 @@
+{
+  "datasets": [
+    {
+      "bytes": 617694,
+      "county": "Posey, IN",
+      "feature_count": 2817,
+      "file_members_verified": 4,
+      "fips": "18129",
+      "geometry_type": "POLYLINE",
+      "kind": "roads",
+      "last_modified": "Tue, 06 Oct 2026 23:34:33 GMT",
+      "relative_path": "18129/roads/tl_2026_18129_roads.zip",
+      "scope": "engineering-eight",
+      "sha256": "9f414c3fb2311bacbf2b2f0ae8b1338d53abaca230088042d9720e0bdcacda2f",
+      "source_crs_epsg": 4269,
+      "source_url": "https://www2.census.gov/geo/tiger/TIGER2026/ROADS/tl_2026_18129_roads.zip",
+      "total_zip_members": 7,
+      "uncompressed_bytes": 1407464
+    },
+    {
+      "bytes": 142498,
+      "county": "Posey, IN",
+      "feature_count": 336,
+      "file_members_verified": 4,
+      "fips": "18129",
+      "geometry_type": "POLYLINE",
+      "kind": "linearwater",
+      "last_modified": "Tue, 06 Oct 2026 23:34:07 GMT",
+      "relative_path": "18129/linearwater/tl_2026_18129_linearwater.zip",
+      "scope": "engineering-eight",
+      "sha256": "564c4de5d653b183e56f614d7e652e70454aaa9635b11a2dedb5dff9036fd72a",
+      "source_crs_epsg": 4269,
+      "source_url": "https://www2.census.gov/geo/tiger/TIGER2026/LINEARWATER/tl_2026_18129_linearwater.zip",
+      "total_zip_members": 7,
+      "uncompressed_bytes": 305218
+    },
+    {
+      "bytes": 117932,
+      "county": "Posey, IN",
+      "feature_count": 257,
+      "file_members_verified": 4,
+      "fips": "18129",
+      "geometry_type": "POLYGON",
+      "kind": "areawater",
+      "last_modified": "Tue, 06 Oct 2026 23:31:24 GMT",
+      "relative_path": "18129/areawater/tl_2026_18129_areawater.zip",
+      "scope": "engineering-eight",
+      "sha256": "1688e54b1f9811335eb4277565a5b7b66daaaca68ec579195afae31decd9ec39",
+      "source_crs_epsg": 4269,
+      "source_url": "https://www2.census.gov/geo/tiger/TIGER2026/AREAWATER/tl_2026_18129_areawater.zip",
+      "total_zip_members": 7,
+      "uncompressed_bytes": 277416
+    }
+  ],
+  "engineering_fips": [
+    "17059",
+    "17193",
+    "18051",
+    "18129",
+    "18163",
+    "18173",
+    "21101",
+    "21225"
+  ],
+  "engineering_or_regulatory_approved": false,
+  "publisher": "U.S. Census Bureau",
+  "record_count": 3,
+  "retrieved_at_utc": "2026-11-22T15:27:46.207689+00:00",
+  "road_elevations_or_bathymetry_verified": false,
+  "schema": "tsm.tiger2026-county-roads-hydro-acquisition.v1",
+  "separate_regional_fips": [
+    "17185"
+  ],
+  "source_year": 2026,
+  "spatial_coverage_against_exact_county_polygon_verified": false,
+  "total_source_bytes": 878124
+}

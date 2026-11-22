@@ -509,3 +509,33 @@ fe682868bf3491711fd9fe3ec58a118553eb275f280776dcbc62cfedd5e21030  data/posey-cou
 ## 7. USGS site inventory download (data-sources/downloads/)
 b13483ed9809fcfedf97eaa32e73277ae01e03ba4f08215f977fe794ea0e90db  data-sources/downloads/usgs/usgs-03378500-site-inventory.rdb
 78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124  data/posey-county/elevation/in2020-26850945-12-dem-2.5ft.tif
+
+## Posey County public sources (2026-11-22)
+2a2209ae464b6c2acd95e5d78d3ef2bd6c5b15748cdf3380e6a6333e0955a10a  data-sources/manifests/posey-county-public-sources.json
+0f41b1b24a8576986387d5c61224c11620a5a0424769e4d94a4b36db7ef0f394  data-sources/manifests/indiana-imagery-statewide.json
+7072ce8dec0fb5c9266cfe0fc9d1f8d7f8a7f07af2e19959dc65f06338d08041  data-sources/downloads/posey-18129/census-2025/mount-vernon-city.geojson
+1688e54b1f9811335eb4277565a5b7b66daaaca68ec579195afae31decd9ec39  data-sources/downloads/posey-18129/census-2026/18129/areawater/tl_2026_18129_areawater.zip
+564c4de5d653b183e56f614d7e652e70454aaa9635b11a2dedb5dff9036fd72a  data-sources/downloads/posey-18129/census-2026/18129/linearwater/tl_2026_18129_linearwater.zip
+9f414c3fb2311bacbf2b2f0ae8b1338d53abaca230088042d9720e0bdcacda2f  data-sources/downloads/posey-18129/census-2026/18129/roads/tl_2026_18129_roads.zip
+87fc92134faaa443e1b7b1ce44339fa0de757b232782acb8274ec855bd94a265  data-sources/downloads/posey-18129/census-2026/SHA256SUMS.txt
+4a7b4442677e62ef46af36deb48de8858c1c1b9d964f80bed7549ba954c27229  data-sources/downloads/posey-18129/census-2026/acquisition-receipt.json
+0129d5c448c9ec3626482f5e6bdd5cb840012360ac7e12c07c09ab1e943ccc74  data-sources/downloads/posey-18129/census-2026/posey-tigerweb-current.geojson
+78995029b39ac8f2b1158f312cb5f0cbd28502ee4e6942da2a9549b82da5729a  data-sources/downloads/posey-18129/igio/igio-addresses-current-service-metadata.json
+5f505deffeddc2ee65e0549f702616a0cd0f355a9ac0e11c6871bd57e00113ef  data-sources/downloads/posey-18129/igio/igio-addresses-current-service-metadata.manifest.json
+46af91c7dda3abe802d78985acf778dfcddbdb1d40bf6342e12b1ebea25bea2c  data-sources/downloads/posey-18129/igio/igio-administrative-current-service-metadata.json
+40ad41c2c415f7a943dc2b5109eafe5e269e3c4d4c9e5511913f3de20132f073  data-sources/downloads/posey-18129/igio/igio-administrative-current-service-metadata.manifest.json
+f9fdacb0bae6890cf9a8750ee8f38ba2dbfa57c702ec50767a7eaf5b2d9266f6  data-sources/downloads/posey-18129/igio/igio-building-metadata.json
+193d3cc8d526abb8bc7e5976e2c6b0ead062bccf5b70c27eed63d02be64f5c9b  data-sources/downloads/posey-18129/igio/igio-building-posey-count.json
+252fdf78eba31d37972cb633431afbd55dd1cf8458efe643da9e6a4ba9fa0b9e  data-sources/downloads/posey-18129/igio/igio-imagery-prefixes.xml
+fe72f6c110ef9961479c97106d1ef08564ca62f247665c8a223799a67e920ea9  data-sources/downloads/posey-18129/igio/igio-mount-vernon-2023-ortho-clip.tif
+573f3eb65e54f7f0fc32aaa7b24c98ff511304ef40d35e5203fa843c698ea39b  data-sources/downloads/posey-18129/igio/igio-mount-vernon-cog-info.json
+bc0ba8a1a3c93e2b32a59649aee409e7b3170e9b33ca4d5b9219d77041c57bd4  data-sources/downloads/posey-18129/igio/igio-mount-vernon-source.tfw
+8222743e401e905cc5ca99f997e9fd813c89f18299075899af6e0e8e16439da3  data-sources/downloads/posey-18129/igio/igio-parcels-current-service-metadata.json
+9ecd6ee4fc71840e0f4219fd85d0ead78f0c21974f3be8a15713552f81fed678  data-sources/downloads/posey-18129/igio/igio-parcels-current-service-metadata.manifest.json
+9dc223e47298de14d8cf03e4e3e300f09d9b5d017819db6e69cc4d78ac202cd8  data-sources/downloads/posey-18129/igio/igio-roads-current-layer.json
+66e2fa38984dfc07260880b54bdf1fa5ae526b4c3cddfab88ac6b77a69d2c375  data-sources/downloads/posey-18129/igio/igio-roads-current-service-metadata.json
+df0e9f00d5cd2f088de197d0eb9a60672dbbb2febe43f8603095afeefec13ca3  data-sources/downloads/posey-18129/igio/igio-roads-current-service-metadata.manifest.json
+1e8a3ecc6c3e6eb00ad6a2b582d12f432811b74c4734a256d41e34a90907e058  data-sources/downloads/posey-18129/indiana-state-library/mount-vernon-1873.jpg
+e3753bddf69c816ab5ace92af8f25de4f3df18bf519c5ba51d3a063d2b833c23  data-sources/downloads/posey-18129/indiana-state-library/posey-road-survey-1936.jpg
+cc02a7b5214c93655109ae3bab1aeec237da685b80663227e77b2e3eaf3b4637  data-sources/downloads/posey-18129/usda/usda-posey-cdl-2025-catalog.json
+a0a6f82a9de23025c44a75d7c67a3126903c3a99fe914b6b8a5f47569641ad50  data-sources/downloads/posey-18129/usda/usda-posey-cdl-2025.tif

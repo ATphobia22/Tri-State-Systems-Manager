@@ -1,0 +1,18 @@
+{
+  "manifest_version": "1.1.0",
+  "source_key": "igio-parcels-current",
+  "purpose": "Mutable Indiana parcel framework service metadata only; county/year and boundaries unverified",
+  "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+  "retrieved_at": "2026-11-22T15:31:11.327Z",
+  "http_status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "content_length_bytes": 3846,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "8222743e401e905cc5ca99f997e9fd813c89f18299075899af6e0e8e16439da3",
+  "snapshot_file": "igio-parcels-current-service-metadata.json",
+  "scope_note": "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority.",
+  "source_vintage_status": "UNVERIFIED_MUTABLE_CURRENT_SERVICE",
+  "engineering_use": false,
+  "regulatory_use": false
+}
