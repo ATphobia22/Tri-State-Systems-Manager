@@ -1,0 +1,12 @@
+DROP MATERIALIZED VIEW twin.matrix_counts;
+DROP MATERIALIZED VIEW twin.current_state;
+DROP VIEW twin.temporal_period;
+DROP FUNCTION twin.snapshot(timestamptz,timestamptz,text,text,bigint);
+DROP TABLE twin.outbox;
+DROP TABLE twin.evidence_link;
+DROP TRIGGER event_audit ON twin.event;
+DROP TABLE twin.audit;
+DROP TABLE twin.event;
+DROP FUNCTION twin.record_audit();
+DROP FUNCTION twin.reject_mutation();
+DROP SCHEMA twin;

@@ -1,0 +1,34 @@
+name: Living twin runtime integration
+on:
+  pull_request:
+    paths: ['services/living-twin/**', '.github/workflows/living-twin-runtime.yml']
+  push:
+    branches: [main]
+    paths: ['services/living-twin/**', '.github/workflows/living-twin-runtime.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/living-twin
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          sparse-checkout: services/living-twin
+      - name: Validate and build Compose services
+        run: |
+          docker compose --profile test config -q
+          docker compose build tests
+      - name: Run PostGIS and Redpanda integration tests
+        run: docker compose --profile test run --rm tests
+      - name: Show service diagnostics
+        if: failure()
+        run: docker compose --profile test logs --no-color --tail 100
+      - name: Remove integration services
+        if: always()
+        run: docker compose --profile test down --volumes

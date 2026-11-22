@@ -1,0 +1,14 @@
+alembic==1.15.2
+SQLAlchemy==2.0.40
+psycopg[binary]==3.2.9
+confluent-kafka[avro,schemaregistry]==2.10.1
+fastavro==1.11.1
+jsonschema[format]==4.23.0
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+httpx[socks]==0.28.1
+prometheus-client==0.22.1
+opentelemetry-sdk==1.33.1
+opentelemetry-exporter-otlp-proto-http==1.33.1
+opentelemetry-instrumentation-fastapi==0.54b1
+pytest==8.3.5

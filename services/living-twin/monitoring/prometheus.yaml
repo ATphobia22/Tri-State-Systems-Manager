@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: living-twin-consumer
+    static_configs: [{targets: ["consumer:9101"]}]
+  - job_name: living-twin-relay
+    static_configs: [{targets: ["relay:9102"]}]
+  - job_name: living-twin-api
+    metrics_path: /metrics/
+    static_configs: [{targets: ["api:8000"]}]
+  - job_name: redpanda
+    metrics_path: /public_metrics
+    static_configs: [{targets: ["redpanda:9644"]}]
