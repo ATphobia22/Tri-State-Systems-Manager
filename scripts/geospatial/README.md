@@ -16,7 +16,7 @@ tile-fabric assembly.
 | `lod2-ai-automation.py` | AI-assisted LOD2: SAT2LOD2/HEAT guides + classical RANSAC fallback (`--mode classical`, pure numpy) |
 | `dem_to_transvoxel.py` | DEM → Transvoxel SDF volume (CPU pipeline) |
 | `transvoxel_tables.py` | Lengyel transition-cell classification tables |
-| `citygml_to_3dtiles.py` | CityGML 3.0 Space/SpaceBoundary → 3D Tiles |
+| `citygml_to_3dtiles.py` | CityGML 3.0 Space/SpaceBoundary → **nonrenderable** `citygml-features.candidate.json` staging; GLB/3D Tiles generation pending |
 | `point_tube.py` | PointTube semantic geometry utility |
 | `hecras_georeference.py` | Georeference HEC-RAS cross-sections |
 | `tnm_bulk_download.py` | USGS TNM bulk downloader — see `../flood-forecasting/` |
