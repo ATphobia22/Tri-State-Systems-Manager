@@ -1,0 +1,28 @@
+name: OGC Terrain 3D Tiles Bounds Contract
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/validate-terrain-3d-tiles.py'
+      - 'scripts/geospatial/test_validate_terrain_3d_tiles.py'
+      - '.github/workflows/ogc-terrain-3d-tiles-bounds.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/validate-terrain-3d-tiles.py'
+      - 'scripts/geospatial/test_validate_terrain_3d_tiles.py'
+      - '.github/workflows/ogc-terrain-3d-tiles-bounds.yml'
+permissions:
+  contents: read
+jobs:
+  bounding-volume-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Verify 3D Tiles 1.1 bounding volumes and error contracts
+        run: |
+          python3 -m py_compile scripts/geospatial/validate-terrain-3d-tiles.py
+          python3 -m unittest discover -s scripts/geospatial -p test_validate_terrain_3d_tiles.py -v
