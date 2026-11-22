@@ -56,6 +56,13 @@ def test_hydrology_validation_creates_evidence_linked_event():
                   "branch": "model-run", "state": {
                       "reach_id": "reach:test", "station_id": station, "stage_ft": 308.2,
                       "unit": "ft", "vertical_reference": "NAVD88"}}
+    # Synthetic integration observation simulates the USGS event adapter output.
+    # The independent real-source capture/byte-hash tests run separately.
+    observation["source"] = {
+        **source(),
+        "authority": "USGS",
+        "uri": "https://api.waterdata.usgs.gov/ogcapi/v1/",
+    }
     apply(observation)
     apply(prediction)
     assert compare(observation, prediction)["status"] == "WITHHELD"
