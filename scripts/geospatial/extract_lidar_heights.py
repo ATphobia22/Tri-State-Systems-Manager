@@ -29,10 +29,13 @@ Resilient behavior:
 from __future__ import annotations
 
 import argparse
+from collections import OrderedDict, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import io
 import json
 import math
 import sys
+from threading import Lock
 import urllib.request
 from pathlib import Path
 
@@ -49,10 +52,11 @@ POSEY_BBOX = (-88.08, 37.75, -87.92, 38.03)
 
 CLASS_GROUND = 2
 CLASS_BUILDING = 6
-CLASS_BUILDING_ALT = 8
 
 MIN_ROOF_POINTS = 5
 MIN_GROUND_POINTS = 3
+NODE_FETCH_WORKERS = 6
+MAX_NODES_PER_BATCH = 12
 
 
 def fetch_json(url: str, timeout: int = 30) -> dict:
@@ -148,9 +152,9 @@ class EPTReader:
             raise RuntimeError(f"EPT unreachable at {ept_url}: {e}")
         self.root_bounds = self.info["bounds"]
         self.native_crs = self._resolve_native_crs(self.info.get("srs"))
-        self._hier = None
-        self._level_nodes: dict[int, set[str]] = {}
-        self._cache: dict[str, object] = {}
+        self._node_lookup = None
+        self._cache = OrderedDict()
+        self._cache_lock = Lock()
 
     @staticmethod
     def _resolve_native_crs(srs):
@@ -181,20 +185,11 @@ class EPTReader:
                 raise RuntimeError(f"unable to transform EPSG:4326 to EPT CRS {self.native_crs}: {e}")
             return lonlat_to_3857(lon, lat)
 
-    def hierarchy(self, target_level: int = 6) -> dict:
-        """Load only the EPT hierarchy pages needed for target-level lookup."""
-        if self._hier is not None and self._hier.get("_loaded_to_level") == target_level:
-            return {k: v for k, v in self._hier.items() if k != "_loaded_to_level"}
-        page = fetch_json(f"{self.base}/ept-hierarchy/0-0-0-0.json")
-        self._hier = dict(page)
-        self._hier["_loaded_to_level"] = target_level
-        return page
-
     def _node_index(self, hier: dict) -> dict:
         """Index hierarchy nodes by (level, ix, iy) for O(1) cell lookup."""
         index: dict[tuple[int, int, int], list[str]] = {}
         for nid, count in hier.items():
-            if not (isinstance(count, int) and count != 0):
+            if not (isinstance(count, int) and count > 0):
                 continue
             parts = nid.split("-")
             if len(parts) != 4:
@@ -225,11 +220,11 @@ class EPTReader:
         xmin, ymin, _, xmax, ymax, _ = self.root_bounds
         if not (xmax > xmin and ymax > ymin):
             return None
-        hier = self.hierarchy(target_level)
-        index = self._level_nodes.get("_index")
-        if index is None:
-            index = self._node_index(hier)
-            self._level_nodes["_index"] = index
+        # The pinned Posey hierarchy is published in one root page.
+        if self._node_lookup is None:
+            page = fetch_json(f"{self.base}/ept-hierarchy/0-0-0-0.json")
+            self._node_lookup = self._node_index(page)
+        index = self._node_lookup
         for level in range(target_level, 0, -1):
             n = 2 ** level
             px = min(n - 1, max(0, int((x - xmin) / (xmax - xmin) * n)))
@@ -247,8 +242,10 @@ class EPTReader:
         raises, and the calling building is marked as an error (resilient).
         """
         import time
-        if node_id in self._cache:
-            return self._cache[node_id]
+        with self._cache_lock:
+            if node_id in self._cache:
+                self._cache.move_to_end(node_id)
+                return self._cache[node_id]
         import laspy
         url = f"{self.base}/ept-data/{node_id}.laz"
         last_exc = None
@@ -258,11 +255,10 @@ class EPTReader:
                 with urllib.request.urlopen(req, timeout=120) as r:
                     data = r.read()
                 las = laspy.read(io.BytesIO(data))
-                self._cache[node_id] = las
-                # Keep cache bounded
-                if len(self._cache) > 8:
-                    oldest = next(iter(self._cache))
-                    del self._cache[oldest]
+                with self._cache_lock:
+                    self._cache[node_id] = las
+                    if len(self._cache) > MAX_NODES_PER_BATCH:
+                        self._cache.popitem(last=False)
                 return las
             except Exception as e:
                 last_exc = e
@@ -283,6 +279,21 @@ class EPTReader:
         raise last_exc
 
 
+def node_batches(groups):
+    """Keep the number of resident EPT nodes bounded during parallel reads."""
+    nodes = set()
+    batch = []
+    for key, group in sorted(groups.items()):
+        if len(nodes.union(key)) > MAX_NODES_PER_BATCH:
+            yield nodes, batch
+            nodes = set()
+            batch = []
+        nodes.update(key)
+        batch.append((key, group))
+    if batch:
+        yield nodes, batch
+
+
 def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                     limit: int = 0, target_level: int = 8) -> dict:
     import numpy as np
@@ -299,8 +310,9 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
     stats = {"total": len(features), "with_height": 0, "no_roof_points": 0,
              "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": [], "class_histogram": {}, "sample_node": None}
 
+    groups = defaultdict(list)
     for idx, ft in enumerate(features):
-        props = ft.get("properties", {}) or {}
+        props = ft.setdefault("properties", {})
         sid = props.get("igioObjectId", props.get("sourceObjectId", props.get("OBJECTID", idx)))
         try:
             geom = ft.get("geometry", {})
@@ -318,7 +330,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 props["lidarHeightStatus"] = "unsupported-geometry"
                 continue
 
-            # Footprint bbox in EPSG:3857 (collect all exterior ring points)
+            # Collect all footprint exterior points for native EPT node lookup.
             all_pts = []
             if geom.get("type") == "MultiPolygon":
                 for part in coords:
@@ -327,7 +339,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 all_pts = coords[0]
             lons = [c[0] for c in all_pts]
             lats = [c[1] for c in all_pts]
-            # Resolve every EPT node touched by the footprint bbox. A
+            # Probe the footprint bounds and center for EPT nodes. A
             # centroid-only lookup can miss roof returns when a building
             # straddles an EPT quadtree boundary.
             native_pts = [reader.lonlat_to_native(lon, lat) for lon, lat in all_pts]
@@ -350,120 +362,135 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 props["lidarHeightStatus"] = "no-ept-node"
                 continue
 
-            point_sets = [reader.read_node(nid) for nid in sorted(node_ids)]
-            xs = np.concatenate([np.asarray(las.x) for las in point_sets])
-            ys = np.concatenate([np.asarray(las.y) for las in point_sets])
-            zs = np.concatenate([np.asarray(las.z) for las in point_sets])
-            classes = np.concatenate([np.asarray(las.classification) for las in point_sets])
-            for cls_value, cls_count in zip(*np.unique(classes, return_counts=True)):
-                key = str(int(cls_value))
-                stats["class_histogram"][key] = stats["class_histogram"].get(key, 0) + int(cls_count)
-            if stats["sample_node"] is None:
-                stats["sample_node"] = {"node": sorted(node_ids)[0], "point_count": int(len(zs)), "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
-
-            # Bounding-box prefilter in the EPT native CRS.
             ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
-            bx1 = min(p[0] for p in ring_native)
-            bx2 = max(p[0] for p in ring_native)
-            by1 = min(p[1] for p in ring_native)
-            by2 = max(p[1] for p in ring_native)
-            try:
-                from pyproj import CRS
-                axis = CRS.from_user_input(reader.native_crs).axis_info[0]
-                buffer_native = 20.0 / 0.3048006096012192 if "foot" in (axis.unit_name or "").lower() else 20.0
-            except Exception:
-                buffer_native = 20.0
-            buf = buffer_native
-            in_buf = (xs >= bx1 - buf) & (xs <= bx2 + buf) & (ys >= by1 - buf) & (ys <= by2 + buf)
-            if not np.any(in_buf):
-                stats["no_ground_points"] += 1
-                if len(stats["error_examples"]) < 10: stats["error_examples"].append(f"no-points-in-buffer sid={sid} node_count={len(node_ids)}")
-                props["lidarHeightStatus"] = "no-points-in-buffer"
-                continue
-
-            # All point-in-polygon tests use ring_native in the EPT native CRS.
-            # Do not create an unused EPSG:3857 ring: mixing coordinate spaces
-            # here is a regression risk, especially for MultiPolygon inputs.
-
-            idxs = np.where(in_buf)[0]
-            roof_z, ground_z, canopy_z = [], [], []
-            try:
-                from pyproj import CRS
-                axis = CRS.from_user_input(reader.native_crs).axis_info[0]
-                unit_name = (axis.unit_name or "").lower()
-                buffer_native = 20.0 / 0.3048006096012192 if "foot" in unit_name else 20.0
-            except Exception:
-                buffer_native = 20.0
-            gx0 = min(p[0] for p in ring_native) - buffer_native
-            gx1 = max(p[0] for p in ring_native) + buffer_native
-            gy0 = min(p[1] for p in ring_native) - buffer_native
-            gy1 = max(p[1] for p in ring_native) + buffer_native
-            for i in idxs:
-                c = int(classes[i])
-                px, py = float(xs[i]), float(ys[i])
-                if c in (CLASS_BUILDING, CLASS_BUILDING_ALT):
-                    if point_in_polygon(px, py, ring_native):
-                        roof_z.append(float(zs[i]))
-                elif c == CLASS_GROUND:
-                    if gx0 <= px <= gx1 and gy0 <= py <= gy1:
-                        ground_z.append(float(zs[i]))
-                elif c == 5:
-                    if point_in_polygon(px, py, ring_native):
-                        canopy_z.append(float(zs[i]))
-
-            if len(roof_z) < MIN_ROOF_POINTS:
-                stats["no_roof_points"] += 1
-                props["lidarHeightStatus"] = f"insufficient-roof-points:{len(roof_z)}"
-                props["canopyOcclusionStatus"] = ("POSSIBLE_CANOPY_OCCLUSION" if len(canopy_z) >= MIN_ROOF_POINTS else "NO_QUALIFYING_BUILDING_CLASS_POINTS")
-                props["canopyPointsWithinFootprint"] = len(canopy_z)
-                continue
-            if len(ground_z) < MIN_GROUND_POINTS:
-                stats["no_ground_points"] += 1
-                props["lidarHeightStatus"] = f"insufficient-ground-points:{len(ground_z)}"
-                continue
-
-            roof_m = median(roof_z)
-            ground_m = median(ground_z)
-            height_m = roof_m - ground_m
-            if height_m <= 0 or height_m > 100:
-                stats["errors"] += 1
-                props["lidarHeightStatus"] = f"implausible-height:{height_m:.2f}m"
-                continue
-
-            height_ft = height_m * M_TO_FTUS
-            props["lidarHeightFt"] = round(height_ft, 2)
-            props["lidarHeightM"] = round(height_m, 3)
-            props["lidarRoofElevM"] = round(roof_m, 3)
-            props["lidarGroundElevM"] = round(ground_m, 3)
-            props["lidarRoofPoints"] = len(roof_z)
-            props["lidarGroundPoints"] = len(ground_z)
-            roof_mad = median_absolute_deviation(roof_z)
-            ground_mad = median_absolute_deviation(ground_z)
-            robust_spread_m = 1.4826 * (roof_mad + ground_mad)  # robust spread, not survey accuracy
-            props["lidarHeightUncertaintyM"] = round(robust_spread_m, 3)
-            props["lidarHeightConfidence"] = ("HIGH" if len(roof_z) >= 30 and len(ground_z) >= 15 and robust_spread_m <= 0.30 else "MEDIUM" if len(roof_z) >= 10 and len(ground_z) >= 5 and robust_spread_m <= 0.75 else "LOW")
-            props["canopyOcclusionStatus"] = "NOT_FLAGGED_BY_CLASS_5_SCREEN"
-            props["canopyPointsWithinFootprint"] = len(canopy_z)
-            props["lidarHeightMethod"] = "median(Classification in {6,8} Z) - median(Classification=2 Z); robust spread indicator is not survey accuracy"
-            props["lidarHeightDatum"] = "NAVD88"
-            props["lidarHeightUnit"] = "ftUS"
-            props["lidarSource"] = ept_url
-            props["lidarHeightStatus"] = "OK"
-            stats["with_height"] += 1
-
-        except Exception as e:
+            groups[tuple(sorted(node_ids))].append((props, sid, ring_native))
+        except (ValueError, TypeError, IndexError, KeyError) as error:
             stats["errors"] += 1
-            if len(stats["error_examples"]) < 10:
-                stats["error_examples"].append(type(e).__name__ + ": " + str(e)[:240])
-            props["lidarHeightStatus"] = f"error:{str(e)[:60]}"
+            props["lidarHeightStatus"] = f"error:{str(error)[:60]}"
 
-        if (idx + 1) % 500 == 0:
-            print(f"  {idx + 1}/{len(features)} ... with_height={stats['with_height']}",
-                  file=sys.stderr)
+    from pyproj import CRS
+    axis = CRS.from_user_input(reader.native_crs).axis_info[0]
+    buf = 20.0 / 0.3048006096012192 if "foot" in (axis.unit_name or "").lower() else 20.0
+    node_count = len({node for group in groups for node in group})
+    print(f"Prepared {len(features)} footprints in {len(groups)} EPT groups across {node_count} nodes",
+          file=sys.stderr, flush=True)
+
+    processed = len(features) - sum(len(group) for group in groups.values())
+    with ThreadPoolExecutor(max_workers=NODE_FETCH_WORKERS) as executor:
+        for nodes, batch in node_batches(groups):
+            futures = {node: executor.submit(reader.read_node, node) for node in sorted(nodes)}
+            for node_ids, group in batch:
+                try:
+                    point_sets = [futures[nid].result() for nid in node_ids]
+                    xs = np.concatenate([np.asarray(las.x) for las in point_sets])
+                    ys = np.concatenate([np.asarray(las.y) for las in point_sets])
+                    zs = np.concatenate([np.asarray(las.z) for las in point_sets])
+                    classes = np.concatenate([np.asarray(las.classification) for las in point_sets])
+                except Exception as error:
+                    stats["errors"] += len(group)
+                    if len(stats["error_examples"]) < 10:
+                        stats["error_examples"].append(type(error).__name__ + ": " + str(error)[:240])
+                    for props, _sid, _ring in group:
+                        props["lidarHeightStatus"] = f"error:{str(error)[:60]}"
+                else:
+                    for cls_value, cls_count in zip(*np.unique(classes, return_counts=True)):
+                        key = str(int(cls_value))
+                        stats["class_histogram"][key] = stats["class_histogram"].get(key, 0) + int(cls_count) * len(group)
+                    if stats["sample_node"] is None:
+                        stats["sample_node"] = {"node": node_ids[0], "point_count": int(len(zs)),
+                                                "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
+                    for props, sid, ring_native in group:
+                        measure_height(props, sid, ring_native, xs, ys, zs, classes, buf, stats, ept_url)
+                processed += len(group)
+                if processed % 500 < len(group):
+                    print(f"  {processed}/{len(features)} ... with_height={stats['with_height']}",
+                          file=sys.stderr, flush=True)
 
     data["features"] = features
     out_path.write_text(json.dumps(data))
     return stats
+
+
+def measure_height(props, sid, ring_native, xs, ys, zs, classes, buf, stats, ept_url):
+    import numpy as np
+
+    try:
+        # Bounding-box prefilter in the EPT native CRS.
+        bx1 = min(p[0] for p in ring_native)
+        bx2 = max(p[0] for p in ring_native)
+        by1 = min(p[1] for p in ring_native)
+        by2 = max(p[1] for p in ring_native)
+        in_buf = (xs >= bx1 - buf) & (xs <= bx2 + buf) & (ys >= by1 - buf) & (ys <= by2 + buf)
+        if not np.any(in_buf):
+            stats["no_ground_points"] += 1
+            if len(stats["error_examples"]) < 10: stats["error_examples"].append(f"no-points-in-buffer sid={sid}")
+            props["lidarHeightStatus"] = "no-points-in-buffer"
+            return
+
+        # All point-in-polygon tests use ring_native in the EPT native CRS.
+        # Do not create an unused EPSG:3857 ring: mixing coordinate spaces
+        # here is a regression risk, especially for MultiPolygon inputs.
+
+        idxs = np.where(in_buf)[0]
+        roof_z, ground_z, canopy_z = [], [], []
+        for i in idxs:
+            c = int(classes[i])
+            px, py = float(xs[i]), float(ys[i])
+            if c == CLASS_BUILDING:
+                if point_in_polygon(px, py, ring_native):
+                    roof_z.append(float(zs[i]))
+            elif c == CLASS_GROUND:
+                ground_z.append(float(zs[i]))
+            elif c == 5:
+                if point_in_polygon(px, py, ring_native):
+                    canopy_z.append(float(zs[i]))
+
+        if len(roof_z) < MIN_ROOF_POINTS:
+            stats["no_roof_points"] += 1
+            props["lidarHeightStatus"] = f"insufficient-roof-points:{len(roof_z)}"
+            props["canopyOcclusionStatus"] = ("POSSIBLE_CANOPY_OCCLUSION" if len(canopy_z) >= MIN_ROOF_POINTS else "NO_QUALIFYING_BUILDING_CLASS_POINTS")
+            props["canopyPointsWithinFootprint"] = len(canopy_z)
+            return
+        if len(ground_z) < MIN_GROUND_POINTS:
+            stats["no_ground_points"] += 1
+            props["lidarHeightStatus"] = f"insufficient-ground-points:{len(ground_z)}"
+            return
+
+        roof_m = median(roof_z)
+        ground_m = median(ground_z)
+        height_m = roof_m - ground_m
+        if height_m <= 0 or height_m > 100:
+            stats["errors"] += 1
+            props["lidarHeightStatus"] = f"implausible-height:{height_m:.2f}m"
+            return
+
+        height_ft = height_m * M_TO_FTUS
+        props["lidarHeightFt"] = round(height_ft, 2)
+        props["lidarHeightM"] = round(height_m, 3)
+        props["lidarRoofElevM"] = round(roof_m, 3)
+        props["lidarGroundElevM"] = round(ground_m, 3)
+        props["lidarRoofPoints"] = len(roof_z)
+        props["lidarGroundPoints"] = len(ground_z)
+        roof_mad = median_absolute_deviation(roof_z)
+        ground_mad = median_absolute_deviation(ground_z)
+        robust_spread_m = 1.4826 * (roof_mad + ground_mad)  # robust spread, not survey accuracy
+        props["lidarHeightUncertaintyM"] = round(robust_spread_m, 3)
+        props["lidarHeightConfidence"] = ("HIGH" if len(roof_z) >= 30 and len(ground_z) >= 15 and robust_spread_m <= 0.30 else "MEDIUM" if len(roof_z) >= 10 and len(ground_z) >= 5 and robust_spread_m <= 0.75 else "LOW")
+        props["canopyOcclusionStatus"] = "NOT_FLAGGED_BY_CLASS_5_SCREEN"
+        props["canopyPointsWithinFootprint"] = len(canopy_z)
+        props["lidarHeightMethod"] = "median(Classification=6 Z) - median(Classification=2 Z); robust spread indicator is not survey accuracy"
+        props["lidarHeightDatum"] = "NAVD88"
+        props["lidarHeightUnit"] = "ftUS"
+        props["lidarSource"] = ept_url
+        props["lidarHeightStatus"] = "OK"
+        stats["with_height"] += 1
+
+    except Exception as e:
+        stats["errors"] += 1
+        if len(stats["error_examples"]) < 10:
+            stats["error_examples"].append(type(e).__name__ + ": " + str(e)[:240])
+        props["lidarHeightStatus"] = f"error:{str(e)[:60]}"
+
 
 
 def main() -> None:
