@@ -24,12 +24,27 @@ def digest(path):
   for b in iter(lambda:f.read(1048576),b''):h.update(b)
  return h.hexdigest()
 
+def source_horizontal_crs(raster: Path) -> str:
+ """Read the source's real projected CRS; never assert a hard-coded HARN/UTM frame."""
+ try:
+  import rasterio
+ except ImportError as exc:
+  raise RuntimeError("rasterio is required for source DEM CRS validation") from exc
+ with rasterio.open(raster) as src:
+  if src.crs is None:
+   raise ValueError("source DEM must declare a horizontal CRS")
+  if not src.crs.is_projected:
+   raise ValueError("source DEM horizontal CRS must be projected for metric meshing")
+  return src.crs.to_string()
+
+
 def run(raster,expected_hash,window_x=600,window_y=600,window_size=128):
  raster=Path(raster)
  actual=digest(raster)
  if actual.lower()!=expected_hash.lower():raise ValueError('source raster SHA-256 mismatch')
  if os.environ.get('TSM_DEM_VERTICAL_UNIT')!='us-ft':
   raise ValueError('this visual-preview-only run requires explicit TSM_DEM_VERTICAL_UNIT=us-ft; source metadata has NOT independently verified vertical units')
+ source_crs=source_horizontal_crs(raster)
  dem,px=load_dem_window(str(raster),window_x,window_y,window_size)
  sampler=make_height_sampler(dem,px)
  cell_extent=px*20.0
@@ -51,7 +66,7 @@ def run(raster,expected_hash,window_x=600,window_y=600,window_size=128):
  elapsed=(time.perf_counter()-t0)*1000
  return {
   'schema':'tsm.real-dem-production-transvoxel.v1',
-  'source':raster.name,'sha256':actual,'crs':'EPSG:2968',
+  'source':raster.name,'sha256':actual,'crs':source_crs,
   'verticalUnits':'UNVERIFIED_SOURCE_ASSUMED_US_FT_PREVIEW',
   'verticalDatum':'PENDING_EVIDENCE',
   'regulatoryStatus':'NOT_A_REGULATORY_DETERMINATION',
