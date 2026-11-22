@@ -223,3 +223,13 @@ For release gates and commands see
 docs/release/TSM-TWIN-PHASES-1-5-ACCEPTANCE.md.
 Synthetic integration tests are not proof of a real countywide
 building inventory or clean Windows 11 UE5.8 offline executable launch.
+
+### Verify a captured USGS snapshot through the running kernel
+
+Capture a new directory with `python scripts/hydrology/river_twin_snapshot.py capture /absolute/path/to/snapshot` from the repository root. From this service directory start the existing stack with `docker compose up -d --build consumer kernel relay state-api`, then run:
+
+```sh
+docker compose run --rm -T --no-deps -v /absolute/path/to/snapshot:/snapshot:ro consumer python -m twin.project_usgs /snapshot
+```
+
+The receipt binds the source manifest to committed event IDs and checks their payload hashes and projected sequences in one repeatable-read view. Later corrections can supersede an observation. The receipt counts how many captured events were current at that checkpoint. Repeating the same capture uses the same IDs. Missing observations retain their station status in the manifest.

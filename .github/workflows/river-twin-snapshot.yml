@@ -14,7 +14,7 @@ permissions:
 jobs:
   river-evidence:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -27,6 +27,17 @@ jobs:
       - name: Capture authoritative USGS responses
         if: github.event_name != 'pull_request'
         run: python scripts/hydrology/river_twin_snapshot.py capture river-snapshot
+      - name: Verify observations through Redpanda, PostGIS and the projection kernel
+        if: github.event_name != 'pull_request'
+        working-directory: services/living-twin
+        run: |
+          docker compose up -d --build consumer kernel
+          docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer python -m twin.project_usgs /snapshot > "$RUNNER_TEMP/river-projection.json"
+          mv "$RUNNER_TEMP/river-projection.json" "$GITHUB_WORKSPACE/river-snapshot/projection-receipt.json"
+      - name: Stop disposable verification stack
+        if: always() && github.event_name != 'pull_request'
+        working-directory: services/living-twin
+        run: docker compose down --volumes
       - name: Preserve snapshot and station availability
         if: always() && github.event_name != 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
