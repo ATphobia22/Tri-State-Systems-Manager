@@ -176,7 +176,8 @@ def download_geometry(ids: list[int], directory: Path) -> list[dict]:
 
 def build_inventory(*, snapshot: Path | None = None, geometry_dir: Path | None = None) -> dict:
     layer, layer_receipt = request_json("", {"f": "json"})
-    if layer.get("objectIdField") != "objectid" or layer.get("hasZ") is not False:
+    oid_field = layer.get("objectIdField") or layer.get("objectIdFieldName")
+    if oid_field != "objectid" or layer.get("hasZ") is not False:
         raise ValueError("Source feature schema or dimensionality changed")
     if layer.get("name") != "Indiana Building Footprints 2016-2020":
         raise ValueError("Unexpected Indiana footprint layer")
@@ -190,6 +191,8 @@ def build_inventory(*, snapshot: Path | None = None, geometry_dir: Path | None =
     if identified.get("objectIdFieldName") not in ("objectid", "OBJECTID"):
         raise ValueError("Official ID field changed")
     version = layer.get("editingInfo", {}).get("lastEditDate")
+    if not isinstance(version, int):
+        raise ValueError("Official layer version timestamp missing; cannot prove stable snapshot")
     receipts = {"metadata": layer_receipt, "count": count_receipt, "ids": ids_receipt}
     snapshot_result = validate_snapshot(snapshot, ids) if snapshot else None
     geometry = download_geometry(ids, geometry_dir) if geometry_dir else None
