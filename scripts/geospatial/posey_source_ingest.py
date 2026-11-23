@@ -254,6 +254,75 @@ def stage(conn, src: dict, raw: bytes, meta: dict, *, asset: str | None = None):
             "status":"STAGED_NOT_PUBLISHED","local_path":str(destination)}
 
 
+MAX_ASSET_BYTES = 8 * 1024 * 1024 * 1024  # operator-provisioned, streaming limit
+
+
+def stage_asset_file(conn, src: dict, file_path: Path, meta: dict, asset_kind: str):
+    """Hash and stage large DEM/COPC/ortho/scans by streaming; no RAM-sized TIFF."""
+    from uuid import uuid4
+    from psycopg.types.json import Jsonb
+    stamp = manifest_check(meta, src, raster=True)
+    if file_path.is_symlink() or not file_path.is_file():
+        raise ValueError("ASSET_FILE_UNAVAILABLE_OR_SYMLINK")
+    nbytes = file_path.stat().st_size
+    if nbytes <= 0 or nbytes > MAX_ASSET_BYTES:
+        raise ValueError("ASSET_FILE_OUTSIDE_STREAMING_LIMIT")
+    store = Path(os.environ.get("TSM_GEOSPATIAL_STORE",
+                                "/var/lib/tsm/geospatial")).resolve()
+    store.mkdir(parents=True, exist_ok=True)
+    suffix = file_path.suffix.lower()
+    if suffix not in {".tif", ".tiff", ".copc", ".laz", ".las", ".jp2",
+                      ".jpg", ".jpeg", ".png", ".pdf"}:
+        raise ValueError("ASSET_EXTENSION_NOT_APPROVED")
+    temp = store / ("staging-" + uuid4().hex + ".tmp")
+    hasher = hashlib.sha256()
+    try:
+        with file_path.open("rb") as reader, temp.open("xb") as writer:
+            for chunk in iter(lambda: reader.read(4 * 1024 * 1024), b""):
+                hasher.update(chunk)
+                writer.write(chunk)
+        sha = hasher.hexdigest()
+        destination = store / (sha + suffix)
+        if destination.exists():
+            with destination.open("rb") as reader:
+                previous = hashlib.sha256()
+                for chunk in iter(lambda: reader.read(4 * 1024 * 1024), b""):
+                    previous.update(chunk)
+            if previous.hexdigest() != sha:
+                raise ValueError("EXISTING_ASSET_HASH_MISMATCH")
+        else:
+            temp.replace(destination)
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO geotwin.snapshot (
+                  source_id,source_url,sha256,byte_length,retrieved_at,
+                  acquisition_date,effective_date,source_crs,vertical_datum,
+                  license_note,attribution,raw_object_uri,evidence_class,feature_count,provenance)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0,%s)
+                ON CONFLICT(source_id,sha256) DO NOTHING RETURNING snapshot_id::text
+            """, (src["source_id"],meta["sourceUrl"],sha,nbytes,stamp,
+                  meta.get("acquisitionDate"),meta.get("effectiveDate"),
+                  meta["horizontalCrs"],meta.get("verticalDatum"),meta["license"],
+                  meta["attribution"],"file://"+str(destination),
+                  meta["evidenceClass"],Jsonb(meta)))
+            row = cur.fetchone()
+            if row is None:
+                raise ValueError("SNAPSHOT_ALREADY_IMPORTED")
+            snapshot_id=row["snapshot_id"]
+            cur.execute("""
+                INSERT INTO geotwin.asset(snapshot_id,asset_kind,local_path,sha256,
+                    byte_length,horizontal_crs,vertical_datum,acquisition_date)
+                VALUES (%s::uuid,%s,%s,%s,%s,%s,%s,%s)
+            """, (snapshot_id,asset_kind,str(destination),sha,nbytes,
+                  meta["horizontalCrs"],meta.get("verticalDatum"),
+                  meta.get("acquisitionDate")))
+        conn.commit()
+        return {"snapshot_id":snapshot_id,"sha256":sha,"bytes":nbytes,
+                "asset_kind":asset_kind,"status":"STAGED_NOT_PUBLISHED"}
+    finally:
+        temp.unlink(missing_ok=True)
+
+
 def approve(conn, snapshot_id: str, reviewer: str, reason: str, license_note: str):
     allowlist = set(filter(None, (x.strip() for x in
                         os.environ.get("TSM_REVIEWER_SUBJECTS","").split(","))))
@@ -319,13 +388,15 @@ def main():
                       "collectionDateStatus":"NOT_VERIFIED",
                       "collectionMethod":"ArcGIS FeatureServer objectId batch fetch"}
                 result=stage(conn,src,raw,meta)
+            elif args.command == "import-asset":
+                meta=json.loads(args.manifest.read_text(encoding="utf8"))
+                result=stage_asset_file(conn,src,args.file,meta,args.kind)
             else:
                 if not args.file.is_file() or args.file.stat().st_size > MAX_GEOJSON_BYTES:
                     raise ValueError("SOURCE_FILE_MISSING_OR_EXCEEDS_LIMIT")
                 raw=args.file.read_bytes()
                 meta=json.loads(args.manifest.read_text(encoding="utf8"))
-                result=stage(conn,src,raw,meta,
-                             asset=args.kind if args.command=="import-asset" else None)
+                result=stage(conn,src,raw,meta)
     print(json.dumps(result,indent=2))
 
 
