@@ -1,0 +1,66 @@
+name: Posey PostGIS Geospatial Backend
+on:
+  pull_request:
+    paths:
+      - "backend/geospatial/posey_stack.py"
+      - "backend/app/main.py"
+      - "backend/tests/test_posey_geospatial_stack.py"
+      - "scripts/geospatial/posey_source_ingest.py"
+      - "packages/government/sql/003_posey_geospatial_stack.sql"
+      - "deploy/posey-geospatial/**"
+      - ".github/workflows/posey-geospatial-backend.yml"
+  workflow_dispatch:
+
+jobs:
+  test-and-database-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TSM_POSEY_DB_PASSWORD: ci_only_weak_test_password_not_a_production_secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install bounded API/importer dependencies
+        run: |
+          python -m pip install -r deploy/posey-geospatial/requirements.txt pytest
+      - name: Verify standalone source/ingestion contracts without network
+        run: python -m pytest backend/tests/test_posey_geospatial_stack.py -q
+      - name: Syntax check all added Python modules
+        run: python -m py_compile backend/geospatial/posey_stack.py scripts/geospatial/posey_source_ingest.py
+      - name: Validate Compose syntax
+        run: docker compose -f deploy/posey-geospatial/compose.yml config --quiet
+      - name: Launch isolated PostGIS database and read API
+        run: docker compose -f deploy/posey-geospatial/compose.yml up -d --build postgis api
+      - name: Verify database connectivity, source registry and unpublished defaults
+        run: |
+          set -eu
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8791/api/geospatial/posey-stack/sources -o /tmp/posey-sources.json; then break; fi
+            sleep 2
+          done
+          python - <<'PY'
+          import json
+          data=json.load(open("/tmp/posey-sources.json",encoding="utf8"))
+          assert data["count"] >= 12, data
+          by_id={s["source_id"]:s for s in data["sources"]}
+          for key in ("igio-buildings", "igio-roads", "igio-parcels",
+                      "usgs-3dep", "fema-nfhl", "indnr-bafl", "sanborn"):
+              assert key in by_id, key
+          assert all(s["published_snapshots"]==0 for s in data["sources"])
+          print("Source catalog query passed; no unreviewed layers published.")
+          PY
+          curl -fsS http://127.0.0.1:8791/api/geospatial/posey-stack/layers -o /tmp/posey-layers.json
+          python - <<'PY'
+          import json
+          obj=json.load(open("/tmp/posey-layers.json",encoding="utf8"))
+          assert obj["count"]==0
+          assert obj["regulatory_determination"] is False
+          PY
+      - name: Upload container diagnostics if failed
+        if: failure()
+        run: docker compose -f deploy/posey-geospatial/compose.yml logs --no-color --tail=150 || true
+      - name: Stop CI-only containers
+        if: always()
+        run: docker compose -f deploy/posey-geospatial/compose.yml down -v --remove-orphans || true
