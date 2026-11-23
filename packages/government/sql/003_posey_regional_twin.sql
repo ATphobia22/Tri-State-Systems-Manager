@@ -108,4 +108,34 @@ CREATE TABLE IF NOT EXISTS twin_geo.model_artifact (
  created_at timestamptz NOT NULL DEFAULT now(),
  CHECK(use_class <> 'REVIEWED_DECISION_SUPPORT' OR (validation_status = 'PASS' AND physical_baseline_id IS NOT NULL))
 );
+
+-- Local operator publication is auditable and never conveys regulatory authority.
+CREATE TABLE IF NOT EXISTS twin_geo.review_event (
+ event_id bigserial PRIMARY KEY,
+ asset_id text NOT NULL REFERENCES twin_geo.asset(asset_id),
+ action text NOT NULL CHECK(action IN ('APPROVE_FOR_VIEW','REJECT_FOR_VIEW')),
+ reviewer_subject text NOT NULL CHECK(length(btrim(reviewer_subject))>0),
+ reviewer_proof_sha256 char(64) NOT NULL CHECK(reviewer_proof_sha256 ~ '^[0-9a-f]{64}),
+ reason text NOT NULL CHECK(length(btrim(reason))>0),
+ reviewed_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE OR REPLACE FUNCTION twin_geo.reject_review_event_mutation()
+RETURNS trigger LANGUAGE plpgsql AS $
+BEGIN
+ RAISE EXCEPTION 'TWIN_REVIEW_EVENTS_ARE_APPEND_ONLY';
+END $;
+DROP TRIGGER IF EXISTS twin_review_event_immutable ON twin_geo.review_event;
+CREATE TRIGGER twin_review_event_immutable BEFORE UPDATE OR DELETE
+ ON twin_geo.review_event FOR EACH ROW EXECUTE FUNCTION twin_geo.reject_review_event_mutation();
+
+-- A separate database role should own ingestion/publishing; API needs SELECT only.
+DO $
+BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='tsm_twin_reader') THEN
+   CREATE ROLE tsm_twin_reader NOLOGIN;
+ END IF;
+END $;
+GRANT USAGE ON SCHEMA twin_geo TO tsm_twin_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA twin_geo TO tsm_twin_reader;
+
 COMMIT;
