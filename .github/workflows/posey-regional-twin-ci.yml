@@ -1,0 +1,89 @@
+name: Posey Regional Twin PostGIS and API Gates
+on:
+  pull_request:
+    paths:
+      - 'backend/api/v1/regional_twin.py'
+      - 'backend/geospatial/posey_sync.py'
+      - 'backend/geospatial/twin_import.py'
+      - 'backend/geospatial/twin_publish.py'
+      - 'backend/geospatial/twin_server.py'
+      - 'backend/app/main.py'
+      - 'backend/tests/test_posey_regional_twin.py'
+      - 'packages/government/sql/003_posey_regional_twin.sql'
+      - 'packages/government/docker-compose.twin.yml'
+      - 'packages/government/Dockerfile.twin-api'
+      - '.github/workflows/posey-regional-twin-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/api/v1/regional_twin.py'
+      - 'backend/geospatial/posey_sync.py'
+      - 'backend/geospatial/twin_import.py'
+      - 'backend/geospatial/twin_publish.py'
+      - 'backend/geospatial/twin_server.py'
+      - 'backend/app/main.py'
+      - 'backend/tests/test_posey_regional_twin.py'
+      - 'packages/government/sql/003_posey_regional_twin.sql'
+      - 'packages/government/docker-compose.twin.yml'
+      - 'packages/government/Dockerfile.twin-api'
+      - '.github/workflows/posey-regional-twin-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bounded-posey-backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: tsm_government
+          POSTGRES_DB: tsm_government
+          POSTGRES_PASSWORD: tsm-twin-ci-${{ github.run_id }}
+        ports:
+          - 5439:5432
+        options: >-
+          --health-cmd "pg_isready -U tsm_government -d tsm_government"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      TSM_POSTGIS_DSN: postgresql://tsm_government:tsm-twin-ci-${{ github.run_id }}@127.0.0.1:5439/tsm_government
+      POSTGIS_PASSWORD: tsm-twin-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install API/test dependencies
+        run: |
+          python -m pip install 'fastapi>=0.115,<1' 'httpx>=0.28,<1' 'uvicorn>=0.30,<1' 'psycopg2-binary>=2.9,<3' 'pytest>=9,<10'
+      - name: Compile all new source files
+        run: |
+          python -m py_compile backend/geospatial/{posey_sync,twin_import,twin_publish,twin_server}.py
+          python -m py_compile backend/api/v1/regional_twin.py backend/tests/test_posey_regional_twin.py
+      - name: Unit and no-database tests (no government API calls)
+        env:
+          TSM_POSTGIS_DSN: ''
+        run: python -m pytest -q backend/tests/test_posey_regional_twin.py
+      - name: Apply existing government and new regional migrations
+        run: |
+          python - <<'PY'
+          import os, pathlib, psycopg2
+          with psycopg2.connect(os.environ["TSM_POSTGIS_DSN"]) as conn:
+              with conn.cursor() as cur:
+                  for name in (
+                      "001_government_fabric_postgis.sql",
+                      "002_government_evidence_ledger.sql",
+                      "003_posey_regional_twin.sql",
+                  ):
+                      cur.execute((pathlib.Path("packages/government/sql") / name).read_text())
+          print("REGIONAL_POSTGIS_MIGRATIONS_OK")
+          PY
+      - name: Real PostGIS transaction and API integration tests
+        env:
+          TSM_TEST_POSTGIS_DSN: ${{ env.TSM_POSTGIS_DSN }}
+        run: python -m pytest -q backend/tests/test_posey_regional_twin.py
+      - name: Validate local server compose configuration
+        run: docker compose -f packages/government/docker-compose.twin.yml config -q
+      - name: Build standalone FastAPI image
+        run: docker build -f packages/government/Dockerfile.twin-api -t tsm-twin-api:ci .
