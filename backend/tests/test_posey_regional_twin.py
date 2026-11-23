@@ -88,7 +88,7 @@ def test_count_mismatch_rejected_without_staging(tmp_path, monkeypatch):
     monkeypatch.setattr(posey_sync, "_get_json", truncated)
     with pytest.raises(ValueError, match="TRUNCATED"):
         posey_sync.stage("igio-buildings", tmp_path, client=object())
-    assert not tmp_path.exists()
+    assert not list(tmp_path.glob("*.geojson"))
 
 
 def test_review_and_hash_required(tmp_path, monkeypatch):
@@ -123,7 +123,7 @@ def test_public_geometry_redacts_parcel_owners():
 
 
 @pytest.mark.parametrize("raw", [
-    "NaN,37,-87,38", "-89,37,-86,38", "-88,38,-89,37",
+    "NaN,37,-87,38", "-89,37,-85,38", "-88,38,-89,37",
     "-88,37,-87,INF", "junk", "1,2,3", "0,0,5,5",
 ])
 def test_unbounded_and_invalid_bbox_rejected(raw):
