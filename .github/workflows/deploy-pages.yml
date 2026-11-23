@@ -261,6 +261,9 @@ jobs:
         run: |
           set -euo pipefail
           test -s dist/index.html
+          test -s dist/sw-reset.js
+          test -s dist/sw.js
+          grep -Fq '/Tri-State-Systems-Manager/sw-reset.js' dist/index.html
           test -s dist/404.html
           cmp -s dist/index.html dist/atlas/index.html
           cmp -s dist/index.html dist/memorial/index.html
@@ -371,6 +374,11 @@ jobs:
           [[ -n "${PAGE_URL}" ]] || exit 1
           curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
+          grep -Fq '/Tri-State-Systems-Manager/sw-reset.js' /tmp/tsm-pages-response.html
+          curl --fail --silent --show-error --location "${PAGE_URL%/}/sw-reset.js" --output /tmp/tsm-sw-reset.js
+          grep -Fq 'navigator.serviceWorker.getRegistrations()' /tmp/tsm-sw-reset.js
+          curl --fail --silent --show-error --location "${PAGE_URL%/}/sw.js" --output /tmp/tsm-sw-tombstone.js
+          grep -Fq 'self.registration.unregister()' /tmp/tsm-sw-tombstone.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/atlas/" --output /tmp/tsm-pages-atlas.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-atlas.html
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/cesium/" --output /tmp/tsm-pages-cesium.html

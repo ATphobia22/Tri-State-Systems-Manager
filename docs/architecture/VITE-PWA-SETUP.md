@@ -1,103 +1,19 @@
-# Vite PWA Setup for TSM (Deferred — npm blocked)
+# Service Workers — Disabled for TSM Public Console
 
-## Why PWA?
+**Status (2026-11-23): disabled.** This replaces the former deferred Vite PWA/Workbox setup recommendation. Do not install `vite-plugin-pwa`, register a browser service worker, or enable cache-first HTML, JavaScript, 3D Tiles, hydrology, or public-data caching in the GitHub Pages console.
 
-The user requires "local first, air gapped, USB deployable." A Progressive Web App
-with a service worker enables:
-- Offline access to the app after first load
-- Installable on home screen (iOS/Android)
-- Background sync when connectivity returns
+## Rationale
 
-## Recommended: vite-plugin-pwa
+A retained browser service worker can serve obsolete versions of the interactive map and source-dependent engineering UI after deployment. The public Pages experience must load current versioned assets without a service-worker fetch interceptor. The `tsm-console/public/manifest.json` is *metadata only*; a web manifest does not register a worker.
 
-Zero-config PWA with Workbox. When npm is available:
+The native Windows offline runtime remains a separate deliverable with local assets and explicit integrity validation. It must **not** depend on browser CacheStorage, Workbox, or service workers.
 
-```bash
-cd tsm-console
-npm install -D vite-plugin-pwa
-```
+## Retirement and guardrails
 
-Then in `vite.config.ts`:
+- `tsm-console/index.html` loads `public/sw-reset.js` before the application starts.
+- The reset only unregisters TSM-scoped registrations (or workers with a script under TSM's Pages path) and removes cached TSM URLs, preserving unrelated projects on the shared GitHub Pages origin.
+- `public/sw.js` is a **retirement tombstone** for browsers still updating a formerly published `sw.js`. It has no fetch handler, does not cache any data, unregisters itself, and is **not registered by the application**.
+- `tests/service-worker-disabled.test.mjs` exercises retirement scope, cache isolation, and legacy-control reload behavior; `deploy-pages.yml` requires the retirement assets in the production build and on the published site.
+- A previously cached old HTML shell may need one explicit browser hard-refresh to fetch the new reset script. Do not confuse successful source changes with verified deployed behavior.
 
-```typescript
-import { VitePWA } from 'vite-plugin-pwa'
-
-export default defineConfig({
-  plugins: [
-    react(),
-    cspPlugin(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: 'Tri-State Systems Manager',
-        short_name: 'TSM',
-        description: 'Sovereign public-interest platform for the Tri-State River Valley',
-        theme_color: '#0A0F1A',
-        background_color: '#0f172a',
-        display: 'standalone',
-        orientation: 'any',
-        scope: '/Tri-State-Systems-Manager/',
-        start_url: '/Tri-State-Systems-Manager/',
-        icons: [
-          {
-            src: 'icon-192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'icon-512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      },
-      workbox: {
-        // Cache the 3D tiles and building data for offline use
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/tiles\.openfreemap\.org\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'basemap-cache',
-              expiration: {
-                maxEntries: 500,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-              }
-            }
-          },
-          {
-            urlPattern: /\/3d-tiles\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: '3d-tiles-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
-              }
-            }
-          }
-        ]
-      }
-    })
-  ]
-})
-```
-
-## Important Notes
-
-1. **Base path**: Must match `/Tri-State-Systems-Manager/` for GitHub Pages
-2. **CSP**: Service workers require `worker-src 'self'` in CSP headers
-3. **iOS**: PWA install works on iOS 16.4+, limited on iOS 15
-4. **Air-gapped**: First load requires network; subsequent loads work offline
-
-## Current Status
-
-- `public/manifest.json` already exists (basic PWA manifest)
-- Service worker not yet implemented (blocked on npm)
-- Manual service worker is possible but Workbox is strongly preferred
-  for its battle-tested caching strategies
-
-## References
-
-- vite-plugin-pwa: https://vite-pwa-org.netlify.app/
-- Workbox: https://developer.chrome.com/docs/workbox/
+Reintroducing PWA workers would require a separate reviewed design and explicit engineering-data freshness policy; never silently reactivate this historical recipe.
