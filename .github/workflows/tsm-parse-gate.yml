@@ -69,6 +69,9 @@ jobs:
           NODE
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
+      - name: Evidence-gated AI worker planner unit tests
+        working-directory: .
+        run: node --test integrations/ai-workers/plan.test.mjs
       - name: Repository integrity gate
         run: npm run check:integrity
       - name: Site consistency gate
