@@ -80,13 +80,14 @@ def prepare(source_path: Path, manifest_path: Path) -> tuple[dict, list[dict]]:
     if not isinstance(manifest, dict):
         raise ValueError("MANIFEST_OBJECT_REQUIRED")
     for key in ("assetId", "sourceId", "assetKind", "sourceUrl", "sourceVersion",
-                "retrievedAt", "horizontalCrs", "sha256", "license", "attribution", "reviewId"):
+                "retrievedAt", "horizontalCrs", "sha256", "license", "attribution"):
         _required_str(manifest, key)
     kind = manifest["assetKind"]
     if kind not in ALLOWED_KINDS:
         raise ValueError("UNKNOWN_ASSET_KIND")
     if manifest.get("validationStatus") != "PASS" or manifest.get("licenseReviewed") is not True:
         raise ValueError("INDEPENDENT_VALIDATION_AND_LICENSE_REVIEW_REQUIRED")
+    _required_str(manifest, "reviewId")
     if manifest["horizontalCrs"] != "EPSG:4326" and kind in ("VECTOR", "HYDROGRAPHY"):
         raise ValueError("VECTOR_REQUIRES_WGS84_REPROJECTION")
     if kind in ("DEM", "LIDAR"):
@@ -176,8 +177,6 @@ def persist(source_path: Path, manifest_path: Path, *,
             given = manifest["sourceUrl"]
             if given != registered and not given.startswith(registered + "/"):
                 raise ValueError("SOURCE_URL_NOT_MATCHING_REGISTRY")
-            if kind := manifest["assetKind"]:
-                pass
             cur.execute(
                 """INSERT INTO twin_geo.asset (
                    asset_id,source_id,asset_kind,source_version,source_url,
