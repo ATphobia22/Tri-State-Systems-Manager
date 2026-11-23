@@ -16,6 +16,8 @@
     <!-- Single Page Apps for GitHub Pages: restores deep-link routes that
          arrived via 404.html (?/path) before the router boots.
          MIT, adapted from rafgraph/spa-github-pages. -->
+    <!-- Retire obsolete browser workers before boot; never register a replacement. -->
+    <script src="%BASE_URL%sw-reset.js"></script>
     <script src="%BASE_URL%spa-redirect.js"></script>
     <!-- TerraDraw for berm/road placement drawing tools (vendored locally for air-gapped deployment) -->
     <script src="%BASE_URL%vendor/terradraw/terra-draw.umd.js"></script>
