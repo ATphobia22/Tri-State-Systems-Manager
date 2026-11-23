@@ -1,8 +1,7 @@
 # Posey County geospatial database/API — first operational backend slice
 
 This is a deliberately **opt-in hybrid server**, not a dependency of the offline
-UE5.8 Windows runtime. It extends the existing FastAPI companion API and
-government evidence architecture without changing their regulatory claims.
+UE5.8 Windows runtime. It extends the existing government evidence architecture without changing their regulatory claims.
 
 ## What is implemented
 
@@ -16,7 +15,8 @@ government evidence architecture without changing their regulatory claims.
 - Public read API for source discovery, reviewed layers and bounded GeoJSON pages,
   with a strict property allowlist and explicit dataset timestamps/datum fields.
 - A separate Compose PostGIS database + FastAPI process + private ingest CLI;
-  the router is also mounted in the pre-existing TSM companion API.
+  the independent service is exposed on port 8791; the original companion API
+  OpenAPI contract is unchanged.
 
 **Not claimed:** automated complete county ingestion, measured rooftop heights,
 datum conversion, exact per-tile flight dates, HEC-RAS approval, FEMA
