@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 
@@ -89,4 +91,25 @@ test('works normally when the browser does not support service workers', async (
   const s = runCleanup({ hasSW: false });
   await s.result;
   assert.equal(s.reloads, 0);
+});
+
+test('console source and Vite settings cannot reintroduce service-worker registration', () => {
+  const root = fileURLToPath(new URL('../src/', import.meta.url));
+  const checkFile = (path) => {
+    const content = readFileSync(path, 'utf8');
+    assert.doesNotMatch(content, /serviceWorker\s*\.\s*register\s*\(/, path);
+    assert.doesNotMatch(content, /registerSW\s*\(/, path);
+  };
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.(?:js|mjs|jsx|ts|tsx)$/.test(entry.name)) checkFile(path);
+    }
+  };
+  walk(root);
+  const vite = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(vite, /VitePWA|vite-plugin-pwa/);
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.equal(Boolean(pkg.dependencies?.['vite-plugin-pwa'] || pkg.devDependencies?.['vite-plugin-pwa']), false);
 });
