@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {gaugeMarkers} from "../community-cop.mjs";
 const doc = {schema:"tsm.community-cop.v1",type:"FeatureCollection",
   publicPublication:"REVIEW_REQUIRED",navd88WseIncluded:false,hydraulicSimulationIncluded:false,
+  engineeringUse:"NOT_VALIDATED",runtime:"FILES_ONLY_NO_SERVER",
   capturedAt:"2025-01-01T12:01:00Z",readAt:"2025-01-01T12:01:00Z",staleAfterSeconds:3600,
   stations:{"USGS-03322000":{sourceStatus:"SOURCE_UNAVAILABLE",seriesCount:0,unlocatedSeriesCount:0},
     "USGS-03377500":{sourceStatus:"NOT_IN_CAPTURE",seriesCount:0,unlocatedSeriesCount:0},
@@ -28,5 +29,9 @@ test("no arbitrary sensor or height coordinate",()=>{
 });
 test("station inventory does not silently hide missing series",()=>{
   const d=structuredClone(doc);d.stations["USGS-03378500"].seriesCount=2;
+  assert.throws(()=>gaugeMarkers(d, Date.parse("2025-01-01T12:15:00Z")));
+});
+test("timestamps must have offsets",()=>{
+  const d=structuredClone(doc);d.features[0].properties.observedAt="2025-01-01T12:00:00";
   assert.throws(()=>gaugeMarkers(d, Date.parse("2025-01-01T12:15:00Z")));
 });
