@@ -1,0 +1,38 @@
+name: Mount Vernon UE5.8 Editor generator contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'scripts/geospatial/export_mount_vernon_to_ue58.py'
+      - 'tsm-native/Content/Python/init_unreal.py'
+      - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
+      - 'tests/test_tsm_mv_scene_contract.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+  pull_request:
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'scripts/geospatial/export_mount_vernon_to_ue58.py'
+      - 'tsm-native/Content/Python/init_unreal.py'
+      - 'tsm-native/Source/TSMNative/TSMGeoSplineActor.*'
+      - 'tests/test_tsm_mv_scene_contract.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  headless-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - name: Syntax check Editor automation
+        run: python -m compileall -q tsm-native/Content/Python/tsm_mv_scene_contract.py tsm-native/Content/Python/tsm_mv_import.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_widget.py tsm-native/Content/Python/init_unreal.py scripts/geospatial/export_mount_vernon_to_ue58.py
+      - name: Check manifest and vector integrity
+        run: python -m unittest discover -s tests -p test_tsm_mv_scene_contract.py -v
+      - name: Record native gate limitation
+        run: echo "PASS here proves headless Python contracts only; UE5.8 Windows Editor, RVT rendering, PCG and Shipping remain NOT_EVIDENCED"
