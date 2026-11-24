@@ -32,6 +32,8 @@ def main(argv=None):
         p.error("source-crs must be an explicit EPSG code")
     if not all(math.isfinite(x) for x in (args.anchor_x, args.anchor_y)):
         p.error("source anchor coordinates must be finite")
+    if args.evidence_status == "SOURCE_REVIEWED" and args.vertical_datum != "NAVD88_REVIEWED":
+        p.error("Only reviewed vertical evidence can be marked SOURCE_REVIEWED")
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tsm-native/Content/Python"))
     from tsm_mv_scene_contract import sha256_file, validate_scene
 
@@ -61,8 +63,7 @@ def main(argv=None):
             os.link(temporary, manifest_path)
         finally:
             temporary.unlink(missing_ok=True)
-    print("Wrote validated local manifest:", manifest_path)
-    print("SHA-256:", sha256_file(manifest_path))
+    print(json.dumps({"manifest": str(manifest_path), "sha256": sha256_file(manifest_path)}, indent=2))
 
 
 if __name__ == "__main__":
