@@ -1,0 +1,32 @@
+name: Mount Vernon editor vector and RVT contract
+on:
+  pull_request:
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'tsm-native/Plugins/TSMMountVernonEditor/**'
+      - 'tsm-native/Source/TSMNative/TSMMountVernonVectorActor.*'
+      - 'tests/test_mount_vernon_editor_contract.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Content/Python/tsm_mv_*.py'
+      - 'tsm-native/Plugins/TSMMountVernonEditor/**'
+      - 'tsm-native/Source/TSMNative/TSMMountVernonVectorActor.*'
+      - 'tests/test_mount_vernon_editor_contract.py'
+      - '.github/workflows/mount-vernon-editor-generator.yml'
+permissions:
+  contents: read
+jobs:
+  pure-python-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p 'test_mount_vernon_editor_contract.py' -v
+      - run: python -m compileall -q tsm-native/Content/Python/tsm_mv_contract.py tsm-native/Content/Python/tsm_mv_generator.py tsm-native/Content/Python/tsm_mv_rvt.py tsm-native/Content/Python/tsm_mv_bootstrap_widget.py
+      - run: python -m json.tool tsm-native/Plugins/TSMMountVernonEditor/TSMMountVernonEditor.uplugin > /dev/null
+  # C++ UBT compile, binary EUW, rendered RVT, PCG bake, World Partition and
+  # network-disabled Shipping acceptance require the authorized Windows UE5.8 runner.
