@@ -20,7 +20,9 @@ BEGIN
     SELECT 1 FROM pg_class WHERE oid='tsm_restricted.power_cim_assets'::regclass
     AND relrowsecurity AND relforcerowsecurity
   ) THEN RAISE EXCEPTION 'CIM topology RLS must be enabled and forced'; END IF;
-  IF has_schema_privilege('PUBLIC','tsm_restricted','USAGE') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.usage_privileges
+             WHERE object_name='tsm_restricted' AND object_type='SCHEMA'
+             AND grantee='PUBLIC' AND privilege_type='USAGE') THEN
     RAISE EXCEPTION 'CEII schema must not grant public usage';
   END IF;
 END$$;
