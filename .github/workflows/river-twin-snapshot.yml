@@ -27,17 +27,11 @@ jobs:
       - name: Capture authoritative USGS responses
         if: github.event_name != 'pull_request'
         run: python scripts/hydrology/river_twin_snapshot.py capture river-snapshot
-      - name: Verify observations through Redpanda, PostGIS and the projection kernel
-        if: github.event_name != 'pull_request'
-        working-directory: services/living-twin
-        run: |
-          docker compose up -d --build consumer kernel
-          docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer python -m twin.project_usgs /snapshot > "$RUNNER_TEMP/river-projection.json"
-          mv "$RUNNER_TEMP/river-projection.json" "$GITHUB_WORKSPACE/river-snapshot/projection-receipt.json"
       - name: Export captured source as a portable community COP layer
         if: github.event_name != 'pull_request'
         working-directory: services/living-twin
         run: |
+          docker compose build consumer
           docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer sh -ec '
             python -m twin.offline_bundle build /snapshot /tmp/cop-bundle >&2
             python -m twin.community_cop /tmp/cop-bundle /tmp/community-cop.geojson >&2
@@ -55,6 +49,13 @@ jobs:
           path: community-cop/
           if-no-files-found: error
           retention-days: 30
+      - name: Verify observations through Redpanda, PostGIS and the projection kernel
+        if: github.event_name != 'pull_request'
+        working-directory: services/living-twin
+        run: |
+          docker compose up -d --build consumer kernel
+          docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer python -m twin.project_usgs /snapshot > "$RUNNER_TEMP/river-projection.json"
+          mv "$RUNNER_TEMP/river-projection.json" "$GITHUB_WORKSPACE/river-snapshot/projection-receipt.json"
       - name: Stop disposable verification stack
         if: always() && github.event_name != 'pull_request'
         working-directory: services/living-twin
