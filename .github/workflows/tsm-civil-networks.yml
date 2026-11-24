@@ -1,0 +1,61 @@
+name: Civil Utility and Restricted CIM PostGIS Contracts
+on:
+  pull_request:
+    paths:
+      - 'database/migrations/099_tsm_civil_networks.sql'
+      - 'tests/sql/099_tsm_civil_networks_contract.sql'
+      - '.github/workflows/tsm-civil-networks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'database/migrations/099_tsm_civil_networks.sql'
+      - 'tests/sql/099_tsm_civil_networks_contract.sql'
+      - '.github/workflows/tsm-civil-networks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgis-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: tsm_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: tsm_disposable_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tsm_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 8
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: tsm_disposable_ci_only
+      PGDATABASE: tsm_ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare disposable PostGIS migration prerequisites
+        run: |
+          set -euo pipefail
+          command -v psql || { sudo apt-get update && sudo apt-get install -y postgresql-client; }
+          psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS postgis; CREATE SCHEMA IF NOT EXISTS tsm; CREATE TABLE IF NOT EXISTS tsm.schema_migrations (version text PRIMARY KEY);'
+      - name: Execute migration twice to check idempotency
+        run: |
+          psql -v ON_ERROR_STOP=1 -f database/migrations/099_tsm_civil_networks.sql
+          psql -v ON_ERROR_STOP=1 -f database/migrations/099_tsm_civil_networks.sql
+      - name: Verify Quality Level, 3D restrictions and default-deny access
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/099_tsm_civil_networks_contract.sql
+      - name: Document controlled acceptance
+        run: |
+          echo 'SQL constraints verified on synthetic geometry only.'
+          echo 'No utility networks, feeder data, CEII, or surveyed subsurface assets were imported.'
