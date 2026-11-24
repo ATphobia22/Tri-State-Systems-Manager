@@ -118,7 +118,7 @@
     "@react-three/fiber": "9.8.2",
     "@tanstack/react-virtual": "^3.14.26",
     "3d-tiles-renderer": "^0.5.4",
-    "cesium": "1.147.0",
+    "cesium": "1.146.0",
     "geotiff": "^3.0.5",
     "h3-js": "4.5.0",
     "lucide-react": "^1.77.0",
