@@ -1,0 +1,54 @@
+# Opt-in HYBRID server stack; never required by the offline native executable.
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: tsm_posey
+      POSTGRES_PASSWORD: ${TSM_POSEY_DB_PASSWORD:?Set TSM_POSEY_DB_PASSWORD}
+      POSTGRES_DB: tsm_posey
+    volumes:
+      - posey_geotwin_pg:/var/lib/postgresql/data
+      - ../../packages/government/sql/003_posey_geospatial_stack.sql:/docker-entrypoint-initdb.d/003_posey_geospatial_stack.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsm_posey -d tsm_posey"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "127.0.0.1:5544:5432"
+    restart: unless-stopped
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/posey-geospatial/Dockerfile
+    environment:
+      TSM_GEOSPATIAL_DSN: postgresql://tsm_posey:${TSM_POSEY_DB_PASSWORD:?Set TSM_POSEY_DB_PASSWORD}@postgis:5432/tsm_posey
+    ports:
+      - "127.0.0.1:8791:8791"
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+  ingest:
+    profiles: ["tools"]
+    build:
+      context: ../..
+      dockerfile: deploy/posey-geospatial/Dockerfile
+    entrypoint: ["python", "/app/scripts/geospatial/posey_source_ingest.py"]
+    environment:
+      TSM_GEOSPATIAL_DSN: postgresql://tsm_posey:${TSM_POSEY_DB_PASSWORD:?Set TSM_POSEY_DB_PASSWORD}@postgis:5432/tsm_posey
+      TSM_GEOSPATIAL_STORE: /var/lib/tsm/geospatial
+      TSM_REVIEWER_SUBJECTS: ${TSM_REVIEWER_SUBJECTS:-}
+    volumes:
+      - posey_geotwin_objects:/var/lib/tsm/geospatial
+      - ../../data/posey-county/offline:/app/imports:ro
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: "no"
+volumes:
+  posey_geotwin_pg:
+  posey_geotwin_objects:

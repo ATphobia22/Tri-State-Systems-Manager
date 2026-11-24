@@ -9,7 +9,10 @@
 tsm-console/.data
 tsm-console/artifacts
 # Large offline reference bundle — not needed in the runtime image.
-data/posey-county
+data/posey-county/**
+# Only the small, source-backed county boundary is needed by the opt-in Posey API image.
+!data/posey-county/boundaries/
+!data/posey-county/boundaries/posey-county.geojson
 *.log
 .env
 .env.*
