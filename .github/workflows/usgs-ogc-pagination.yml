@@ -30,6 +30,6 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install pinned root dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Test station identity, paging, no partial data and provenance
         run: ./node_modules/.bin/tsx --test tests/contracts/usgs-ogc-v1-adapter.test.ts
