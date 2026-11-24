@@ -34,6 +34,27 @@ jobs:
           docker compose up -d --build consumer kernel
           docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer python -m twin.project_usgs /snapshot > "$RUNNER_TEMP/river-projection.json"
           mv "$RUNNER_TEMP/river-projection.json" "$GITHUB_WORKSPACE/river-snapshot/projection-receipt.json"
+      - name: Export captured source as a portable community COP layer
+        if: github.event_name != 'pull_request'
+        working-directory: services/living-twin
+        run: |
+          docker compose run --rm -T --no-deps -v "$GITHUB_WORKSPACE/river-snapshot:/snapshot:ro" consumer sh -ec '
+            python -m twin.offline_bundle build /snapshot /tmp/cop-bundle >&2
+            python -m twin.community_cop /tmp/cop-bundle /tmp/community-cop.geojson >&2
+            cat /tmp/community-cop.geojson
+          ' > "$RUNNER_TEMP/community-cop.geojson"
+          mkdir -p "$GITHUB_WORKSPACE/community-cop"
+          mv "$RUNNER_TEMP/community-cop.geojson" "$GITHUB_WORKSPACE/community-cop/"
+          cd "$GITHUB_WORKSPACE/community-cop"
+          sha256sum community-cop.geojson > SHA256SUMS
+      - name: Retain local observation layer for review
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: community-cop-observation-layer
+          path: community-cop/
+          if-no-files-found: error
+          retention-days: 30
       - name: Stop disposable verification stack
         if: always() && github.event_name != 'pull_request'
         working-directory: services/living-twin
