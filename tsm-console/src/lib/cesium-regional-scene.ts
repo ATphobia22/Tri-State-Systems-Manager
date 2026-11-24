@@ -7,6 +7,7 @@ import {
   ScreenSpaceEventType, UrlTemplateImageryProvider, Rectangle, SingleTileImageryProvider,
   TextureMagnificationFilter, TextureMinificationFilter,
 } from 'cesium';
+import { gaugeMarkers } from './community-cop.mjs';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 import { ContextRecoveryManager } from './webgl-context-recovery';
 import { inspectOsmBuilding, osmBuildingStyleRules, type OsmBuildingStyle } from './cesium-osm-building-style';
@@ -174,6 +175,7 @@ export function mountCesiumRegionalScene(
   widget.resolutionScale = Math.min(1, 1.5 / (window.devicePixelRatio || 1));
   const labels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
   const roadNameLabels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
+  const copLabels = scene.primitives.add(new LabelCollection({ scene })) as LabelCollection;
   const graphics = new Map<SceneLayer, GroundPolylinePrimitive[]>();
   const visibility: Record<SceneLayer, boolean> = { terrain: true, buildings: true, roads: true, city: false, osmContext: false, roadNames: true };
   let terrain: CesiumTerrainProvider | undefined;
@@ -561,6 +563,23 @@ export function mountCesiumRegionalScene(
       });
       widget.imageryLayers.add(layer);
       screening = layer;
+      scene.requestRender();
+    },
+    setCommunityCop(document: unknown) {
+      // Validate before altering the existing layer; labels are not water geometry.
+      const markers = document === null ? [] : gaugeMarkers(document);
+      copLabels.removeAll();
+      for (const marker of markers) {
+        copLabels.add({
+          position: Cartesian3.fromDegrees(marker.longitude, marker.latitude),
+          heightReference: HeightReference.CLAMP_TO_GROUND,
+          text: marker.text + '\nLOCAL FILE · SOURCE NOT VERIFIED HERE',
+          font: '13px system-ui', style: LabelStyle.FILL_AND_OUTLINE, outlineWidth: 3,
+          fillColor: marker.status === 'RECENT_OBSERVATION' ? Color.CYAN :
+            marker.status === 'STALE' ? Color.ORANGE : Color.LIGHTGRAY,
+          showBackground: true, disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        });
+      }
       scene.requestRender();
     },
     setTime(date: string, hour: number, replay: Replay[]) {
