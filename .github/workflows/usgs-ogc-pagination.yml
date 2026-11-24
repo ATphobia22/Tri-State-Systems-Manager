@@ -4,12 +4,16 @@ on:
     paths:
       - packages/government/src/adapters/UsgsOgcV1Adapter.ts
       - tests/contracts/usgs-ogc-v1-adapter.test.ts
+      - scripts/flood-forecasting/run_all.py
+      - scripts/flood-forecasting/tests/test_flood_alert_thresholds.py
       - .github/workflows/usgs-ogc-pagination.yml
   push:
     branches: [main]
     paths:
       - packages/government/src/adapters/UsgsOgcV1Adapter.ts
       - tests/contracts/usgs-ogc-v1-adapter.test.ts
+      - scripts/flood-forecasting/run_all.py
+      - scripts/flood-forecasting/tests/test_flood_alert_thresholds.py
       - .github/workflows/usgs-ogc-pagination.yml
   workflow_dispatch:
 
@@ -33,3 +37,5 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Test station identity, paging, no partial data and provenance
         run: ./node_modules/.bin/tsx --test tests/contracts/usgs-ogc-v1-adapter.test.ts
+      - name: Test station-specific threshold isolation
+        run: python3 -m unittest discover -s scripts/flood-forecasting/tests -p 'test_flood_alert_thresholds.py' -v
