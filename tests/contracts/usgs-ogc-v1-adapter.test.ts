@@ -194,3 +194,85 @@ test('usgs-ogc-v1 treats cross-station-only responses as unavailable rather than
  assert.equal(output.result.readings.length,0);
  assert.equal(output.result.unavailable[0].siteId,'03378500');
 });
+
+
+test('usgs-ogc-v1 fetches all pages with an explicit limit and preserves each source receipt', async () => {
+  const adapter = new UsgsOgcV1Adapter();
+  const attempted: string[] = [];
+  const result = await adapter.getLatestContinuous(['03378500'], '00065', {
+    fetcher: (async (input: unknown) => {
+      const url = new URL(String(input));
+      attempted.push(url.toString());
+      assert.equal(url.searchParams.get('limit'), '100');
+      assert.equal(url.searchParams.get('monitoring_location_id'), 'USGS-03378500');
+      const older = { type: 'Feature', properties: {
+        monitoring_location_id: 'USGS-03378500', parameter_code: '00065',
+        time: '2026-10-23T20:00:00Z', value: '14.0', unit_of_measure: 'ft',
+      } };
+      const newer = { type: 'Feature', properties: {
+        monitoring_location_id: 'USGS-03378500', parameter_code: '00065',
+        time: '2026-10-23T21:00:00Z', value: '15.0', unit_of_measure: 'ft',
+      } };
+      if (!url.searchParams.has('offset')) {
+        const next = new URL(url);
+        next.searchParams.set('offset', '1');
+        return jsonResponse({ type: 'FeatureCollection', features: [older], numberReturned: 1,
+          numberMatched: 2, links: [{ rel: 'next', type: 'application/geo+json', href: next.toString() }] });
+      }
+      return jsonResponse({ type: 'FeatureCollection', features: [newer], numberReturned: 1, numberMatched: 2 });
+    }) as typeof fetch,
+  });
+  assert.equal(attempted.length, 2);
+  assert.deepEqual(result.result.queryUrls, attempted);
+  assert.equal(result.result.readings.length, 2);
+  assert.deepEqual(result.result.readings.map(x => x.value), [14, 15]);
+  assert.equal(result.evidence.length, 2);
+  assert.equal(result.result.unavailable.length, 0);
+  assert.deepEqual(validateEvidenceEnvelope(result), []);
+});
+
+test('usgs-ogc-v1 rejects cross-origin continuation without fetching attacker URL or publishing partial readings', async () => {
+  let requests = 0;
+  const adapter = new UsgsOgcV1Adapter();
+  const result = await adapter.getLatestContinuous(['03378500'], '00065', {
+    fetcher: (async () => {
+      requests++;
+      return jsonResponse({
+        type: 'FeatureCollection', features: livePayload('03378500').features,
+        links: [{ rel: 'next', href: 'https://example.org/steal?monitoring_location_id=USGS-03378500' }],
+      });
+    }) as typeof fetch,
+  });
+  assert.equal(requests, 1);
+  assert.equal(result.result.readings.length, 0);
+  assert.equal(result.result.unavailable.length, 1);
+  assert.match(result.result.unavailable[0].reason, /next|continuation|trusted/i);
+  assert.equal(result.provenance.status, 'UNAVAILABLE');
+  assert.deepEqual(validateEvidenceEnvelope(result), []);
+});
+
+test('usgs-ogc-v1 refuses truncated inventory without next link instead of accepting incomplete data', async () => {
+  const adapter = new UsgsOgcV1Adapter();
+  const result = await adapter.getLatestContinuous(['03378500'], '00065', {
+    fetcher: (async () => jsonResponse({
+      type: 'FeatureCollection', features: [livePayload('03378500').features[1]],
+      numberReturned: 1, numberMatched: 3,
+    })) as typeof fetch,
+  });
+  assert.equal(result.result.readings.length, 0);
+  assert.equal(result.provenance.status, 'UNAVAILABLE');
+  assert.match(result.result.unavailable[0].reason, /incomplete|pagination|truncat/i);
+});
+
+test('usgs-ogc-v1 detects repeated next links and discards partial observations', async () => {
+  const adapter = new UsgsOgcV1Adapter();
+  const result = await adapter.getLatestContinuous(['03378500'], '00065', {
+    fetcher: (async (input: unknown) => jsonResponse({
+      type: 'FeatureCollection', features: [livePayload('03378500').features[1]],
+      links: [{ rel: 'next', href: String(input) }],
+    })) as typeof fetch,
+  });
+  assert.equal(result.result.readings.length, 0);
+  assert.equal(result.provenance.status, 'UNAVAILABLE');
+  assert.match(result.result.unavailable[0].reason, /cycle|repeat/i);
+});
