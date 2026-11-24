@@ -1,0 +1,35 @@
+name: Tri-State Pre-Submittal Evidence Screening
+on:
+  pull_request:
+    paths:
+      - scripts/regulatory/pre_submittal.py
+      - scripts/regulatory/test_pre_submittal.py
+      - .github/workflows/tri-state-presubmittal.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/regulatory/pre_submittal.py
+      - scripts/regulatory/test_pre_submittal.py
+      - .github/workflows/tri-state-presubmittal.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-screen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Verify no auto permits, cross-state rules or manufactured utility location
+        run: python -m unittest discover -s scripts/regulatory -p 'test_pre_submittal.py' -v
+      - name: Classify validation scope
+        run: |
+          echo 'PASS: deterministic synthetic pre-submittal advisory screening, not legal clearance.'
+          echo 'No agency finding, utility ticket, elevation certificate or engineering seal was generated.'
