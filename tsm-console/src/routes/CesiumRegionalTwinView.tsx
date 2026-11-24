@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
+import { stationSummary, type StationSummary } from '../lib/community-cop.mjs';
 import { FILM_PREVIEW_FPS, FILM_SHOTS, lastShotFrame, sampleShotCamera } from '../lib/cesium-film-shots';
 import {
   CESIUM_VIEWS, loadCesiumReplay, loadCityScreening, mountCesiumRegionalScene, REPLAY_DATES,
@@ -62,6 +63,10 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
   const [reviewChanges, setReviewChanges] = useState<Changes | null>(null);
   const [reviewError, setReviewError] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
+  const [copDocument, setCopDocument] = useState<unknown>(null);
+  const [copStations, setCopStations] = useState<StationSummary[]>([]);
+  const [copError, setCopError] = useState('');
+  const copRequest = useRef(0);
   const [selectedReviewElement, setSelectedReviewElement] = useState('');
   const [reviewSearch, setReviewSearch] = useState('');
   const [quantityKey, setQuantityKey] = useState('volume');
@@ -224,6 +229,21 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
     });
     return () => abort.abort();
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const refresh = () => {
+      try { scene.current?.setCommunityCop(copDocument); }
+      catch (reason) {
+        scene.current?.setCommunityCop(null);
+        setCopError(reason instanceof Error ? reason.message : 'Local observation layer unavailable');
+      }
+    };
+    refresh();
+    if (copDocument === null) return;
+    const handle = window.setInterval(refresh, 60_000);
+    return () => window.clearInterval(handle);
+  }, [copDocument, ready, sceneVersion]);
 
   useEffect(() => {
     if (ready) scene.current?.setTime(date, hour, replay);
@@ -394,6 +414,45 @@ export default function CesiumRegionalTwinView({ autoFlyover = false, onFlyoverC
           </div>}
         </div>
         <aside id="tsm-cesium-tools" className="tsm-cesium-controls" aria-label="Scene controls" hidden={!toolsOpen}>
+          <details className="tsm-cesium-accordion" data-testid="cesium-community-cop">
+            <summary>Community river observations · local snapshot</summary>
+            <section>
+              <small>Import a locally exported TSM observation layer. This browser does not independently verify its source or checksum. Recorded gage heights are not NAVD88 elevations, forecasts, or flood warnings.</small>
+              <label htmlFor="cesium-cop-file">Load observation GeoJSON (up to 1 MiB)</label>
+              <input id="cesium-cop-file" type="file" accept=".geojson,.json,application/geo+json,application/json"
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = '';
+                  if (!file) return;
+                  const request = ++copRequest.current;
+                  if (file.size > 1024 * 1024) {
+                    setCopError('Observation file exceeds 1 MiB. Previous layer is unchanged.');
+                    return;
+                  }
+                  void file.text().then((raw) => {
+                    const next: unknown = JSON.parse(raw);
+                    const stations = stationSummary(next);
+                    if (request !== copRequest.current) return;
+                    setCopDocument(next);
+                    setCopStations(stations);
+                    setCopError('');
+                  }).catch((reason: unknown) => {
+                    if (request === copRequest.current) setCopError(reason instanceof Error ? reason.message : 'Could not open observation file');
+                  });
+                }} />
+              {copError && <p role="alert">{copError}</p>}
+              {copStations.length > 0 && <>
+                <p role="status">Local recorded snapshot · source not independently verified here</p>
+                {copStations.map((station) => <p key={station.stationId}>{station.stationId} · {station.sourceStatus} · {station.seriesCount} series · {station.unlocatedSeriesCount} without mapped coordinates</p>)}
+                <button type="button" onClick={() => {
+                  ++copRequest.current;
+                  setCopDocument(null);
+                  setCopStations([]);
+                  setCopError('');
+                }}>Clear observation layer</button>
+              </>}
+            </section>
+          </details>
           <details className="tsm-cesium-accordion" data-testid="cesium-design-review">
             <summary>Design review · local BIM metadata</summary>
             <section>

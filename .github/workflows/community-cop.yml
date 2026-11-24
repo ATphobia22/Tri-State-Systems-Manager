@@ -1,0 +1,34 @@
+name: Civilian community COP projection
+on:
+  pull_request:
+    paths:
+      - 'services/living-twin/**'
+      - 'tsm-console/src/lib/community-cop.*'
+      - '.github/workflows/community-cop.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/living-twin/**'
+      - 'tsm-console/src/lib/community-cop.*'
+      - '.github/workflows/community-cop.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: services/living-twin
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest tests/test_community_cop.py tests/test_offline_view.py tests/test_offline_bundle.py -q
+      - run: node --test tests/test-community-cop.mjs
+      - run: echo 'Fixture-based projection tests only; public publication and engineering review are not implied.'

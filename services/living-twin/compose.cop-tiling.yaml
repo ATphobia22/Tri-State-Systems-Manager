@@ -1,0 +1,20 @@
+# Optional headless tiling worker. Use only with reviewed public geometry.
+# Run with -f compose.yaml -f compose.cop-tiling.yaml --profile cop-tiling.
+# The read-only database principal and reviewed geometry view are provisioned
+# by the operator. Do not point the worker at raw/private operational tables.
+services:
+  cop-tiler:
+    profiles: ["cop-tiling"]
+    image: "${TSM_PG2B3DM_IMAGE:?Set a reviewed pg2b3dm image tag or digest}"
+    depends_on:
+      db: {condition: service_healthy}
+    command:
+      - "--connection"
+      - "${TSM_COP_TILE_CONNECTION:?Set a dedicated read-only PostGIS connection}"
+      - "-t"
+      - "${TSM_COP_TILE_TABLE:?Set a reviewed public 3D geometry table}"
+    volumes:
+      - "${TSM_COP_TILE_OUTPUT:?Set an empty output directory}:/app/output"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
