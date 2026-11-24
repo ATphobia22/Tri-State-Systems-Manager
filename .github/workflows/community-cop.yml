@@ -3,11 +3,13 @@ on:
   pull_request:
     paths:
       - 'services/living-twin/**'
+      - 'tsm-console/src/lib/community-cop.*'
       - '.github/workflows/community-cop.yml'
   push:
     branches: [main]
     paths:
       - 'services/living-twin/**'
+      - 'tsm-console/src/lib/community-cop.*'
       - '.github/workflows/community-cop.yml'
   workflow_dispatch:
 permissions:
