@@ -11,6 +11,9 @@ on:
       - ".github/workflows/posey-geospatial-backend.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test-and-database-smoke:
     runs-on: ubuntu-latest
@@ -18,8 +21,10 @@ jobs:
     env:
       TSM_POSEY_DB_PASSWORD: ci_only_weak_test_password_not_a_production_secret
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: "3.11"
       - name: Install bounded API/importer dependencies
