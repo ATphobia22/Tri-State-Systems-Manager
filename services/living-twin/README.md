@@ -1,5 +1,7 @@
 # Ohio–Wabash living twin runtime
 
+**Community COP:** [Architecture and local GeoJSON workflow](../../docs/architecture/COMMUNITY-4D-COP-2026-11-24.md). The public-facing recorded observation layer is separate from the connected change feed, and the optional tiler requires reviewed 3D geometry.
+
 This connected runtime stores state revisions as sparse PostGIS entities. It provides versioned Kafka ingestion, an append-only evidence graph, a retryable transaction outbox, pgSTAC publication, temporal snapshots, and a read-only Cesium change feed. Deploy it separately from the offline Windows desktop.
 
 ```mermaid
