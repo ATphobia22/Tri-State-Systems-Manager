@@ -131,24 +131,91 @@ export class UsgsOgcV1Adapter {
   url.searchParams.set('f','json');
   url.searchParams.set('monitoring_location_id',`USGS-${siteId}`);
   url.searchParams.set('parameter_code',parameterCd);
-  url.searchParams.set('limit','10');
+  // Explicit limit. OGC APIs commonly default to ten features even when
+  // more observations matched; this is not proof that retrieval is complete.
+  url.searchParams.set('limit','100');
+  return url.toString();
+ }
+
+ private continuationUrl(href:unknown,current:string,first:string):string {
+  if(typeof href!=='string'||!href.trim())throw new Error('USGS_OGC_NEXT_LINK_INVALID');
+  const url=new URL(href,current);
+  const original=new URL(first);
+  if(url.protocol!=='https:'||url.origin!==original.origin||
+     url.pathname!==original.pathname||url.username||url.password||url.hash)
+   throw new Error('USGS_OGC_NEXT_LINK_OUTSIDE_TRUSTED_COLLECTION');
+  for(const key of ['f','monitoring_location_id','parameter_code','limit']){
+   if(url.searchParams.get(key)!==original.searchParams.get(key))
+    throw new Error('USGS_OGC_NEXT_LINK_CHANGED_FILTER:'+key);
+  }
   return url.toString();
  }
 
  /**
   * Latest continuous observations for the given USGS site numbers.
-  * One request per site (the proven query pattern); sites are fetched
-  * independently so one site's failure never blocks the others.
+  * A site is either fully paginated or unavailable; partial pages are never
+  * treated as complete observations. Other sites remain independently usable.
   */
  async getLatestContinuous(siteIds:string[],parameterCd='00065,00060',options:UsgsOgcV1AdapterOptions={}):Promise<EvidenceEnvelope<UsgsOgcV1Result>> {
   if(!Array.isArray(siteIds)||siteIds.length===0)throw new Error('USGS_OGC_V1_SITES_REQUIRED');
   for(const siteId of siteIds)if(!SITE_RE.test(siteId))throw new Error('USGS_OGC_V1_SITE_INVALID:'+siteId);
   if(!PARAM_RE.test(parameterCd))throw new Error('USGS_OGC_V1_PARAMETER_CD_INVALID');
 
-  const settlements=await Promise.allSettled(siteIds.map(async(siteId)=>{
-   const url=this.buildUrl(siteId,parameterCd);
-   const envelope=await queryGovernmentJson<unknown>(this.sourceId,url,options);
-   return {siteId,url,envelope};
+  const pageCap=25;
+  const stations=await Promise.all(siteIds.map(async(siteId)=>{
+   const attempted:string[]=[];
+   const evidence:Array<EvidenceEnvelope<unknown>['evidence'][number]>=[];
+   const citations:Array<EvidenceEnvelope<unknown>['citations'][number]>=[];
+   const readings:UsgsOgcV1Reading[]=[];
+   const first=this.buildUrl(siteId,parameterCd);
+   let current:string|null=first;
+   let featuresSeen=0;
+   let matched:number|null=null;
+   const seen=new Set<string>();
+   try {
+    for(let page=0;current!==null;page++){
+     if(page>=pageCap)throw new Error('USGS_OGC_PAGINATION_PAGE_CAP_EXCEEDED');
+     if(seen.has(current))throw new Error('USGS_OGC_PAGINATION_CYCLE');
+     seen.add(current);
+     attempted.push(current);
+     citations.push({url:current,title:'USGS Water Data OGC v1 latest-continuous (attempted)',retrievedAt:new Date().toISOString()});
+     const response=await queryGovernmentJson<unknown>(this.sourceId,current,options);
+     evidence.push(...response.evidence);
+     const document=response.result as {type?:unknown;features?:unknown;links?:unknown;numberReturned?:unknown;numberMatched?:unknown}|null;
+     if(!document||document.type!=='FeatureCollection'||!Array.isArray(document.features))
+      throw new Error('USGS_OGC_FEATURE_COLLECTION_INVALID');
+     const count=document.features.length;
+     if(document.numberReturned!==undefined&&
+       (!Number.isSafeInteger(document.numberReturned)||document.numberReturned!==count))
+      throw new Error('USGS_OGC_NUMBER_RETURNED_MISMATCH');
+     if(typeof document.numberMatched==='number'){
+      if(!Number.isSafeInteger(document.numberMatched)||document.numberMatched<0)
+       throw new Error('USGS_OGC_NUMBER_MATCHED_INVALID');
+      if(matched!==null&&matched!==document.numberMatched)
+       throw new Error('USGS_OGC_NUMBER_MATCHED_CHANGED');
+      matched=document.numberMatched;
+     }
+     featuresSeen+=count;
+     readings.push(...parseFeatures(siteId,document,new Set(parameterCd.split(','))));
+     if(document.links!==undefined&&!Array.isArray(document.links))
+      throw new Error('USGS_OGC_PAGINATION_LINKS_INVALID');
+     const continuation=(document.links??[] as unknown[]).filter(link=>
+      link&&typeof link==='object'&&(link as {rel?:unknown}).rel==='next');
+     if(continuation.length>1)throw new Error('USGS_OGC_PAGINATION_AMBIGUOUS');
+     if(continuation.length&&count===0)throw new Error('USGS_OGC_EMPTY_PAGE_WITH_NEXT');
+     current=continuation.length?this.continuationUrl(
+      (continuation[0] as {href?:unknown}).href,attempted[attempted.length-1],first):null;
+    }
+    if(matched!==null&&featuresSeen!==matched)
+     throw new Error('USGS_OGC_INCOMPLETE_PAGINATION');
+    readings.sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt)||
+      a.parameterCode.localeCompare(b.parameterCode));
+    return {siteId,attempted,citations,evidence,readings,reason:null as string|null};
+   }catch(error){
+    const reason=error instanceof Error?error.message:String(error);
+    return {siteId,attempted,citations,evidence,readings:[] as UsgsOgcV1Reading[],
+      reason:'fetch failed or incomplete: '+reason};
+   }
   }));
 
   const readings:UsgsOgcV1Reading[]=[];
@@ -156,30 +223,20 @@ export class UsgsOgcV1Adapter {
   const queryUrls:string[]=[];
   const evidence:Array<EvidenceEnvelope<unknown>['evidence'][number]>=[];
   const citations:Array<EvidenceEnvelope<unknown>['citations'][number]>=[];
-
-  settlements.forEach((settlement,index)=>{
-   const siteId=siteIds[index];
-   const url=this.buildUrl(siteId,parameterCd);
-   queryUrls.push(url);
-   // A citation records the attempted query URL even when the fetch failed —
-   // it documents what was tried, not a successful retrieval.
-   citations.push({url,title:'USGS Water Data for the Nation — OGC API v1 latest-continuous (attempted)',retrievedAt:new Date().toISOString()});
-   if(settlement.status==='rejected'){
-    const reason=settlement.reason instanceof Error?settlement.reason.message:String(settlement.reason);
-    unavailable.push({siteId,reason:'fetch failed: '+reason});
-    evidence.push({sourceId:this.sourceId,authority:'USGS',retrievedAt:new Date().toISOString(),sha256:sha256({siteId,reason}),mediaType:'application/json'});
-    return;
-   }
-   const {envelope}=settlement.value;
-   evidence.push(...envelope.evidence);
-   const parsed=parseFeatures(siteId,envelope.result,new Set(parameterCd.split(',')));
-   if(parsed.length===0){
-    unavailable.push({siteId,reason:'no usable observations matching the requested USGS station and parameter codes'});
-    return;
-   }
-   readings.push(...parsed);
-  });
-
+  for(const station of stations){
+   queryUrls.push(...station.attempted);
+   citations.push(...station.citations);
+   evidence.push(...station.evidence);
+   if(station.reason||station.readings.length===0){
+    const reason=station.reason??'no usable observations matching the requested USGS station and parameter codes';
+    unavailable.push({siteId:station.siteId,reason});
+    // A failed request may have no HTTP source receipt; record its failure
+    // as a derived, honest receipt rather than fabricating fetched bytes.
+    if(station.evidence.length===0)
+     evidence.push({sourceId:this.sourceId,authority:'USGS',retrievedAt:new Date().toISOString(),
+       sha256:sha256({siteId:station.siteId,reason}),mediaType:'application/json'});
+   }else readings.push(...station.readings);
+  }
   const result:UsgsOgcV1Result={readings,unavailable,queryUrls};
   const status=readings.length>0?'UNVERIFIED':'UNAVAILABLE';
   return buildEnvelope(result,evidence,citations,status);

@@ -98,37 +98,62 @@ def step_rating():
     return False
 
 
+def classify_flood_stage(station_id: str, stage_ft: float, thresholds: dict) -> str:
+    """Use thresholds only from this exact station, never a nearby gage."""
+    import math
+
+    if type(stage_ft) not in (int, float) or not math.isfinite(stage_ft):
+        return "OBSERVATION_UNAVAILABLE"
+    policy = thresholds.get(station_id)
+    if not isinstance(policy, dict):
+        return "THRESHOLD_UNAVAILABLE"
+    keys = ("action_ft", "flood_ft", "moderate_ft", "major_ft")
+    values = [policy.get(key) for key in keys]
+    if any(type(v) not in (int, float) or not math.isfinite(v) for v in values):
+        return "THRESHOLD_UNAVAILABLE"
+    if values != sorted(values) or len(set(values)) != len(values):
+        return "THRESHOLD_UNAVAILABLE"
+    if stage_ft >= policy["major_ft"]:
+        return "MAJOR"
+    if stage_ft >= policy["moderate_ft"]:
+        return "MODERATE"
+    if stage_ft >= policy["flood_ft"]:
+        return "FLOOD"
+    if stage_ft >= policy["action_ft"]:
+        return "ACTION"
+    return "BELOW_ACTION"
+
+
 def step_alert_check():
-    """Check current stages against flood thresholds."""
-    print("\n🚨 Step 6: Flood Alert Check")
+    """Do not apply an unrelated station's NWS flood thresholds to a USGS stage."""
+    print("\n🚨 Step 6: Station-Specific Flood Alert Screening")
     from tsm_config import FLOOD_STAGES
 
+    complete = True
     try:
         from tsm_usgs_ingest import get_gage_height
-        for site in ["03381700", "03378500"]:
-            df = get_gage_height(site, days=1)
-            if len(df) == 0:
+        for site in ("03381700", "03378500"):
+            frame = get_gage_height(site, days=1)
+            if frame.empty:
+                print(f"  {site}: SOURCE_UNAVAILABLE — no usable observations")
+                complete = False
                 continue
-            latest = df["value_ft"].iloc[-1]
-            cfg = GAGES[site]
-            print(f"\n  {cfg['name']}: {latest:.2f} ft")
-
-            # Check MTVI3 thresholds as reference
-            mtv = FLOOD_STAGES["MTVI3"]
-            if latest >= mtv["major_ft"]:
-                print(f"  🔴 MAJOR FLOOD (≥{mtv['major_ft']} ft)")
-            elif latest >= mtv["moderate_ft"]:
-                print(f"  🟠 MODERATE FLOOD (≥{mtv['moderate_ft']} ft)")
-            elif latest >= mtv["flood_ft"]:
-                print(f"  🟡 FLOOD STAGE (≥{mtv['flood_ft']} ft)")
-            elif latest >= mtv["action_ft"]:
-                print(f"  🔵 ACTION STAGE (≥{mtv['action_ft']} ft)")
+            stage = float(frame["value_ft"].iloc[-1])
+            classification = classify_flood_stage(site, stage, FLOOD_STAGES)
+            print(f"  USGS-{site}: {stage:.2f} ft (station GAGE_DATUM)")
+            if classification == "THRESHOLD_UNAVAILABLE":
+                print("  THRESHOLD_UNAVAILABLE: no independently sourced, exact-station flood thresholds.")
+                print("  Never substitute MTVI3 or another nearby station's thresholds.")
+                complete = False
+            elif classification == "OBSERVATION_UNAVAILABLE":
+                print("  SOURCE_UNAVAILABLE: invalid/nonfinite observation")
+                complete = False
             else:
-                print(f"  🟢 Normal (below action stage)")
-    except Exception as e:
-        print(f"  Alert check failed: {e}")
+                print(f"  Station-specific screening class: {classification}")
+    except Exception as error:
+        print(f"  Alert check failed: {error}")
         return False
-    return True
+    return complete
 
 
 def step_bfe():
