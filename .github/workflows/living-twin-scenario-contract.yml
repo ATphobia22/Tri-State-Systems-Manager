@@ -1,0 +1,27 @@
+name: Living twin isolated scenario contract
+on:
+  pull_request:
+    paths:
+      - 'domains/living-twin/**'
+      - 'tests/contracts/living-twin-scenario-safety.test.ts'
+      - '.github/workflows/living-twin-scenario-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'domains/living-twin/**'
+      - 'tests/contracts/living-twin-scenario-safety.test.ts'
+      - '.github/workflows/living-twin-scenario-contract.yml'
+permissions:
+  contents: read
+jobs:
+  pure-scenario-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: node --version
+      - run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - run: ./node_modules/.bin/tsx --test tests/contracts/living-twin-scenario-safety.test.ts
+      - run: echo 'Illustrative scenario functions only; not calibrated scientific models.'
