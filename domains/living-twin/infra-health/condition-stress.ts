@@ -11,6 +11,12 @@ export interface SystemState {
   stress: number;    // 0..1 accumulated misuse
 }
 
+function checkState(state: SystemState): void {
+  if (![state.condition, state.stress].every(value =>
+    Number.isFinite(value) && value >= 0 && value <= 1))
+    throw new Error("Invalid scenario system state");
+}
+
 export interface OperatingEvent {
   type:
     | "normal_use"
@@ -43,9 +49,11 @@ export function applyOperatingEvent(
   event: OperatingEvent,
   reliabilityFactor: number = 1.0
 ): SystemState {
-  if (state.condition < 0 || state.condition > 1 || state.stress < 0) {
-    throw new Error("invalid system state");
-  }
+  checkState(state);
+  if (!Number.isFinite(event.hours) || event.hours < 0 ||
+      !Number.isFinite(event.severity) || event.severity < 0 || event.severity > 1 ||
+      !Number.isFinite(reliabilityFactor) || reliabilityFactor <= 0)
+    throw new Error("Invalid scenario operating event");
 
   let { condition, stress } = state;
   const factor = Math.max(0.3, Math.min(1.5, reliabilityFactor));
@@ -71,8 +79,10 @@ export function applyOperatingEvent(
       // inspection itself does not change state; repair does
       break;
     default:
-      break;
+      throw new Error("Unknown scenario operating event");
   }
+
+  if (event.type === "inspection" || event.hours === 0) return { ...state };
 
   // Stress accelerates condition loss once above threshold
   if (stress > condition) {
@@ -89,6 +99,7 @@ export function applyMaintenance(
   state: SystemState,
   kind: "routine" | "repair" | "overhaul"
 ): SystemState {
+  checkState(state);
   switch (kind) {
     case "routine":
       return {
@@ -106,7 +117,7 @@ export function applyMaintenance(
         stress: 0,
       };
     default:
-      return state;
+      throw new Error("Unknown scenario maintenance action");
   }
 }
 
@@ -115,6 +126,7 @@ export function applyMaintenance(
  * Used only for scenario visualization, never for regulatory claims.
  */
 export function failureProbabilityPerHour(state: SystemState): number {
+  checkState(state);
   if (state.condition <= 0) return 1;
   const margin = Math.max(0, state.condition - state.stress);
   return Math.min(1, Math.exp(-8 * margin) * 0.05);

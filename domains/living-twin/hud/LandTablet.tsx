@@ -67,6 +67,7 @@ export const LandTablet: React.FC<LandTabletProps> = React.memo(
           </button>
         </header>
 
+        <p className="mb-3 text-xs text-amber-300">Illustrative scenario · not measured or engineering validated</p>
         <section className="mb-3">
           <div className="mb-1 flex justify-between text-xs">
             <span>Moisture</span>
