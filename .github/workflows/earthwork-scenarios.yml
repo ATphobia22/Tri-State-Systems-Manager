@@ -1,0 +1,35 @@
+name: Time-Aware Earthwork Scenario Contracts
+on:
+  pull_request:
+    paths:
+      - 'integrations/engineering-fabric/earthwork_scenario.py'
+      - 'integrations/engineering-fabric/test_earthwork_scenario.py'
+      - '.github/workflows/earthwork-scenarios.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/engineering-fabric/earthwork_scenario.py'
+      - 'integrations/engineering-fabric/test_earthwork_scenario.py'
+      - '.github/workflows/earthwork-scenarios.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-earthwork:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Verify all terrain deltas remain non-destructive and simulated
+        run: python -m unittest discover -s integrations/engineering-fabric -p 'test_earthwork_scenario.py' -v
+      - name: Scope the acceptance evidence
+        run: |
+          echo 'PASS establishes deterministic scenario math and immutable input fixtures only.'
+          echo 'It does not establish surveyed terrain, actual hydraulic/stability solver runs, or a permit.'
