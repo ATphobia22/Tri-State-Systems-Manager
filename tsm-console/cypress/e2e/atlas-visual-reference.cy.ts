@@ -27,7 +27,13 @@ describe('Source-governed regional Atlas navigation and startup', () => {
 
   it('does not pretend a blocked OpenFreeMap style is real imagery', () => {
     cy.intercept({method: 'GET', url: /^https:\/\/tiles\.openfreemap\.org\/styles\/liberty(?:\?.*)?$/ }, { forceNetworkError: true });
+    // A later successful overlay must never erase the failed-basemap disclosure.
+    cy.intercept('GET', 'https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0/query*', {
+      delay: 500,
+      body: { type: 'FeatureCollection', features: [] },
+    }).as('historicOverlay');
     cy.visit('atlas/');
+    cy.wait('@historicOverlay', { requestTimeout: 30000 });
     cy.get('.tsm-atlas-map-status', { timeout: 30000 })
       .should('contain.text', 'Neutral map fallback loaded');
     cy.get('canvas.maplibregl-canvas').should('be.visible');
