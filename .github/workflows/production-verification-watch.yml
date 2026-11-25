@@ -44,7 +44,7 @@ jobs:
           out="$RUNNER_TEMP/tsm-watch"
           test "$(git rev-parse HEAD)" = "$MAIN_SHA"
           gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?branch=main&head_sha=$MAIN_SHA&per_page=100" |
-            jq -s '[.[].workflow_runs[] | select(.name != "TSM Production Verification Watch" and (.event == "push" or .event == "workflow_dispatch"))] | sort_by(.created_at) | reverse | unique_by(.workflow_id) | map({id,name,head_sha,status,conclusion,event,html_url})' > "$out/main-workflows.json"
+            jq -s '[.[].workflow_runs[] | select(.name != "TSM Production Verification Watch" and (.event == "push" or .event == "workflow_dispatch"))] | group_by(.workflow_id) | map(max_by([.created_at,.run_attempt])) | map({id,name,head_sha,status,conclusion,event,html_url})' > "$out/main-workflows.json"
           gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$MAIN_SHA/check-runs?filter=latest&per_page=100" |
             jq -s '[.[].check_runs[] | select(.name != "verify") | {name,status,conclusion,details_url}]' > "$out/main-checks.json"
           gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" |
@@ -67,8 +67,7 @@ jobs:
           out="$RUNNER_TEMP/tsm-watch"
           for route in '' atlas/ cesium/; do
             label="${route%/}"; label="${label:-root}"
-            if curl --fail --silent --show-error --max-time 25 --max-filesize 4194304 --proto '=https' --output "$out/$label.html" "$SITE$route"; then
-              test -s "$out/$label.html"
+            if code="$(curl --fail --silent --show-error --max-time 25 --max-filesize 4194304 --proto '=https' --write-out '%{http_code}' --output "$RUNNER_TEMP/tsm-watch-$label.html" "$SITE$route")" && [[ "$code" == 200 ]] && test -s "$RUNNER_TEMP/tsm-watch-$label.html"; then
               printf '%s HTTP_REACHABLE\n' "$label" >> "$out/public-probe.txt"
             else
               printf '%s HTTP_PROBE_FAILED\n' "$label" >> "$out/public-probe.txt"
@@ -137,7 +136,12 @@ jobs:
         run: |
           set -euo pipefail
           out="$RUNNER_TEMP/tsm-watch"
-          ! jq -e 'any(.[]; .conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "action_required")' "$out/main-workflows.json" > /dev/null
-          ! grep -q HTTP_PROBE_FAILED "$out/public-probe.txt"
-          ! grep -q PUBLICATION_VERIFICATION_FAILED "$out/publication-status.txt"
+          test -s "$out/main-workflows.json"
+          test -s "$out/public-probe.txt"
+          test -s "$out/publication-status.txt"
+          failed="$(jq 'any(.[]; .conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "action_required")' "$out/main-workflows.json")"
+          if [[ "$failed" == true ]] || grep -q HTTP_PROBE_FAILED "$out/public-probe.txt" || grep -q PUBLICATION_VERIFICATION_FAILED "$out/publication-status.txt"; then
+            echo 'Confirmed CI or publication failure; inspect preserved receipts.' >&2
+            exit 1
+          fi
           echo 'Watch completed; inspect the ledger for unproven gates.'
