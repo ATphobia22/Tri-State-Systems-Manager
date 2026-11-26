@@ -2,12 +2,83 @@
   "schema": "tsm.external_data_registry.v1",
   "updated": "2026-11-26",
   "items": [
-    {"id": "TR-22-4", "status": "FOIA_OR_PUBLIC_SEARCH"},
-    {"id": "CEII", "status": "BLOCKED_BY_POLICY"},
-    {"id": "PE_PLS", "status": "HUMAN_LICENSE"},
-    {"id": "UNION_KY_PVA", "status": "PUBLIC_OR_COMMERCIAL", "links": ["https://www.arcgis.com/home/item.html?id=b0f32328e00d4874b05c10f123c2f5fd"]},
-    {"id": "IN_811", "status": "MEMBER_API_OR_MANUAL"},
-    {"id": "INDOT_DOT", "status": "PUBLIC_GIS", "example": "https://gisq.indot.in.gov/ro/rest/services/DOT/INDOT_NLRI_DATA/MapServer"},
-    {"id": "LIDAR_LOD23", "status": "PUBLIC_3DEP", "pipeline": "scripts/geospatial/pdal_3dep_clip.json", "links": ["https://www.usgs.gov/tools/lidarexplorer", "https://registry.opendata.aws/usgs-lidar/"]}
+    {
+      "id": "TR-22-4",
+      "status": "PUBLIC_RELEASE_CONFIRMED",
+      "automatic_download": false,
+      "links": [
+        "https://www.erdc.usace.army.mil/Media/Publication-Notices/Article/2952071/wabash-and-ohio-river-confluence-hydraulic-and-sediment-transport-model-investi/",
+        "https://doi.org/10.21079/11681/43441"
+      ],
+      "note": "Report is publicly released; bytes and model archive not verified or acquired."
+    },
+    {
+      "id": "CEII",
+      "status": "BLOCKED_BY_POLICY",
+      "automatic_download": false,
+      "links": [
+        "https://www.ferc.gov/ceii"
+      ]
+    },
+    {
+      "id": "PE_PLS",
+      "status": "HUMAN_LICENSE",
+      "automatic_download": false
+    },
+    {
+      "id": "UNION_KY_PVA",
+      "status": "PUBLIC_OR_COMMERCIAL",
+      "links": [
+        "https://www.arcgis.com/home/item.html?id=b0f32328e00d4874b05c10f123c2f5fd",
+        "https://www.unioncountyky.org/local-government/union-county-pva"
+      ],
+      "automatic_download": false,
+      "note": "Item identity and redistribution rights unverified; metadata discovery only."
+    },
+    {
+      "id": "IN_811",
+      "status": "MEMBER_API_OR_MANUAL",
+      "automatic_download": false,
+      "links": [
+        "https://indiana811.org/member-utility-positive-response-faq/"
+      ]
+    },
+    {
+      "id": "INDOT_DOT",
+      "status": "PUBLIC_GIS",
+      "example": "https://gis.indot.in.gov/ro/rest/services/DOT/INDOT_NLRI_DATA/MapServer",
+      "automatic_download": false,
+      "note": "Public inventory metadata; no assumption of live closures or bulk reuse permission."
+    },
+    {
+      "id": "LIDAR_LOD23",
+      "status": "PUBLIC_3DEP",
+      "pipeline": "scripts/geospatial/pdal_3dep_clip.json",
+      "links": [
+        "https://www.usgs.gov/tools/lidarexplorer",
+        "https://registry.opendata.aws/usgs-lidar/",
+        "https://www.fisheries.noaa.gov/inport/item/69202"
+      ],
+      "automatic_download": false,
+      "note": "Airborne LoD1/2 only; EPT Z metadata gate mandatory."
+    },
+    {
+      "id": "TR-22-4_MODEL_ARCHIVE",
+      "status": "FOIA_OR_PUBLIC_SEARCH",
+      "automatic_download": false,
+      "links": [
+        "https://www.usace.army.mil/Resources/FOIA/"
+      ],
+      "note": "No FOIA submitted; no hydraulic parameters or runnable archive inferred."
+    },
+    {
+      "id": "USGS_1M_DEM",
+      "status": "PUBLIC_3DEP",
+      "automatic_download": false,
+      "links": [
+        "https://data.usgs.gov/datacatalog/data/USGS%3A77ae0551-c61e-4979-aedd-d797abdcde0e"
+      ],
+      "note": "Product family NAVD88 metres; verify actual project tile and coverage."
+    }
   ]
 }

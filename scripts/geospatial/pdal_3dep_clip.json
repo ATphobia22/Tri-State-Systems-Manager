@@ -1,9 +1,27 @@
 {
-  "description": "Clip USGS 3DEP EPT to Posey AOI → EPSG:26916 ground DEM. Replace project name via LidarExplorer.",
+  "description": "NON-EXECUTABLE reference template. Generate a bounded plan using public_external_preflight.py only after EPT compound CRS checks. Missing Z metadata blocks processing.",
   "pipeline": [
-    {"type": "readers.ept", "filename": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/REPLACE_PROJECT_NAME/ept.json", "bounds": "([380000, 420000], [4180000, 4220000])"},
-    {"type": "filters.reprojection", "out_srs": "EPSG:26916"},
-    {"type": "filters.range", "limits": "Classification[2:2]"},
-    {"type": "writers.gdal", "filename": "data/dem/posey_ground_1m.tif", "resolution": 1.0, "output_type": "idw", "radius": 2.5}
+    {
+      "type": "readers.ept",
+      "filename": "REPLACE_WITH_VERIFIED_EPT_URL",
+      "bounds": "REPLACE_WITH_SOURCE_CRS_BOUNDS"
+    },
+    {
+      "type": "filters.expression",
+      "expression": "Classification == 2"
+    },
+    {
+      "type": "filters.reprojection",
+      "out_srs": "EPSG:26916+5703",
+      "error_on_failure": true
+    },
+    {
+      "type": "writers.gdal",
+      "filename": "posey_ground_1m.tif",
+      "resolution": 1,
+      "output_type": "idw",
+      "radius": 2.5,
+      "nodata": -9999
+    }
   ]
 }
