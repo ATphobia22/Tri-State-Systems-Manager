@@ -1,0 +1,39 @@
+# 3dfier 1.5.0; execute from a review workspace, not public output.
+# All inputs must share verified projected metric XY and NAVD88 metre Z.
+# Preflight: require a class-6 roof population per footprint and class-2 ground.
+# This strict profile cannot use unclassified 2020 COPC as class-6 evidence.
+input_polygons:
+  - datasets:
+      - input/posey-footprints-metric.gpkg
+    uniqueid: tsm_id
+    lifting: Building
+lifting_options:
+  Building:
+    roof:
+      height: percentile-90
+      use_LAS_classes:
+        - 6
+    ground:
+      height: percentile-10
+      use_LAS_classes:
+        - 2
+    lod: 1
+    floor: true
+    inner_walls: true
+    triangulate: false
+input_elevation:
+  - datasets:
+      - input/lidar-metric/*
+    omit_LAS_classes:
+      - 1
+      - 3
+      - 4
+      - 5
+      - 7
+      - 18
+    thinning: 1
+options:
+  building_radius_vertex_elevation: 3.0
+  radius_vertex_elevation: 1.0
+  threshold_jump_edges: 0.5
+  threshold_bridge_jump_edges: 0.5

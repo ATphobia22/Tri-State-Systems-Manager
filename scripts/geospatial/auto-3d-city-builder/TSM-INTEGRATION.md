@@ -46,3 +46,7 @@ The follow-on `auto-3d-city-builder-vertical-audit.yml` workflow runs after a su
 ### Raster gap and base-contact review
 
 The raster workflow downloads the exact successful COPC pilot (run 45769088253), verifies its vertical artifact, then acquires bounded Indiana 2020 nDHM, DSM and DEM GeoTIFFs from the existing public elevation archive. It pins bytes and checks CRS/vertical units, reports correlated raster height candidates only when coverage and agreement checks pass, and checks nominal building base elevation against DEM footprint boundary samples. It never replaces the 425 existing candidates or promotes the 100 gaps. The 0.5 m contact tolerance and 2 m raster agreement threshold are screening policies, not regulatory accuracy standards. Raw raster evidence is retained even if headers are insufficient; no automatic assumption about missing Z units. Actual decoded mesh/terrain and independent checkpoints, and real roof-plane reconstruction, remain separate stages. Sources: https://gis.iu.edu/s/isdp/page/20162020elevation and https://lidar.digitalforestry.org/ .
+
+## Semantic city exchange profiles
+
+See `semantic/README.md` for the version-specific CityDB views and strict 3dfier profile. These are unexecuted integration templates; no database service or public release is provisioned.
