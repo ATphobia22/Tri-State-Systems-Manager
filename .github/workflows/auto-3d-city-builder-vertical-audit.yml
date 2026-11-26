@@ -1,0 +1,63 @@
+name: TSM vertical reconstruction artifact audit
+on:
+  workflow_run:
+    workflows: ["Mount Vernon LiDAR reconstruction bridge"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful Mount Vernon LiDAR reconstruction run ID on main
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install and test reconstruction audit
+        run: |
+          python -m pip install -e 'scripts/geospatial/auto-3d-city-builder[test]'
+          python -m pytest scripts/geospatial/auto-3d-city-builder/tests -q
+      - name: Verify artifact-producing workflow identity and successful outcome
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > source-run.json
+          python - <<'PY'
+          import json,os
+          r=json.load(open('source-run.json'))
+          assert r['head_repository']['full_name']==os.environ['GITHUB_REPOSITORY']
+          assert r['head_branch']=='main' and r['conclusion']=='success'
+          assert r['path']=='.github/workflows/auto-3d-city-builder-vertical.yml'
+          PY
+      - name: Download exact successful run evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: mount-vernon-vertical-reconstruction-review
+          path: reviewed
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+      - name: Independently reconcile candidate integrity and coverage
+        run: |
+          python -m citybuilder.vertical_audit reviewed > vertical-audit.json
+          cat vertical-audit.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: vertical-candidate-audit
+          path: |
+            vertical-audit.json
+            source-run.json
+          retention-days: 30
+          if-no-files-found: error
