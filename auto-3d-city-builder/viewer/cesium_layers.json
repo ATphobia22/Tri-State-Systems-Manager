@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "city_id": "mount-vernon-in",
+  "canonical_epsg": 26916,
+  "vertical_datum": "NAVD88",
+  "layers": [
+    {"id": "buildings-3dtiles", "type": "3D_TILES", "url": "./tiles/tileset.json", "name": "Buildings (3D Tiles 1.1)"},
+    {"id": "terrain-dem", "type": "TERRAIN", "url": "./terrain/", "name": "3DEP / Transvoxel terrain"},
+    {"id": "flood-bfe-context", "type": "GEOJSON", "url": "./overlays/bfe_context.geojson", "name": "BFE 369.1 NAVD88 context"}
+  ],
+  "camera": {"longitude": -88.0142, "latitude": 37.8348, "height": 2500},
+  "notes": ["Do not publish CEII on public clients", "Regulatory BFE is 369.1 ft bare NAVD88"]
+}

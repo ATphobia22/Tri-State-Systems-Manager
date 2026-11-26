@@ -1,0 +1,32 @@
+# Auto-3D City Builder — 3DCityDB v5 + Web Map Client
+# Usage: set SRID to city canonical EPSG, then: docker compose up -d
+
+services:
+  citydb:
+    image: 3dcitydb/3dcitydb-pg:latest
+    container_name: citydb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${CITYDB_PASSWORD:-changeMe}
+      SRID: ${CITYDB_SRID:-26916}
+      PROJ_NETWORK: "ON"
+    volumes:
+      - citydb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  webmap:
+    image: tumgis/3dcitydb-web-map:alpine-latest
+    container_name: citydb-webmap
+    ports:
+      - "8080:8000"
+    depends_on:
+      citydb:
+        condition: service_healthy
+
+volumes:
+  citydb_data:
