@@ -1,0 +1,15 @@
+{
+  "city_id": "mount-vernon-in",
+  "canonical_epsg": 26916,
+  "vertical_datum": "NAVD88",
+  "public_lod_cap": 3,
+  "regulatory_preferred_lod": 2,
+  "layers": [
+    {"name": "terrain_dem", "citygml_lod": 0, "tiles_geometric_error_m": 5, "height_source": "OBSERVED", "status": "PRESENT"},
+    {"name": "buildings_lod1_massing", "citygml_lod": 1, "tiles_geometric_error_m": 2, "height_source": "MIXED", "status": "PARTIAL"},
+    {"name": "buildings_lod2_roofs", "citygml_lod": 2, "tiles_geometric_error_m": 0.5, "height_source": "OBSERVED", "status": "PARTIAL"},
+    {"name": "buildings_lod3_openings", "citygml_lod": 3, "tiles_geometric_error_m": 0.15, "height_source": "DERIVED", "status": "MISSING"},
+    {"name": "roads_transportation", "citygml_lod": 2, "tiles_geometric_error_m": 1, "height_source": "DERIVED", "status": "MISSING"},
+    {"name": "utilities_muddi_public", "citygml_lod": 1, "tiles_geometric_error_m": 1, "height_source": "UNKNOWN", "status": "PARTIAL"}
+  ]
+}
