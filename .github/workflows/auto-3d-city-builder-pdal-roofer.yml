@@ -76,10 +76,15 @@ jobs:
           echo "85834b289467b0e583e2b9c59a725c97ef39dc03c0c0a12417a8a0666e1aa0a1  $RUNNER_TEMP/roofer.tar.gz" | sha256sum -c -
           mkdir "$RUNNER_TEMP/roofer"
           tar -xzf "$RUNNER_TEMP/roofer.tar.gz" -C "$RUNNER_TEMP/roofer"
-          ROOFER="$(find "$RUNNER_TEMP/roofer" -type f -name roofer -perm -111 -print -quit)"
-          test -n "$ROOFER"
+          tar -tzf "$RUNNER_TEMP/roofer.tar.gz" > roofer-release-inventory.txt
+          export TSM_ROOFER_PREFIX="$RUNNER_TEMP/roofer"
+          test -f "$TSM_ROOFER_PREFIX/bin/roofer"
+          chmod 0755 "$TSM_ROOFER_PREFIX/bin/roofer"
+          ROOFER="$GITHUB_WORKSPACE/scripts/geospatial/auto-3d-city-builder/runtime/roofer-tool.sh"
+          echo "TSM_ROOFER_PREFIX=$TSM_ROOFER_PREFIX" >> "$GITHUB_ENV"
           echo "TSM_ROOFER=$ROOFER" >> "$GITHUB_ENV"
-          "$ROOFER" --help
+          "$ROOFER" --version | tee roofer-version.txt
+          "$ROOFER" --help-all > roofer-help.txt
       - name: Run source-linked raster generation and real Roofer LoD2.2 pilot
         env:
           PROJ_NETWORK: "OFF"
@@ -97,6 +102,9 @@ jobs:
             pdal-drivers.txt
             proj-database.sha256
             proj-operation.txt
+            roofer-release-inventory.txt
+            roofer-version.txt
+            roofer-help.txt
             reconstruction-review/**
             !reconstruction-review/raw/**
             !reconstruction-review/metric.las
