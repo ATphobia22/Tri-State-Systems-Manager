@@ -1,0 +1,9 @@
+{
+  "description": "USGS 3DEP EPT → first-return DSM for LoD1 heights (DSM-DEM).",
+  "pipeline": [
+    {"type": "readers.ept", "filename": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json", "bounds": "([-9791000, -9779000], [4562000, 4577000])", "threads": 4},
+    {"type": "filters.range", "limits": "ReturnNumber[1:1]"},
+    {"type": "filters.reprojection", "out_srs": "EPSG:26916"},
+    {"type": "writers.gdal", "filename": "data/dem/posey_dsm_1m.tif", "gdaldriver": "GTiff", "resolution": 1.0, "output_type": "max", "radius": 2.0}
+  ]
+}
