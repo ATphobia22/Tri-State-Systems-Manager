@@ -73,6 +73,56 @@ def prepare(scene, lidar, sample_geoid):
         "engineering_eligible":False,"publication_eligible":False,
         "alignment":"NOMINAL_GEOID18_VISUAL_ONLY","terrain_checkpoints":"NOT_VALIDATED"}
 
+def validate_copc_sources(lidar, receipt, tile_dir, lidar_sha, scene):
+    """Check local recovery receipt and every contributing raw COPC header/digest."""
+    import laspy
+    expected_input=sha(json.dumps(scene["buildings"]).encode())
+    if receipt.get("inputSha256") != expected_input:
+        raise ValueError("COPC input digest mismatch")
+    if receipt.get("outputSha256") != lidar_sha:
+        raise ValueError("COPC output digest mismatch")
+    checked = {}
+    for f in lidar["features"]:
+        props = f["properties"]
+        if props.get("lidarHeightStatus") != "OK":
+            continue
+        sources = props.get("lidarSourceTiles")
+        if not isinstance(sources,list) or not sources or props.get("heightProvenance") != "DERIVED":
+            raise ValueError("COPC tile provenance missing")
+        if props.get("lidarSource") != sources[0].get("url"):
+            raise ValueError("COPC primary source mismatch")
+        for source in sources:
+            url = source.get("url","")
+            prefix = "https://giselevationingov.s3.amazonaws.com/copc/statewide/2020/SPW/ql2/"
+            name = url.removeprefix(prefix)
+            if not url.startswith(prefix) or not re.fullmatch(r"IN2020_[0-9]{8}_12\.copc\.laz",name):
+                raise ValueError("Unexpected COPC source")
+            digest = source.get("sha256")
+            if name in checked:
+                if checked[name] != digest:
+                    raise ValueError("Conflicting COPC source digest")
+                continue
+            file = tile_dir/name
+            if file.is_symlink() or not file.is_file():
+                raise ValueError("Missing raw COPC tile")
+            with file.open("rb") as stream:
+                actual=hashlib.file_digest(stream,"sha256").hexdigest()
+            if actual != digest:
+                raise ValueError("COPC tile digest mismatch")
+            with laspy.open(file) as las:
+                crs=las.header.parse_crs()
+                if crs is None or not crs.is_compound:
+                    raise ValueError("COPC compound CRS missing")
+                horizontal,vertical=crs.sub_crs_list[:2]
+                if horizontal.is_bound:
+                    horizontal=horizontal.source_crs
+                if horizontal.to_epsg()!=2968 or vertical.to_epsg()!=6360:
+                    raise ValueError("COPC CRS must be EPSG:2968 + EPSG:6360")
+            checked[name]=actual
+    if receipt.get("recoveredBuildings") != sum(f["properties"].get("lidarHeightStatus")=="OK" for f in lidar["features"]):
+        raise ValueError("COPC recovery count mismatch")
+    return checked
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("scene",type=Path)
@@ -82,6 +132,7 @@ def main():
     p.add_argument("--metadata",type=Path,required=True,help="Exact EPT metadata JSON from extraction source")
     p.add_argument("--metadata-sha256",required=True)
     p.add_argument("--grid",type=Path,required=True)
+    p.add_argument("--copc-tile-dir",type=Path,help="Treat metadata as COPC recovery receipt; recheck local raw tiles")
     args=p.parse_args()
     if args.output.exists() or args.output.is_symlink():
         p.error("Output already exists")
@@ -96,8 +147,15 @@ def main():
     meta=json.loads(metadata_raw)
     srs=meta.get("srs",{})
     # The legacy extractor assumes metre-valued Z; require explicit NAVD88 metres.
-    if not isinstance(srs,dict) or srs.get("authority")!="EPSG" or str(srs.get("vertical"))!="5703":
+    source_tiles={}
+    lidar=json.loads(lidar_raw)
+    if args.copc_tile_dir:
+        source_tiles=validate_copc_sources(lidar,meta,args.copc_tile_dir,sha(lidar_raw),json.loads(scene_raw))
+        evidence_kind="COPC_HEADER_EPSG_2968_6360"
+    elif not isinstance(srs,dict) or srs.get("authority")!="EPSG" or str(srs.get("vertical"))!="5703":
         p.error("EPT metadata does not explicitly establish EPSG:5703 NAVD88 metres")
+    else:
+        evidence_kind="EPT_DECLARED_EPSG_5703"
     sys.path.insert(0,str(GEO))
     from tsm_geodesy import GeoidModel,GEOID18_GRID_SHA256
     if sha(read_local(args.grid))!=GEOID18_GRID_SHA256:
@@ -108,7 +166,7 @@ def main():
         x,y=transform.transform(lon,lat)
         return grid.get_geoid_height(y,x)
     fc,report=prepare(json.loads(scene_raw),json.loads(lidar_raw),sample)
-    report.update({"scene_sha256":sha(scene_raw),"lidar_sha256":sha(lidar_raw),"ept_metadata_sha256":sha(metadata_raw),
+    report.update({"scene_sha256":sha(scene_raw),"lidar_sha256":sha(lidar_raw),"source_metadata_sha256":sha(metadata_raw),"source_evidence_kind":evidence_kind,"raw_copc_tile_sha256":source_tiles,
                    "geoid_grid_sha256":GEOID18_GRID_SHA256,
                    "horizontal_frame":"Nominal PROJ EPSG:4326 to EPSG:6318; epoch and independent checkpoints not established"})
     args.output.mkdir(parents=True,exist_ok=False)
@@ -127,7 +185,7 @@ def main():
         report["status"]="BLOCKED_NO_QUALIFYING_HEIGHTS"
     (args.output/"vertical-reconstruction-receipt.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps(report,indent=2))
-    return 0
+    return 0 if fc["features"] else 1
 
 if __name__=="__main__":
     raise SystemExit(main())

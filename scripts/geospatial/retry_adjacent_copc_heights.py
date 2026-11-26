@@ -96,7 +96,7 @@ def read_source(path, grid):
     return load_tile_arrays(str(path))
 
 
-def recover(features, tile_dir, *, keep_tiles=False):
+def recover(features, tile_dir, *, keep_tiles=False, include_single_tile=False):
     candidates = {}
     grids_to_buildings = defaultdict(list)
     counts = Counter()
@@ -111,7 +111,7 @@ def recover(features, tile_dir, *, keep_tiles=False):
         except (TypeError, ValueError, KeyError):
             counts['invalid_geometry'] += 1
             continue
-        if len(grids) < 2:
+        if len(grids) < 2 and not include_single_tile:
             continue
         candidates[index] = (polygons, windows, grids)
         for grid in grids:
@@ -149,7 +149,7 @@ def recover(features, tile_dir, *, keep_tiles=False):
         sources = [verified[grid] for grid in sorted(grids)]
         result['lidarSource'] = sources[0]['url']
         result['lidarSourceTiles'] = sources
-        result['heightProvenanceMethod'] += '; adjacent tile windows combined'
+        result['heightProvenanceMethod'] += '; source tile windows combined'
         features[index]['properties'].update(result)
         counts['recovered'] += 1
 
@@ -171,6 +171,7 @@ def main():
     parser.add_argument('--tile-dir', required=True, type=Path)
     parser.add_argument('--out', required=True, type=Path)
     parser.add_argument('--receipt', required=True, type=Path)
+    parser.add_argument('--include-single-tile', action='store_true', help='Also process footprints entirely within one source tile')
     parser.add_argument('--keep-tiles', action='store_true', help='Retain downloaded COPC tiles for follow-up analysis')
     args = parser.parse_args()
     if len({p.resolve() for p in (args.geojson, args.out, args.receipt)}) != 3:
@@ -179,7 +180,7 @@ def main():
         data = json.load(stream)
     features = data['features']
     args.tile_dir.mkdir(parents=True, exist_ok=True)
-    receipt = recover(features, args.tile_dir, keep_tiles=args.keep_tiles)
+    receipt = recover(features, args.tile_dir, keep_tiles=args.keep_tiles, include_single_tile=args.include_single_tile)
     atomic_write_json(str(args.out), data)
     atomic_write_json(str(args.receipt), {
         'inputSha256': sha256_file(args.geojson),

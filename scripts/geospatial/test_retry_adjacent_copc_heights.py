@@ -57,6 +57,20 @@ class AdjacentTileRecoveryTests(unittest.TestCase):
         self.assertEqual(receipt['recoveredBuildings'], 0)
         self.assertEqual(self.features[0]['properties']['lidarHeightStatus'], 'insufficient-ground-points:5')
 
+    def test_single_tile_opt_in_preserves_default_and_recovers(self):
+        polygons = [[[(100, 100), (120, 100), (120, 120), (100, 120), (100, 100)]]]
+        arrays = tuple(np.array(column) for column in (
+            [110] * 16, [110] * 16, [100] * 10 + [120] * 6, [2] * 10 + [1] * 6,
+        ))
+        with TemporaryDirectory() as directory, \
+                patch.object(retry, 'get_footprint_polygons_spw', return_value=polygons), \
+                patch.object(retry, 'download_tile', return_value='a' * 64), \
+                patch.object(retry, 'read_source', return_value=arrays):
+            self.assertEqual(retry.recover(self.features, Path(directory), keep_tiles=True)['candidateBuildings'], 0)
+            result = retry.recover(self.features, Path(directory), keep_tiles=True, include_single_tile=True)
+            self.assertEqual(result['recoveredBuildings'], 1)
+            self.assertEqual(self.features[0]['properties']['lidarHeightFt'], 20.0)
+
     def test_ground_buffer_reaches_diagonal_neighbor(self):
         self.assertEqual(retry.intersecting_grids([(4960, 4960, 5030, 5030)]),
                          {(0, 0), (0, 1), (1, 0), (1, 1)})

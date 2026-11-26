@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/vertical_bridge.py'
       - '.github/workflows/auto-3d-city-builder-vertical.yml'
+      - 'scripts/geospatial/retry_adjacent_copc_heights.py'
+      - 'scripts/geospatial/test_retry_adjacent_copc_heights.py'
 permissions:
   contents: read
 jobs:
@@ -23,7 +25,9 @@ jobs:
         run: python -m pytest scripts/geospatial/auto-3d-city-builder/tests -q
       - name: Acquire official bounded pilot scene
         run: python scripts/geospatial/build_mount_vernon_scene.py --bbox -87.900 37.929 -87.892 37.938 --output vertical-review/source
-      - name: Retrieve EPT metadata and verify explicit vertical datum before sampling
+      - name: Test existing COPC recovery including single-tile footprints
+        run: python -m unittest scripts.geospatial.test_retry_adjacent_copc_heights -v
+      - name: Preserve legacy EPT metadata and prepare official source footprints
         run: |
           set -euo pipefail
           curl --fail --retry 3 --max-time 90 'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json' -o vertical-review/ept.json
@@ -32,19 +36,17 @@ jobs:
           from pathlib import Path
           root=Path('vertical-review')
           meta=json.loads((root/'ept.json').read_bytes())
-          srs=meta.get('srs',{})
-          if not isinstance(srs,dict) or srs.get('authority')!='EPSG' or str(srs.get('vertical'))!='5703':
-              raise SystemExit('BLOCKED: EPT metadata lacks explicit NAVD88 metre CRS EPSG:5703')
+          print('Legacy EPT source CRS:',meta.get('srs',{}))
           scene=json.loads((root/'source/scene.json').read_bytes())
           (root/'footprints.geojson').write_text(json.dumps(scene['buildings']))
           PY
-      - name: Sample classified LiDAR returns with existing TSM extractor
+      - name: Recover roof and ground candidates from header-verified Indiana COPC
         run: |
-          python scripts/geospatial/extract_lidar_heights.py --geojson vertical-review/footprints.geojson --out vertical-review/lidar.geojson --ept-url 'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json' --allow-zero-heights
-      - name: Build geoid-adjusted candidates, no assumed heights
+          python scripts/geospatial/retry_adjacent_copc_heights.py --geojson vertical-review/footprints.geojson --tile-dir /tmp/tsm-city-copc --out vertical-review/lidar.geojson --receipt vertical-review/copc-receipt.json --include-single-tile --keep-tiles
+      - name: Verify raw source digests and build nominal GEOID18 placement candidates
         run: |
           set -euo pipefail
-          python -m citybuilder.vertical_bridge vertical-review/source vertical-review/lidar.geojson vertical-review/candidate --lidar-sha256 "$(sha256sum vertical-review/lidar.geojson | cut -d' ' -f1)" --metadata vertical-review/ept.json --metadata-sha256 "$(sha256sum vertical-review/ept.json | cut -d' ' -f1)" --grid data/geo/geoid18/g2018u0.bin
+          python -m citybuilder.vertical_bridge vertical-review/source vertical-review/lidar.geojson vertical-review/candidate --lidar-sha256 "$(sha256sum vertical-review/lidar.geojson | cut -d' ' -f1)" --metadata vertical-review/copc-receipt.json --metadata-sha256 "$(sha256sum vertical-review/copc-receipt.json | cut -d' ' -f1)" --copc-tile-dir /tmp/tsm-city-copc --grid data/geo/geoid18/g2018u0.bin
       - name: Preserve source and candidate diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
