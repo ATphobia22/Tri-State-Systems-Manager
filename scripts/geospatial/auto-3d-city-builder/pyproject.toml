@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "auto-3d-city-builder"
+version = "0.2.1"
+description = "Evidence-aware LoD1 3D Tiles and temporal city twin starter"
+requires-python = ">=3.11"
+dependencies = ["shapely>=2.0,<3", "pyproj>=3.6,<4", "trimesh>=4,<5", "numpy>=1.26,<3"]
+[project.optional-dependencies]
+test = ["pytest>=8"]
+[project.scripts]
+citybuilder = "citybuilder.cli:main"
+[tool.setuptools.packages.find]
+where = ["src"]

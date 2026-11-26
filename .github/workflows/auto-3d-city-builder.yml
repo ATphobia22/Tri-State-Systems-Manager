@@ -1,0 +1,26 @@
+name: Auto-3D City Builder candidate reconstruction
+on:
+  push:
+    paths:
+      - 'scripts/geospatial/auto-3d-city-builder/**'
+      - '.github/workflows/auto-3d-city-builder.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/auto-3d-city-builder/**'
+      - '.github/workflows/auto-3d-city-builder.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install reconstruction runtime
+        run: python -m pip install -e 'scripts/geospatial/auto-3d-city-builder[test]'
+      - name: Test candidate geometry, evidence, and MCP contracts
+        run: python -m pytest scripts/geospatial/auto-3d-city-builder/tests -q

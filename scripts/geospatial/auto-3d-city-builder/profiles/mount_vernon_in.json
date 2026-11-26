@@ -1,0 +1,15 @@
+{
+ "name":"Mount Vernon, Indiana", "slug":"mount-vernon-indiana", "census_place_geoid":"1851732",
+ "center":[-87.895817,37.936378], "center_role":"Approximate city camera center, not parcel geometry or survey coordinate",
+ "aoi_bbox_wgs84":[-87.940,37.908,-87.850,37.970],
+ "crs":"EPSG:32616", "source_native_crs_note":"Indiana West EPSG:2966 in US survey feet may be required for native engineering. Reproject for metric rendering only.",
+ "vertical_datum":"UNVERIFIED_VISUAL", "max_buildings":40000,
+ "source_registry":[
+  {"layer":"buildings","kind":"arcgis","url":"https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0","publisher":"Indiana Geographic Information Office","status":"SOURCE_IDENTIFIED_NOT_DOWNLOADED"},
+  {"layer":"parcels","kind":"arcgis","url":"https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer","publisher":"Indiana Geographic Information Office","status":"SOURCE_IDENTIFIED_NOT_INTEGRATED"},
+  {"layer":"roads","kind":"arcgis","url":"https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2024/FeatureServer","publisher":"Indiana Geographic Information Office","status":"SOURCE_IDENTIFIED_NOT_INTEGRATED"},
+  {"layer":"addresses","kind":"arcgis","url":"https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer","publisher":"Indiana Geographic Information Office","status":"SOURCE_IDENTIFIED_NOT_INTEGRATED"}
+ ],
+ "rendering_confidence":"FOOTPRINTS_OFFICIAL_IF_FETCHED; HEIGHTS_VISUAL_ESTIMATES; GROUND_RELATIVE_NOT_NAVD88; UNVALIDATED_NO_FLOOD_ENGINEERING",
+ "source_snapshot":null
+}

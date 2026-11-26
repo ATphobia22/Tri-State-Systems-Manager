@@ -1,0 +1,27 @@
+{
+  "name": "Synthetic Test City",
+  "slug": "synthetic-test-city",
+  "center": [
+    -87.895817,
+    37.936378
+  ],
+  "camera_center_note": "Illustrative only; building sample is NOT Mount Vernon geometry",
+  "crs": "EPSG:32616",
+  "vertical_datum": "DEMO_NAVD88_UNVALIDATED",
+  "source_snapshot": "../examples/sample_footprints_32616.geojson",
+  "source_registry": [],
+  "timeline_events": [
+    {
+      "event_id": "demo-event-2024",
+      "timestamp_utc": "2024-04-01T12:00:00Z",
+      "status": "SIMULATED",
+      "label": "Example scenario A \u2014 no measured water"
+    },
+    {
+      "event_id": "demo-event-2026",
+      "timestamp_utc": "2026-11-24T12:00:00Z",
+      "status": "SIMULATED",
+      "label": "Example scenario B \u2014 same static geometry"
+    }
+  ]
+}

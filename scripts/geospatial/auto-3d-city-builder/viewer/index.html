@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auto-3D City Builder · 4D Evidence Viewer</title>
+<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.136/Build/Cesium/Widgets/widgets.css">
+<style>
+:root{color-scheme:dark;font:14px system-ui,sans-serif}*{box-sizing:border-box}
+html,body,#cesiumContainer{margin:0;height:100%;width:100%}
+#panel{position:fixed;z-index:10;top:12px;left:12px;max-height:calc(100vh - 24px);overflow:auto;width:min(410px,calc(100vw - 24px));background:#182331f2;color:#f1f4f8;padding:15px;border:1px solid #8494a44d;border-radius:12px;box-shadow:0 10px 28px #0007}
+h1{font-size:18px;margin:0 0 6px}h2{font-size:14px;margin:14px 0 8px}p{line-height:1.42}small,.muted{color:#c0c8d2}button,input{font:inherit}button{background:#234b72;color:white;border:1px solid #5688b5;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#2a699a}input[type=text]{width:100%;padding:8px;background:#0d1826;border:1px solid #647a96;border-radius:6px;color:white}label{display:flex;gap:8px;align-items:center;margin:8px 0}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.notice{background:#553d16;padding:9px;border-radius:6px;border-left:3px solid #f3af4f}.count{font-variant-numeric:tabular-nums}.est{border-bottom:1px solid #ffffff25;padding:8px 0}.est .state{color:#f6bc69;font-size:12px}.token{background:#20354a;border-radius:4px;padding:2px 5px;font-size:12px}#list{max-height:220px;overflow:auto}#status{white-space:pre-wrap}details summary{cursor:pointer;font-weight:600}.visually-hidden{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
+</style></head>
+<body><div id="cesiumContainer" aria-label="3D city scene"></div>
+<aside id="panel" aria-label="Digital twin layers and evidence">
+<h1>Auto‑3D City Builder</h1><div class="muted">City geometry + time-aware evidence · Visual preview</div>
+<p class="notice"><strong>Visual-only estimates are not survey or flood levels.</strong> Missing datum/terrain evidence remains unresolved. Amber geometry denotes estimated building height.</p>
+<details open><summary>Scene and layers</summary>
+<label for="tilepath">Tileset base URL</label><input type="text" id="tilepath" value="./tileset.json" autocomplete="off">
+<div class="row"><button id="load">Load scene</button><button id="zoom">Zoom to scene</button></div>
+<label><input type="checkbox" id="verified" checked> Source-height buildings (slate)</label>
+<label><input type="checkbox" id="estimated" checked> Estimated-height buildings (amber)</label>
+<label><input type="checkbox" id="panelVisible" checked> Evidence review enabled</label>
+<p id="status" role="status">Scene not loaded.</p>
+</details>
+<details open id="timeline"><summary>Time / 4D event replay</summary>
+<p class="muted">Time-indexed records are evidence-labelled. Changing date does not simulate physical changes in 3D geometry.</p>
+<input type="range" id="timepick" min="0" max="0" value="0" style="width:100%" aria-label="Timeline event index">
+<div id="timeinfo" role="status">No verified observations loaded</div>
+</details>
+<details id="evidence" open><summary>Evidence &amp; Estimates <span id="count" class="count">(not loaded)</span></summary>
+<p class="muted">Search by building source ID or field; each assumption includes its method, uncertainty, and replacement input.</p>
+<input id="search" type="text" placeholder="Find source ID, field or method" aria-label="Search estimates">
+<div class="row"><button id="download">Export estimates JSON</button><button id="reload">Re-read ledger</button></div>
+<div id="list" aria-live="polite"></div>
+</details>
+<details><summary>Accuracy / replacement workflow</summary><p>Source measurements and visual assumptions are separate. To replace an estimate, acquire a newer source ID-matched height or verified terrain/datum transform, regenerate the source snapshot and tiles, and rerun the validation gate.</p>
+<p>NeRF and 3D Gaussian splatting layers require rights-cleared overlapping images, camera pose recovery, GPU training and surveyed geographic anchors. No neural reconstruction is implied by this preview.</p></details>
+</aside>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.136/Build/Cesium/Cesium.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id); let viewer=null, layers={}, ledger=null, rootUrl='', timeline=[];
+function status(s){$('status').textContent=s}
+function safeURL(path){const url=new URL(path,location.href);if(!['http:','https:'].includes(url.protocol))throw Error('Only HTTPS/HTTP asset URLs permitted');return url.href}
+function assetURL(path){return new URL(path,rootUrl).href}
+function displayLedger(){const arr=ledger?.estimates||[];const q=$('search').value.toLowerCase().trim();$('count').textContent=`(${arr.length} assumptions)`;$('list').replaceChildren();const chosen=arr.filter(x=>[x.source_id,x.field,x.status,x.method].join(' ').toLowerCase().includes(q));if(!chosen.length){const d=document.createElement('p');d.textContent='No matching estimates';$('list').append(d);return}for(const est of chosen.slice(0,200)){const e=document.createElement('div');e.className='est';const head=document.createElement('strong');head.textContent=`${est.source_id} • ${est.field}: ${est.estimated_value} ${est.units}`;const state=document.createElement('div');state.className='state';state.textContent=`${est.status} • confidence: ${est.confidence}`;const why=document.createElement('small');why.textContent=`${est.method} · Replace with: ${est.replacement_requirement}`;e.append(head,state,why);$('list').append(e)}if(chosen.length>200){const m=document.createElement('p');m.textContent=`Showing first 200 of ${chosen.length}; export JSON for all.`;$('list').append(m)}}
+async function readLedger(){const u=assetURL('estimate_ledger.json');const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error(`Ledger HTTP ${r.status}`);ledger=await r.json();if(!Array.isArray(ledger.estimates))throw Error('Invalid estimates ledger');displayLedger()}
+async function loadScene(){try{if(!window.Cesium)throw Error('Cesium library unavailable; preview requires access to its runtime CDN');$('load').disabled=true;status('Loading tiles…');if(!viewer)viewer=new Cesium.Viewer('cesiumContainer',{baseLayer:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),geocoder:false,sceneModePicker:false,animation:true,timeline:true});for(const l of Object.values(layers))viewer.scene.primitives.remove(l);layers={};const url=safeURL($('tilepath').value);rootUrl=new URL('.',url).href;const manifestResponse=await fetch(assetURL('manifest.json'));if(!manifestResponse.ok)throw Error('Missing manifest');const manifest=await manifestResponse.json();const layerFiles=manifest.visual_layers||{};
+if(Object.keys(layerFiles).length){for(const [kind,path] of Object.entries(layerFiles)){const tile=await Cesium.Cesium3DTileset.fromUrl(assetURL(path));viewer.scene.primitives.add(tile);layers[kind]=tile;tile.show=$(kind==='estimated'?'estimated':'verified').checked;}}else{const tile=await Cesium.Cesium3DTileset.fromUrl(url);viewer.scene.primitives.add(tile);layers.all=tile;}await readLedger();await readTimeline();await viewer.zoomTo(Object.values(layers)[0]);status(`Loaded ${manifest.features_built} buildings · ${manifest.estimate_count} assumptions · ${manifest.status}`)}catch(e){status('LOAD ERROR: '+e.message)}finally{$('load').disabled=false}}
+async function readTimeline(){
+  const r=await fetch(assetURL('timeline_events.json'),{cache:'no-store'});
+  if(!r.ok){timeline=[];$('timeinfo').textContent='No timeline source loaded';return}
+  const data=await r.json();timeline=data.events||[];
+  $('timepick').max=String(Math.max(0,timeline.length-1));$('timepick').value='0';showTime();
+}
+function showTime(){const e=timeline[Number($('timepick').value)];$('timeinfo').textContent=e?`${e.timestamp_utc} · ${e.status} · ${e.label||e.event_id}`:'No time-aware events. 3D geometry is a static snapshot.'}
+$('timepick').addEventListener('input',showTime);
+$('load').addEventListener('click',loadScene);$('zoom').addEventListener('click',()=>{if(viewer&&Object.values(layers).length)viewer.zoomTo(Object.values(layers)[0])});$('search').addEventListener('input',displayLedger);$('reload').addEventListener('click',()=>readLedger().catch(e=>status('LEDGER ERROR: '+e.message)));
+for(const kind of ['verified','estimated'])$(kind).addEventListener('change',()=>{if(layers[kind])layers[kind].show=$(kind).checked});
+$('panelVisible').addEventListener('change',()=>{$('evidence').open=$('panelVisible').checked});
+$('download').addEventListener('click',()=>{if(!ledger)return;const b=new Blob([JSON.stringify(ledger,null,2)],{type:'application/json'});const a=document.createElement('a');const url=URL.createObjectURL(b);a.href=url;a.download='estimate_ledger.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+// No silent artificial live water or terrain values. Browser is a visualization only.
+loadScene();
+</script></body></html>

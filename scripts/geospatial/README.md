@@ -50,3 +50,7 @@ authorized replacement parcel geometries or FEMA flood-zone determinations. The
 optional flag is off for legacy calls; the output reports `geometry_quality: NOT_RUN`
 when topology was not inspected. CI tests use artificial fixtures only; a real
 accepted run must cite the staged source's actual hash and acquisition metadata.
+
+## Auto-3D City Builder reconstruction subsystem
+
+[TSM integration and candidate execution](auto-3d-city-builder/TSM-INTEGRATION.md): reusable MIT-licensed local reconstruction engine, consuming TSM's checksummed scene snapshots. Outputs are isolated visual candidates; production terrain, height and publication gates remain authoritative.
