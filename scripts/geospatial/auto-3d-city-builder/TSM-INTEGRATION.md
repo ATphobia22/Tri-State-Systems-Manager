@@ -58,3 +58,7 @@ The new workflow reuses the exact 525-feature scene from run 45769088253 and red
 ### Runtime bootstrap recovery
 
 Run 45771846066 passed 43 tests and acquired the baseline artifact, but failed before processing because the runner had no conda executable. The workflow now downloads micromamba 2.3.3-0 from its upstream release with a pinned SHA-256, records the resolved conda-forge package inventory, verifies the PDAL 2.9.3 executable and required stages, and runs a real synthetic compound-CRS/raster smoke test before touching the real point clouds. This synthetic test is opt-in only in the ordinary Python suite; it is required in the actual PDAL job. No acceptance threshold or source digest was changed.
+
+### Native PROJ data isolation
+
+Run 45772227110 installed PDAL 2.9.3 successfully, but the executable smoke test failed to initialize its PROJ database before processing. The native launcher now supplies the matching environment's PROJ_DATA, PROJ_LIB, GDAL_DATA and library path only to native executables, checks the database exists, disables network grid retrieval, and removes conflicting GDAL plugin paths. The workflow records the PROJ database checksum and compound coordinate-operation summary before the original real executable smoke test. Python geospatial library environments remain untouched. Two launcher regression tests verify contaminated environment isolation and rejection of a missing database. No coordinate datum, source geometry, or acceptance threshold changed.

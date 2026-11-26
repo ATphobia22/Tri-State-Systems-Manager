@@ -7,6 +7,8 @@ on:
       - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/pdal_roofer.py'
       - 'scripts/geospatial/auto-3d-city-builder/tests/test_pdal_roofer.py'
       - 'scripts/geospatial/auto-3d-city-builder/tests/test_pdal_binary_smoke.py'
+      - 'scripts/geospatial/auto-3d-city-builder/runtime/**'
+      - 'scripts/geospatial/auto-3d-city-builder/tests/test_native_runtime.py'
       - '.github/workflows/auto-3d-city-builder-pdal-roofer.yml'
 permissions:
   contents: read
@@ -43,17 +45,27 @@ jobs:
           "$MM" --version
           "$MM" create -y -p "$RUNNER_TEMP/tsm-pdal" --override-channels -c conda-forge 'pdal=2.9.3' gdal
           "$MM" list -p "$RUNNER_TEMP/tsm-pdal" --explicit > pdal-lock.txt
-          "$RUNNER_TEMP/tsm-pdal/bin/pdal" --version | tee pdal-version.txt
+          export TSM_PDAL_PREFIX="$RUNNER_TEMP/tsm-pdal"
+          echo "TSM_PDAL_PREFIX=$TSM_PDAL_PREFIX" >> "$GITHUB_ENV"
+          NATIVE="$RUNNER_TEMP/tsm-native"
+          mkdir "$NATIVE"
+          for name in pdal ogr2ogr projinfo; do
+            ln -s "$GITHUB_WORKSPACE/scripts/geospatial/auto-3d-city-builder/runtime/native-tool.sh" "$NATIVE/$name"
+          done
+          test -s "$TSM_PDAL_PREFIX/share/proj/proj.db"
+          sha256sum "$TSM_PDAL_PREFIX/share/proj/proj.db" > proj-database.sha256
+          "$NATIVE/projinfo" -s 'EPSG:2968+6360' -t 'EPSG:2793+5703' --summary | tee proj-operation.txt
+          "$NATIVE/pdal" --version | tee pdal-version.txt
           grep -F '2.9.3' pdal-version.txt
-          "$RUNNER_TEMP/tsm-pdal/bin/ogr2ogr" --version | tee gdal-version.txt
-          "$RUNNER_TEMP/tsm-pdal/bin/pdal" --drivers > pdal-drivers.txt
+          "$NATIVE/ogr2ogr" --version | tee gdal-version.txt
+          "$NATIVE/pdal" --drivers > pdal-drivers.txt
           for driver in readers.las filters.reprojection filters.expression filters.crop writers.las writers.gdal; do
             grep -F "$driver" pdal-drivers.txt
           done
       - name: Execute real PDAL synthetic preprocessing smoke test
         env:
           PROJ_NETWORK: "OFF"
-          TSM_PDAL_SMOKE: ${{ runner.temp }}/tsm-pdal/bin/pdal
+          TSM_PDAL_SMOKE: ${{ runner.temp }}/tsm-native/pdal
         run: |
           python -m pytest scripts/geospatial/auto-3d-city-builder/tests/test_pdal_binary_smoke.py -q
       - name: Install checksum-pinned Roofer v1.0.0 Linux release
@@ -72,7 +84,7 @@ jobs:
         env:
           PROJ_NETWORK: "OFF"
         run: |
-          python -m citybuilder.pdal_roofer reviewed reconstruction-review --pdal "$RUNNER_TEMP/tsm-pdal/bin/pdal" --ogr2ogr "$RUNNER_TEMP/tsm-pdal/bin/ogr2ogr" --roofer "$TSM_ROOFER"
+          python -m citybuilder.pdal_roofer reviewed reconstruction-review --pdal "$RUNNER_TEMP/tsm-native/pdal" --ogr2ogr "$RUNNER_TEMP/tsm-native/ogr2ogr" --roofer "$TSM_ROOFER"
       - name: Preserve derived rasters, CityJSONSeq and review evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -83,6 +95,8 @@ jobs:
             pdal-version.txt
             gdal-version.txt
             pdal-drivers.txt
+            proj-database.sha256
+            proj-operation.txt
             reconstruction-review/**
             !reconstruction-review/raw/**
             !reconstruction-review/metric.las
