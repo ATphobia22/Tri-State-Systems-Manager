@@ -8,7 +8,7 @@ description = "Evidence-aware LoD1 3D Tiles and temporal city twin starter"
 requires-python = ">=3.11"
 dependencies = ["shapely>=2.0,<3", "pyproj>=3.6,<4", "trimesh>=4,<5", "numpy>=1.26,<3"]
 [project.optional-dependencies]
-test = ["pytest>=8", "laspy==2.6.1", "lazrs==0.7.0"]
+test = ["pytest>=8", "laspy==2.6.1", "lazrs==0.7.0", "rasterio==1.4.3"]
 [project.scripts]
 citybuilder = "citybuilder.cli:main"
 [tool.setuptools.packages.find]
