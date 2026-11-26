@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
+# Compatibility entrypoint for the source-bound Mount Vernon review pilot.
+# The pilot explicitly marks every model as publication/engineering ineligible.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-cd "$ROOT"
-mkdir -p data/dem data/lidar data/citygml
-run_pdal() {
-  echo "=== PDAL: $1 ==="
-  if command -v pdal >/dev/null 2>&1; then pdal pipeline "scripts/geospatial/$1"; else echo "SKIP: install pdal (conda-forge)"; return 1; fi
-}
-ok=0
-run_pdal pdal_3dep_clip.json && ok=$((ok+1)) || true
-run_pdal pdal_3dep_dsm.json && ok=$((ok+1)) || true
-run_pdal pdal_3dep_buildings.json && ok=$((ok+1)) || true
-echo "PDAL stages: $ok / 3"
-GML="data/citygml/posey_lod1.gml"
-[[ -f "$GML" ]] || GML="data/citygml/mount_vernon_lod1_sample.gml"
-if command -v docker >/dev/null 2>&1; then
-  (cd auto-3d-city-builder/docker && CITYDB_SRID=26916 docker compose up -d citydb) || true
-  bash auto-3d-city-builder/pipeline/import_citygml.sh "$(pwd)/data/citygml" "$(basename "$GML")"
-else
-  echo "SKIP docker — import later: bash auto-3d-city-builder/pipeline/import_citygml.sh data/citygml $(basename "$GML")"
+if [[ "${1:-}" != --review || "$#" -lt 3 ]]; then
+  echo 'BLOCKED: production import is not authorized by the Roofer review receipts.' >&2
+  echo 'Usage: run_pdal_then_citygml.sh --review REVIEW_DIR NEW_OUTPUT_DIR --pdal PATH --ogr2ogr PATH --roofer PATH' >&2
+  exit 2
 fi
+shift
+# Preserve caller-relative paths. The installed engine verifies pinned source
+# hashes and compound CRS, checks subprocess exits, and rejects empty candidates.
+# Do not start Docker, convert to CityGML, or import review-only CityJSONSeq.
+export PROJ_NETWORK=OFF
+exec python3 -m citybuilder.pdal_roofer "$@"

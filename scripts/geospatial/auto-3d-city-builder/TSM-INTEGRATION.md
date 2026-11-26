@@ -66,3 +66,30 @@ Run 45772227110 installed PDAL 2.9.3 successfully, but the executable smoke test
 ### Roofer release launcher recovery
 
 Run 45772906082 passed the real PDAL synthetic CRS/raster test and validated the Roofer archive digest, then stopped at executable discovery. The v1.0.0 upstream installer specifies bin/roofer and explicitly chmods it after extraction. TSM now follows this known layout, sets the executable permission, records the release inventory and CLI help/version, and isolates Roofer's own bundled libraries and geospatial data using a dedicated launcher. Two launcher tests check argument preservation, data isolation and fail-fast behavior. The pinned release digest and all scientific acceptance gates remain unchanged. Source: https://github.com/3DBAG/roofer/blob/v1.0.0/distribution/install.sh .
+
+### Legacy entrypoints: review only
+
+The root-level `auto-3d-city-builder/pipeline/run_pdal_then_citygml.sh` and
+`run_full_dem_dsm_buildings.sh` now delegate to the source-bound pilot rather
+than run unpinned PDAL stages or import a synthetic sample. Install the
+citybuilder package and use the isolated pinned native tools from the PDAL/Roofer
+workflow. From the repository root, supply an existing verified review artifact
+directory and a new output directory:
+
+```bash
+bash auto-3d-city-builder/pipeline/run_pdal_then_citygml.sh \
+  --review reviewed reconstruction-review \
+  --pdal /path/to/pdal --ogr2ogr /path/to/ogr2ogr --roofer /path/to/roofer
+```
+
+A successful exit means the existing review engine produced structural review
+candidates, not that these buildings are approved for publication. Missing
+arguments, production requests and engine errors are nonzero. Neither entrypoint
+starts Docker or invokes the CityGML importer. Production ingestion remains
+blocked pending independently validated geometry, source and output hash
+verification, datum and identity reconciliation, an approved CityJSON/CityGML
+conversion, and database schema/readiness checks. The separate legacy import
+script is not a production acceptance gate.
+
+Focused regression:
+`python3 -m unittest discover -s tests/geospatial -p test_reconstruction_entrypoint.py -v`.
