@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/pdal_roofer.py'
       - 'scripts/geospatial/auto-3d-city-builder/tests/test_pdal_roofer.py'
+      - 'scripts/geospatial/auto-3d-city-builder/tests/test_pdal_binary_smoke.py'
       - '.github/workflows/auto-3d-city-builder-pdal-roofer.yml'
 permissions:
   contents: read
@@ -34,12 +35,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          CONDA="$(command -v conda || true)"
-          if [[ -z "$CONDA" ]]; then CONDA=/usr/share/miniconda/bin/conda; fi
-          "$CONDA" create -y -p "$RUNNER_TEMP/tsm-pdal" --override-channels -c conda-forge 'pdal=2.9.3' gdal
-          "$CONDA" list -p "$RUNNER_TEMP/tsm-pdal" --explicit > pdal-lock.txt
-          "$RUNNER_TEMP/tsm-pdal/bin/pdal" --version
-          "$RUNNER_TEMP/tsm-pdal/bin/ogr2ogr" --version
+          MM="$RUNNER_TEMP/micromamba"
+          curl --fail --location --retry 3 --max-time 180 'https://github.com/mamba-org/micromamba-releases/releases/download/2.3.3-0/micromamba-linux-64' -o "$MM"
+          echo "9496f94a8b78c536573c93d946ec9bba74bd9ff79ee55aaa4b546e30db8f511b  $MM" | sha256sum -c -
+          chmod 0755 "$MM"
+          export MAMBA_ROOT_PREFIX="$RUNNER_TEMP/tsm-mamba"
+          "$MM" --version
+          "$MM" create -y -p "$RUNNER_TEMP/tsm-pdal" --override-channels -c conda-forge 'pdal=2.9.3' gdal
+          "$MM" list -p "$RUNNER_TEMP/tsm-pdal" --explicit > pdal-lock.txt
+          "$RUNNER_TEMP/tsm-pdal/bin/pdal" --version | tee pdal-version.txt
+          grep -F '2.9.3' pdal-version.txt
+          "$RUNNER_TEMP/tsm-pdal/bin/ogr2ogr" --version | tee gdal-version.txt
+          "$RUNNER_TEMP/tsm-pdal/bin/pdal" --drivers > pdal-drivers.txt
+          for driver in readers.las filters.reprojection filters.expression filters.crop writers.las writers.gdal; do
+            grep -F "$driver" pdal-drivers.txt
+          done
+      - name: Execute real PDAL synthetic preprocessing smoke test
+        env:
+          PROJ_NETWORK: "OFF"
+          TSM_PDAL_SMOKE: ${{ runner.temp }}/tsm-pdal/bin/pdal
+        run: |
+          python -m pytest scripts/geospatial/auto-3d-city-builder/tests/test_pdal_binary_smoke.py -q
       - name: Install checksum-pinned Roofer v1.0.0 Linux release
         shell: bash
         run: |
@@ -64,6 +80,9 @@ jobs:
           name: mount-vernon-pdal-roofer-review
           path: |
             pdal-lock.txt
+            pdal-version.txt
+            gdal-version.txt
+            pdal-drivers.txt
             reconstruction-review/**
             !reconstruction-review/raw/**
             !reconstruction-review/metric.las
