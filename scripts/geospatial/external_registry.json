@@ -1,0 +1,13 @@
+{
+  "schema": "tsm.external_data_registry.v1",
+  "updated": "2026-11-26",
+  "items": [
+    {"id": "TR-22-4", "status": "FOIA_OR_PUBLIC_SEARCH"},
+    {"id": "CEII", "status": "BLOCKED_BY_POLICY"},
+    {"id": "PE_PLS", "status": "HUMAN_LICENSE"},
+    {"id": "UNION_KY_PVA", "status": "PUBLIC_OR_COMMERCIAL", "links": ["https://www.arcgis.com/home/item.html?id=b0f32328e00d4874b05c10f123c2f5fd"]},
+    {"id": "IN_811", "status": "MEMBER_API_OR_MANUAL"},
+    {"id": "INDOT_DOT", "status": "PUBLIC_GIS", "example": "https://gisq.indot.in.gov/ro/rest/services/DOT/INDOT_NLRI_DATA/MapServer"},
+    {"id": "LIDAR_LOD23", "status": "PUBLIC_3DEP", "pipeline": "scripts/geospatial/pdal_3dep_clip.json", "links": ["https://www.usgs.gov/tools/lidarexplorer", "https://registry.opendata.aws/usgs-lidar/"]}
+  ]
+}
