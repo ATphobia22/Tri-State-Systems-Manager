@@ -1,0 +1,39 @@
+name: TSM Mount Vernon reconstruction real-source pilot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/tsm_adapter.py'
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/candidate_gate.py'
+      - '.github/workflows/auto-3d-city-builder-pilot.yml'
+permissions:
+  contents: read
+jobs:
+  downtown-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install reconstruction worker
+        run: python -m pip install -e 'scripts/geospatial/auto-3d-city-builder[test]'
+      - name: Validate candidate contracts
+        run: python -m pytest scripts/geospatial/auto-3d-city-builder/tests -q
+      - name: Acquire real official building and road data in bounded Mount Vernon pilot AOI
+        run: python scripts/geospatial/build_mount_vernon_scene.py --bbox -87.900 37.929 -87.892 37.938 --output reconstruction-review/source
+      - name: Build visual-only reconstruction candidate
+        run: python -m citybuilder.tsm_adapter reconstruction-review/source reconstruction-review/candidate --estimate-missing
+      - name: Independently verify source and candidate bytes and authority separation
+        run: |
+          python -m citybuilder.candidate_gate reconstruction-review/source reconstruction-review/candidate > reconstruction-review/candidate-integrity.json
+          cat reconstruction-review/candidate-integrity.json
+      - name: Retain review-only reconstruction evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mount-vernon-reconstruction-review
+          path: reconstruction-review/
+          if-no-files-found: error
+          retention-days: 30
