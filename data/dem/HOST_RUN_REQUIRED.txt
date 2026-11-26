@@ -1,0 +1,6 @@
+Sandbox: PDAL and Docker unavailable.
+Host:
+  conda install -c conda-forge pdal gdal
+  bash auto-3d-city-builder/pipeline/run_full_dem_dsm_buildings.sh
+Outputs: data/dem/posey_ground_1m.tif data/dem/posey_dsm_1m.tif data/lidar/posey_buildings.laz
+Then: docker compose + import_citygml.sh → 3D Tiles / ion 6204792
