@@ -351,6 +351,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", required=True, type=Path)
     ap.add_argument("--expected-count", type=int, default=EXPECTED_POSEY)
+    ap.add_argument("--require-live", action="store_true",
+                    help="production: never substitute the historical pinned archive if the live IGIO query fails")
     ap.add_argument("--dem-root", type=Path, default=Path("data/posey-county/elevation"))
     ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
     ap.add_argument("--fallback-url", default="https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson")
@@ -483,6 +485,11 @@ def main() -> None:
                 f"unique OBJECTIDs"
             )
     except RuntimeError as exc:
+        if args.require_live:
+            raise SystemExit(
+                "SOURCE_UNAVAILABLE: production requires the fresh IGIO response; "
+                "historical fallback is forbidden"
+            ) from exc
         # Live IGIO unavailable/incomplete. Prefer the truly offline and
         # independently SHA-256 pinned cache; never accept arbitrary snapshots.
         print(f"WARNING: Live IGIO snapshot unavailable: {type(exc).__name__}", flush=True)
