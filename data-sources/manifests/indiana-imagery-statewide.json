@@ -1,1 +1,49 @@
-{"accessDate":"2026-10-06","authority":"Indiana Geographic Information Office (GIO)","authorityClass":"STATE_IMAGERY","bucketArn":"arn:aws:s3:::gisimageryingov","bucketRegion":"us-east-2","collections":["1970","1998","2005","2011","2012","2013","2014","2015","2016","2017","2018","2019","2021","2022","2023"],"contact":"sscholer@iot.in.gov","description":"Digital orthophotography dating back to 2005. Cloud Optimized GeoTIFF (COG), original GeoTIFF, ECW, MrSID. 5,000 ft tile grid; tile naming reflects lower-left coordinate.","documentation":"https://imagery.gio.in.gov/","downloadedVsReferenced":{"imageryTiles":"REFERENCED ONLY — per-tile S3 URLs; not vendored. Offline tooling fetches only needed tiles."},"license":"CC0 https://creativecommons.org/publicdomain/zero/1.0/legalcode","limitations":["Reference only — not survey evidence.","Recent collections (2018+) cover northern/central tiers; southwestern counties (Posey) have earlier-vintage coverage."],"s3Browser":"https://gisimageryingov.s3.amazonaws.com/index.html","schemaVersion":"1.0.0","sourceId":"indiana-imagery-statewide","sourceName":"Indiana Statewide Digital Aerial Imagery Catalog","sourceUrls":["https://gisimageryingov.s3.us-east-2.amazonaws.com/imageryoptimized/statewide/"],"updateFrequency":"4-year cycle; counties in three tiers South to North (Tier 1 Central, Tier 2 Eastern, Tier 3 Western)"}
+{
+  "accessDate": "2026-11-22",
+  "authority": "Indiana Geographic Information Office (GIO)",
+  "authorityClass": "STATE_IMAGERY",
+  "bucketArn": "arn:aws:s3:::gisimageryingov",
+  "bucketRegion": "us-east-2",
+  "collections": [
+    "1970",
+    "1998",
+    "2005",
+    "2011",
+    "2012",
+    "2013",
+    "2014",
+    "2015",
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+    "2025",
+    "2026"
+  ],
+  "contact": "sscholer@iot.in.gov",
+  "description": "Digital orthophotography in year-specific S3 prefixes, including legacy collections. Native horizontal CRS and grid size are product-specific. The verified 2023 Mount Vernon source tile is 2,500 ft square with 0.5 ft pixels in EPSG:2968.",
+  "documentation": "https://registry.opendata.aws/in-imagery/",
+  "downloadedVsReferenced": {
+    "imageryTiles": "Catalog references full tiles. A bounded 2023 Mount Vernon GeoTIFF derivative and source metadata are archived in data-sources/downloads/posey-18129/igio/."
+  },
+  "license": "CC0 https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+  "limitations": [
+    "Reference imagery only. It provides no vertical datum or elevation measurement.",
+    "Posey County was included in the 2023 western-tier program. The archived Mount Vernon sample verifies local coverage only.",
+    "Bucket prefixes identify catalog years. They do not establish coverage by individual county or a QA acceptance date.",
+    "The 2025 leaf-on collection uses a separate catalog and acquisition record."
+  ],
+  "s3Browser": "https://gisimageryingov.s3.amazonaws.com/index.html",
+  "schemaVersion": "1.0.0",
+  "sourceId": "indiana-imagery-statewide",
+  "sourceName": "Indiana Statewide Digital Aerial Imagery Catalog",
+  "sourceUrls": [
+    "https://gisimageryingov.s3.amazonaws.com/?list-type=2&delimiter=%2F&prefix=imageryoptimized%2Fstatewide%2F&max-keys=100",
+    "https://maps.evansvillegis.com/arcgis_server/rest/services/ORTHOS/ORTHOS2023/MapServer"
+  ],
+  "poseyEvidence": "data-sources/manifests/posey-county-public-sources.json"
+}

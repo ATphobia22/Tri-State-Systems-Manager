@@ -1,0 +1,18 @@
+{
+  "manifest_version": "1.1.0",
+  "source_key": "igio-roads-current",
+  "purpose": "Mutable Indiana road centerlines service metadata only; not surveyed geometry",
+  "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer?f=pjson",
+  "retrieved_at": "2026-11-22T15:31:11.326Z",
+  "http_status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "content_length_bytes": 3705,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "66e2fa38984dfc07260880b54bdf1fa5ae526b4c3cddfab88ac6b77a69d2c375",
+  "snapshot_file": "igio-roads-current-service-metadata.json",
+  "scope_note": "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority.",
+  "source_vintage_status": "UNVERIFIED_MUTABLE_CURRENT_SERVICE",
+  "engineering_use": false,
+  "regulatory_use": false
+}

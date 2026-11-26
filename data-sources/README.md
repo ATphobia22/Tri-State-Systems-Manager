@@ -40,3 +40,36 @@ CRS/vertical-datum record**.
 - A reprojection is not a vertical datum conversion unless the transformation is explicitly recorded.
 - Global `backend/gov/site_constants.py` sentinels (`SOURCE_REQUIRED`) are intentional
   fail-closed defaults; source-specific values live in per-source records, never as globals.
+
+## Posey County and Mount Vernon source evidence
+
+The [Posey public-source manifest](manifests/posey-county-public-sources.json)
+records the 15 source domains, publisher links, and the SHA-256 of each archived
+file. It includes original TIGER/Line 2026 Posey road and water shapefiles, 2025
+Mount Vernon place geometry, georeferenced 2023 IGIO imagery, 2025 USDA crop
+classes, historical Indiana State Library map scans and Indiana framework
+service receipts.
+
+The 2026 archives are available for offline evaluation alongside the fixed 2024
+inputs used by the regional screen and GeoPackage build. The compiler's
+`read_tiger` now derives its source vintage from the canonical archive name
+and rejects mismatched shapefile members to prevent 2026 records receiving 2024
+identities. The two releases contain 3,024 and 2,817 Posey road records,
+respectively. These counts describe source records and do not measure changes
+in the physical road network.
+
+The 2023 orthophoto sample is EPSG:2968 (NAD83 HARN / Indiana West, US survey
+feet), with 1 ft export pixels from a 0.5 ft source. It covers a local Mount
+Vernon window. The 2025 USDA export spans a Posey County bounding rectangle
+and preserves categorical values using nearest-neighbor resampling. Neither
+raster supplies NAVD88 elevations. Historical maps are contextual scans.
+
+The official 2016–2020 IGIO footprint service returned 23,082 Posey records.
+This count does not resolve the 267-record difference against the published
+22,815-building inventory or verify roof and ground heights.
+
+Verify only this acquisition from the repository root:
+
+```sh
+sed -n '/^## Posey County public sources/,$p' data-sources/SHA256SUMS | sha256sum -c -
+```

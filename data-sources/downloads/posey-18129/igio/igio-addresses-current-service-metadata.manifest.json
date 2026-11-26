@@ -1,0 +1,18 @@
+{
+  "manifest_version": "1.1.0",
+  "source_key": "igio-addresses-current",
+  "purpose": "Mutable Indiana address points service metadata only; do not publish private address points",
+  "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer?f=pjson",
+  "retrieved_at": "2026-11-22T15:31:11.259Z",
+  "http_status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "content_length_bytes": 3512,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "78995029b39ac8f2b1158f312cb5f0cbd28502ee4e6942da2a9549b82da5729a",
+  "snapshot_file": "igio-addresses-current-service-metadata.json",
+  "scope_note": "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority.",
+  "source_vintage_status": "UNVERIFIED_MUTABLE_CURRENT_SERVICE",
+  "engineering_use": false,
+  "regulatory_use": false
+}

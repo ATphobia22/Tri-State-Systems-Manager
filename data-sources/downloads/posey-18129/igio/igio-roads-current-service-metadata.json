@@ -1,0 +1,112 @@
+{
+ "allowGeometryUpdates": true,
+ "supportsApplyEditsWithGlobalIds": false,
+ "maxRecordCount": 2000,
+ "description": "This dataset was developed to provide accurate street centerlines for Indiana, as part of Indiana's annual GIS Data harvest Data Sharing Initiative (IDSI) of the Indiana Geographic Information Office (IGIO). This data layer is an Esri file geodatabase polyline feature class that contains street centerlines maintained by local government agencies in Indiana. It was released by the Indiana Geographic Information Office (IGIO) on December 31, 2025. The IGIO compiled the data as part of the Indiana Data Harvest program between the Indiana Geographic Information Council (IGIC) and Indiana local governments to provide the most accurate framework data for the citizens of Indiana. ",
+ "infoInEstimates": [
+  "extent",
+  "count"
+ ],
+ "units": "esriDecimalDegrees",
+ "maxViewsCount": 20,
+ "syncEnabled": false,
+ "tables": [],
+ "hasVersionedData": false,
+ "supportedAppendSourceFilterFormats": "featureService",
+ "hasViews": false,
+ "layerOverridesEnabled": true,
+ "supportsRelationshipsResource": true,
+ "layers": [
+  {
+   "name": "Road Centerlines of Indiana Current",
+   "id": 0,
+   "type": "Feature Layer",
+   "geometryType": "esriGeometryPolyline"
+  }
+ ],
+ "GUIDFormat": "O",
+ "spatialReference": {
+  "falseM": -100000,
+  "xyTolerance": 8.983152841195215E-9,
+  "mUnits": 10000,
+  "zUnits": 10000,
+  "latestWkid": 4326,
+  "zTolerance": 0.001,
+  "wkid": 4326,
+  "xyUnits": 9.999999999999999E8,
+  "mTolerance": 0.001,
+  "falseX": -400,
+  "falseY": -400,
+  "falseZ": -100000
+ },
+ "fullExtent": {
+  "ymin": 37.776846840000076,
+  "xmin": -88.07304453299997,
+  "ymax": 41.768067089000056,
+  "xmax": -84.79159718599999,
+  "spatialReference": {
+   "falseM": -100000,
+   "xyTolerance": 8.983152841195215E-9,
+   "mUnits": 10000,
+   "zUnits": 10000,
+   "latestWkid": 4326,
+   "zTolerance": 0.001,
+   "wkid": 4326,
+   "xyUnits": 9.999999999999999E8,
+   "mTolerance": 0.001,
+   "falseX": -400,
+   "falseY": -400,
+   "falseZ": -100000
+  }
+ },
+ "enableZDefaults": true,
+ "allowUpdateWithoutMValues": true,
+ "supportedExportFormats": "sqlite,filegdb,shapefile,csv,geojson",
+ "capabilities": "Query,Extract",
+ "supportsAppend": true,
+ "supportsDisconnectedEditing": false,
+ "supportsSyncModelNone": true,
+ "supportedAppendFormats": "featureCollection,featureService,shapefile",
+ "supportsReturnDeleteResults": true,
+ "currentVersion": 11.5,
+ "advancedEditingCapabilities": {
+  "supportsAsyncApplyEdits": true,
+  "supportsApplyEditsbyUploadID": true,
+  "supportsReturnEditResults": true,
+  "supportedApplyEditsUploadIDFormats": "JSON,PBF"
+ },
+ "supportedQueryFormats": "JSON",
+ "initialExtent": {
+  "ymin": 37.57728582755008,
+  "xmin": -90.75000067416293,
+  "ymax": 41.96762810145005,
+  "xmax": -82.11464104483703,
+  "spatialReference": {
+   "falseM": -100000,
+   "xyTolerance": 8.983152841195215E-9,
+   "mUnits": 10000,
+   "zUnits": 10000,
+   "latestWkid": 4326,
+   "zTolerance": 0.001,
+   "wkid": 4326,
+   "xyUnits": 9.999999999999999E8,
+   "mTolerance": 0.001,
+   "falseX": -400,
+   "falseY": -400,
+   "falseZ": -100000
+  }
+ },
+ "serviceDescription": "",
+ "editorTrackingInfo": {
+  "allowOthersToUpdate": true,
+  "enableEditorTracking": false,
+  "allowOthersToDelete": false,
+  "allowOthersToQuery": true,
+  "enableOwnershipAccessControl": false
+ },
+ "hasSyncEnabledViews": false,
+ "copyrightText": "This data set was created as part of the Indiana Geographic Information Office's GIS Data Harvest Program. The source data used to create this dataset was provided by Indiana local governments.",
+ "zDefault": 0,
+ "supportsLayerOverrides": true,
+ "serviceItemId": "1e36a103dbd04e1d8ca21f1b765a0244"
+}

@@ -256,7 +256,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [mapToolsOpen, setMapToolsOpen] = useState(false);
-  const [status, setStatus] = useState('Initializing MapLibre plane…');
+  // Basemap provenance is persistent; asynchronous overlay messages cannot replace it.
+  const [basemapStatus, setBasemapStatus] = useState('Initializing MapLibre plane…');
+  const [layerStatus, setStatus] = useState('');
+  const status = layerStatus ? `${basemapStatus} ${layerStatus}` : basemapStatus;
   useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<CivicSiteInfo | null>(null);
@@ -442,6 +445,8 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    setBasemapStatus('Initializing MapLibre plane…');
+    setStatus('');
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: props.regionalAtlas ? 'https://tiles.openfreemap.org/styles/liberty' : baseStyle(),
@@ -467,18 +472,18 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     const recoverBasemap = (reason: string): void => {
       if (!props.regionalAtlas || startupComplete || usedNeutralFallback) return;
       usedNeutralFallback = true;
-      setStatus(`Regional basemap unavailable: ${reason}. Recovering public GIS overlays on a neutral map; street basemap and tile coverage are NOT verified.`);
+      setBasemapStatus(`Regional basemap unavailable: ${reason}. Recovering public GIS overlays on a neutral map; street basemap and tile coverage are NOT verified.`);
       try {
         map.setStyle(createAtlasFallbackStyle());
       } catch (error) {
-        setStatus(`Atlas basemap recovery failed: ${error instanceof Error ? error.message : String(error)}. No geographic basemap claimed.`);
+        setBasemapStatus(`Atlas basemap recovery failed: ${error instanceof Error ? error.message : String(error)}. No geographic basemap claimed.`);
       }
     };
     map.on('error', (event) => {
       if (startupComplete) return;
       const message = event.error instanceof Error ? event.error.message : 'Unknown MapLibre initialization error';
       if (isAtlasBasemapError(message)) recoverBasemap(message.slice(0, 180));
-      else setStatus(`Map initialization warning: ${message.slice(0, 180)}. Loading remains unverified.`);
+      else setBasemapStatus(`Map initialization warning: ${message.slice(0, 180)}. Loading remains unverified.`);
     });
     recoveryTimer = setTimeout(() => {
       if (!startupComplete) recoverBasemap('remote style did not finish loading');
@@ -590,7 +595,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const terrain = getTerrainRgbStatus();
       const terrainAllowed = !props.regionalAtlas || Boolean(showIndianaImageryRef.current);
       setTerrainEnabled(terrain.enabled && terrainAllowed);
-      setStatus(usedNeutralFallback
+      setBasemapStatus(usedNeutralFallback
         ? 'Neutral map fallback loaded. The external street basemap did not initialize; staged GIS overlays may be available, but terrain, tiles and vertical datum remain unverified.'
         : terrain.enabled && terrainAllowed
           ? 'Map style initialized. Terrain-RGB template configured; actual tiles, coverage and vertical datum require independent verification.'

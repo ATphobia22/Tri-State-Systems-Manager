@@ -1,0 +1,18 @@
+{
+  "manifest_version": "1.1.0",
+  "source_key": "igio-administrative-current",
+  "purpose": "Mutable Indiana administrative boundaries service metadata only; county/year unverified",
+  "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+  "retrieved_at": "2026-11-22T15:31:11.258Z",
+  "http_status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "content_length_bytes": 4462,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "46af91c7dda3abe802d78985acf778dfcddbdb1d40bf6342e12b1ebea25bea2c",
+  "snapshot_file": "igio-administrative-current-service-metadata.json",
+  "scope_note": "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority.",
+  "source_vintage_status": "UNVERIFIED_MUTABLE_CURRENT_SERVICE",
+  "engineering_use": false,
+  "regulatory_use": false
+}
