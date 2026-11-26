@@ -1,0 +1,50 @@
+{
+  "schema": "tsm.gauge_zeros.v1",
+  "vertical_datum": "NAVD88",
+  "notes": "Reconciled zeros for WSE = zero + stage. Never fabricate missing zeros. MTVI3 and UNWK2 remain UNVERIFIED until field/source confirmation.",
+  "gauges": [
+    {
+      "site_id": "03378500",
+      "name": "Wabash River at New Harmony, IN",
+      "zero_navd88_ft": 352.67,
+      "source": "SIR preferred (reconciled vs NWIS 352.71)",
+      "status": "VERIFIED"
+    },
+    {
+      "site_id": "03322000",
+      "name": "Ohio River at Evansville, IN",
+      "zero_navd88_ft": 328.32,
+      "source": "October 2026 Dashboard (reconciled vs HTML 328.38)",
+      "status": "VERIFIED"
+    },
+    {
+      "site_id": "03377500",
+      "name": "Wabash River at Mount Carmel, IL",
+      "zero_navd88_ft": null,
+      "source": null,
+      "status": "UNVERIFIED"
+    },
+    {
+      "site_id": "MTVI3",
+      "name": "Mount Vernon (alias)",
+      "zero_navd88_ft": null,
+      "source": null,
+      "status": "UNVERIFIED",
+      "block_wse_fabrication": true
+    },
+    {
+      "site_id": "03322420",
+      "name": "John T. Myers Locks & Dam (UNWK2)",
+      "zero_navd88_ft": null,
+      "source": null,
+      "status": "UNVERIFIED",
+      "block_wse_fabrication": true
+    }
+  ],
+  "model_4449": {
+    "status": "CANDIDATE_ARCHIVE_ONLY",
+    "datum": "NGVD29",
+    "approx_shift_to_navd88_ft": 0.7,
+    "open_gates": ["CRS_verification", "extent_comparison", "boundary_conditions", "human_approval"]
+  }
+}
