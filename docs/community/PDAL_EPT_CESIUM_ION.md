@@ -1,19 +1,14 @@
-# PDAL EPT · Cesium ion
+# PDAL EPT Performance · ion Asset Management
 
-## readers.ept
-- filename: full ept.json URL (USGS 3DEP S3)
-- bounds required (3857 for usgs-lidar-public): Posey ([−9791000,−9779000],[4562000,4577000])
-- threads/requests; streamable; reproject → EPSG:26916
-- resolution for preview DEMs
+## EPT optimized
+threads=8, requests=24, bounds mandatory, resolution=5 for preview
+Pipelines: clip, dsm, buildings, preview
 
-## ion assets (ATphobia22)
-| ID | Name | Status |
-|----|------|--------|
-| 6204792 | Mount Vernon LOD2 Compressed | 3DTILES COMPLETE |
-| 6155964 | TSM Posey 3DEP Terrain | TERRAIN_COLLECTION COMPLETE |
-| 6155963 | TSM Posey LOD2 Buildings | AWAITING_FILES |
-| 6155967 | TSM Posey Ortho | AWAITING_FILES |
+## ion
+| ID | Status |
+|----|--------|
+| 6204792 Mount Vernon LOD2 Compressed | COMPLETE + labels TSM/Posey/4D |
+| 6155964 Posey 3DEP Terrain | COMPLETE |
+| 6204790, 6155963, 6155967 | AWAITING_FILES — upload or delete |
 
 Load: Cesium3DTileset.fromIonAssetId(6204792)
-Upload CityGML: launch_ion_asset_importer type=3DTILES sourceType=CITYGML → wait_for_asset
-Local 3dtiler remains default; ion optional mirror.

@@ -1,0 +1,25 @@
+{
+  "description": "Fast EPT preview DEM at 5 m (resolution option reduces octree depth).",
+  "pipeline": [
+    {
+      "type": "readers.ept",
+      "filename": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json",
+      "bounds": "([-9791000, -9779000], [4562000, 4577000])",
+      "resolution": 5.0,
+      "threads": 8,
+      "requests": 24
+    },
+    { "type": "filters.range", "limits": "Classification[2:2]" },
+    { "type": "filters.reprojection", "out_srs": "EPSG:26916" },
+    {
+      "type": "writers.gdal",
+      "filename": "data/dem/posey_ground_5m_preview.tif",
+      "gdaldriver": "GTiff",
+      "resolution": 5.0,
+      "output_type": "idw",
+      "radius": 10.0,
+      "nodata": -9999.0,
+      "data_type": "float32"
+    }
+  ]
+}
