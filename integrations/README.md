@@ -27,3 +27,19 @@ TSM consumes external repositories as **governed capability sources**, not as an
 ## Upgrade procedure
 
 Update the immutable `ref` only after reviewing upstream changes, license status, platform/toolchain requirements, security impact, and regression results. A branch name such as `main` or `master` is never an acceptable production registry reference.
+
+## Private operator metadata gateway
+
+`managed_gateway.py` is a standard-library, read-only operator probe, not a public API or an OAuth broker. It checks current main and the configured reconstruction folder identity against the official GitHub and Drive HTTPS APIs. Provision short-lived credentials through the operator's secret manager as `TSM_GITHUB_TOKEN` (repository Contents read) and `TSM_DRIVE_TOKEN` (authorized Drive metadata access). Do not commit tokens, expose them to the browser, or run this probe in anonymous Pages builds.
+
+Run from the repository root:
+
+```bash
+python3 integrations/managed_gateway.py
+python3 -m unittest discover -s tests/geospatial -p test_managed_gateway.py -v
+python3 -m unittest discover -s tests/geospatial -p test_legacy_import_guard.py -v
+```
+
+A missing token, unexpected response identity or failed request blocks the probe; provider redirects are rejected and responses are size-limited. Only main SHA, folder identity and mode are emitted. The probe is not evidence of a live authenticated platform session until executed with separately authorized credentials. Token renewal, uploads, resumable data transfer, audit persistence and authenticated administrator UI remain unimplemented. ChatGPT connector authorization is not transferable to this service.
+
+The legacy CityGML import script is intentionally disabled until an independent production acceptance service verifies source/geometry evidence and 3DCityDB readiness. Do not bypass it by invoking the old Docker command.
