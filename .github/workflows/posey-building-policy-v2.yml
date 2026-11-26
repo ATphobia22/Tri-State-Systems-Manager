@@ -1,0 +1,80 @@
+name: Posey Building Source-Derived Policy v2
+
+on:
+  pull_request:
+    paths:
+      - 'config/buildings/posey-production-policy.v2.json'
+      - 'docs/geospatial/POSEY-BUILDING-RECONCILIATION-V2.md'
+      - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_reconcile_published_buildings.py'
+      - 'scripts/geospatial/validate_posey_building_dispositions.py'
+      - 'scripts/geospatial/test_validate_posey_building_dispositions.py'
+      - 'scripts/geospatial/run-buildings-pipeline.sh'
+      - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - '.github/workflows/posey-building-policy-v2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'config/buildings/posey-production-policy.v2.json'
+      - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_reconcile_published_buildings.py'
+      - 'scripts/geospatial/validate_posey_building_dispositions.py'
+      - 'scripts/geospatial/test_validate_posey_building_dispositions.py'
+      - 'scripts/geospatial/run-buildings-pipeline.sh'
+      - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - '.github/workflows/posey-building-policy-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-derived-policy-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Syntax and shell validation
+        run: |
+          python -m py_compile \
+            scripts/geospatial/reconcile_published_buildings.py \
+            scripts/geospatial/test_reconcile_published_buildings.py \
+            scripts/geospatial/validate_posey_building_dispositions.py \
+            scripts/geospatial/test_validate_posey_building_dispositions.py
+          bash -n scripts/geospatial/run-buildings-pipeline.sh
+          bash -n scripts/geospatial/build-building-3d-tiles-pipeline.sh
+      - name: Source-derived inventory and dispositions regression tests
+        run: |
+          python -m unittest \
+            scripts/geospatial/test_reconcile_published_buildings.py \
+            scripts/geospatial/test_validate_posey_building_dispositions.py -v
+      - name: Validate exact approved policy and fail if count is hardcoded
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path("config/buildings/posey-production-policy.v2.json").read_text())
+          assert p["policy_version"] == "2.0.0"
+          assert p["county_fips"] == "18129"
+          assert p["expected_building_count"] is None
+          assert p["inventory_count_source"] == "fresh_authoritative_snapshot"
+          assert p["minimum_reconciliation_ratio"] == 1.0
+          for k in ("require_unique_source_ids","require_explicit_reconstruction_status",
+                    "require_uncertainty_metadata","require_asset_sha256","require_human_review"):
+              assert p[k] is True
+          for k in ("allow_fabricated_measurements","allow_unaccounted_buildings"):
+              assert p[k] is False
+          sh = Path("scripts/geospatial/run-buildings-pipeline.sh").read_text()
+          assert 'POSEY_OFFICIAL_SOURCE_RECEIPT' in sh
+          assert 'POSEY_OFFICIAL_SOURCE_GEOJSON' in sh
+          assert 'EXPECTED_BUILDINGS:-23082' not in sh
+          child = Path("scripts/geospatial/build-building-3d-tiles-pipeline.sh").read_text()
+          assert 'EXPECTED_BUILDINGS:-23082' not in child
+          PY
