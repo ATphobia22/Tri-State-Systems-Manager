@@ -1,0 +1,30 @@
+name: Managed integration and legacy import guard
+on:
+  pull_request:
+    paths:
+      - 'integrations/managed_gateway.py'
+      - 'auto-3d-city-builder/pipeline/import_citygml.sh'
+      - 'tests/geospatial/test_managed_gateway.py'
+      - 'tests/geospatial/test_legacy_import_guard.py'
+      - '.github/workflows/managed-integration-guard.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/managed_gateway.py'
+      - 'auto-3d-city-builder/pipeline/import_citygml.sh'
+      - 'tests/geospatial/test_managed_gateway.py'
+      - 'tests/geospatial/test_legacy_import_guard.py'
+      - '.github/workflows/managed-integration-guard.yml'
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Run offline regression tests without credentials
+        run: |
+          bash -n auto-3d-city-builder/pipeline/import_citygml.sh
+          python3 -m unittest discover -s tests/geospatial -p test_managed_gateway.py -v
+          python3 -m unittest discover -s tests/geospatial -p test_legacy_import_guard.py -v
