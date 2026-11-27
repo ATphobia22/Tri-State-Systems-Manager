@@ -75,19 +75,25 @@ class Ras2FimResilientTests(unittest.TestCase):
         self.assertEqual(exc.exception.code, 2)
         self.assertIn("finite, non-negative discharges", stderr.getvalue())
 
-    def test_rating_curve_stage_is_not_reported_as_success_when_only_listing_models(self) -> None:
-        output = io.StringIO()
-        with mock.patch.object(RUN_ALL, "run_script", return_value=True), redirect_stdout(output):
-            self.assertFalse(RUN_ALL.step_rating())
-        self.assertIn("does not execute HEC-RAS/ras2fim", output.getvalue())
+    def test_rating_curve_remains_blocked_without_solver_execution(self) -> None:
+        """A catalog entry must never be mistaken for executed hydraulic results."""
+        manifest = RUN_ALL.run_chain("contract-rating-not-executed")
+        self.assertEqual(manifest["steps"]["ras2fim"]["status"], "BLOCKED")
+        self.assertIn("Windows-only", manifest["steps"]["ras2fim"]["reason"])
+        self.assertNotIn(
+            "SUCCESS", [record["status"] for record in manifest["steps"].values()]
+        )
 
-    def test_unconfigured_forecast_and_unexecuted_hydrofabric_are_unavailable(self) -> None:
-        output = io.StringIO()
-        with redirect_stdout(output):
-            self.assertFalse(RUN_ALL.step_forecast())
-            self.assertFalse(RUN_ALL.step_hydrofabric())
-        self.assertIn("No operational forecast was retrieved or produced", output.getvalue())
-        self.assertIn("extraction has not been executed", output.getvalue())
+    def test_forecast_and_hydrofabric_are_queued_not_executed(self) -> None:
+        """Queued adapters cannot be reported as actual predictions or observations."""
+        manifest = RUN_ALL.run_chain("contract-no-forecast-executed")
+        self.assertEqual(manifest["steps"]["GEOGLOWS_v2"]["status"], "QUEUED")
+        self.assertEqual(manifest["steps"]["OpenHydroNet"]["status"], "QUEUED")
+        self.assertEqual(manifest["steps"]["TimesFM_3.0"]["status"], "QUEUED")
+        self.assertEqual(manifest["openmi"], "RETIRED")
+        self.assertIn("Human-Authority-Final", manifest["adr004"])
+        self.assertRegex(manifest["inputs_sha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(manifest["manifest_sha256"], r"^[0-9a-f]{64}$")
 
 
 if __name__ == "__main__":
