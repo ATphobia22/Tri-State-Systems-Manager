@@ -1,0 +1,35 @@
+name: Independent Roofer review acceptance contracts
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/review_acceptance.py'
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/pdal_roofer.py'
+      - 'scripts/geospatial/auto-3d-city-builder/tests/test_review_acceptance.py'
+      - 'scripts/geospatial/auto-3d-city-builder/pyproject.toml'
+      - '.github/workflows/roofer-review-acceptance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/review_acceptance.py'
+      - 'scripts/geospatial/auto-3d-city-builder/src/citybuilder/pdal_roofer.py'
+      - 'scripts/geospatial/auto-3d-city-builder/tests/test_review_acceptance.py'
+      - 'scripts/geospatial/auto-3d-city-builder/pyproject.toml'
+      - '.github/workflows/roofer-review-acceptance.yml'
+permissions:
+  contents: read
+jobs:
+  review-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install existing review test dependencies
+        run: python -m pip install -e 'scripts/geospatial/auto-3d-city-builder[test]'
+      - name: Test audit failure paths and existing reconstruction contracts
+        env:
+          PROJ_NETWORK: 'OFF'
+        run: |
+          python -m pytest scripts/geospatial/auto-3d-city-builder/tests -q
