@@ -120,6 +120,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_hydrology_pipeline.py' -v
           python -m unittest discover -s tests -p 'test_erdc_tr22_4_boundary.py' -v
           python -m unittest discover -s tests -p 'test_ras2fim_tristate.py' -v
+          python -m unittest discover -s tests -p 'test_forecast_manifest_safety.py' -v
+          python -m unittest discover -s tests/geospatial -p 'test_citydb_compose_security.py' -v
+          python -m unittest discover -s tests/geospatial -p 'test_community_source_boundary.py' -v
 
       - name: Validate committed hydraulic model archives
         working-directory: .
