@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import tempfile
@@ -16,6 +17,39 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def sha256_obj(obj: Any) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True, default=str).encode()).hexdigest()
+
+def classify_flood_stage(station_id: str, stage_ft: Any, thresholds: Any) -> str:
+    """Classify a same-station gage-stage observation in feet, never a forecast.
+
+    Caller must establish station identity, units and gage datum before use.
+    No other station's thresholds may be substituted. This is a screening
+    label, not an emergency warning or hydraulic-model result.
+    """
+    def finite_number(value):
+        try:
+            return type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            return False
+
+    if not finite_number(stage_ft):
+        return "OBSERVATION_UNAVAILABLE"
+    if not isinstance(station_id, str) or not isinstance(thresholds, dict):
+        return "THRESHOLD_UNAVAILABLE"
+    station = thresholds.get(station_id)
+    if not isinstance(station, dict):
+        return "THRESHOLD_UNAVAILABLE"
+    levels = [("action_ft", "ACTION"), ("flood_ft", "MINOR"),
+              ("moderate_ft", "MODERATE"), ("major_ft", "MAJOR")]
+    values = [station.get(key) for key, _ in levels]
+    if not all(finite_number(value) for value in values):
+        return "THRESHOLD_UNAVAILABLE"
+    if not all(a < b for a, b in zip(values, values[1:])):
+        return "THRESHOLD_UNAVAILABLE"
+    for value, (_, label) in reversed(list(zip(values, levels))):
+        if stage_ft >= value:
+            return label
+    return "BELOW_ACTION"
+
 
 def run_chain(job_id: str) -> Dict[str, Any]:
     steps = ["TimesFM_3.0", "GEOGLOWS_v2", "OpenHydroNet", "HydroMT_SFINCS", "hfsubsetR", "wres_explorer"]
