@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -21,29 +23,26 @@ except ImportError:
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "backend"))
 from gov.site_constants import (
-    BFE_FT, HORIZONTAL_CRS_CANONICAL, MIN_BISHOP_FOS,
-    USGS_GAUGE_ID, USGS_GAUGE_ZERO_NAVD88_FT,
-    assert_invariants, get_sovereign_constants,
+    MIN_BISHOP_FOS, assert_invariants, get_sovereign_constants,
 )
 
 router = APIRouter(prefix="/v1", tags=["twin"]) if HAS_FASTAPI else None
 GAUGE_PATH = ROOT / "data" / "usgs" / "gauge_zeros_navd88.json"
 
+@dataclass
 class DesignProposal:
-    def __init__(self, proposal_id="", intersects_floodway=False, section_408=False,
-                 slope_ratio=3.0, bishop_fos=None, within_811_buffer_m=False, **kw):
-        self.proposal_id = proposal_id
-        self.intersects_floodway = intersects_floodway
-        self.section_408 = section_408
-        self.slope_ratio = slope_ratio
-        self.bishop_fos = bishop_fos
-        self.within_811_buffer_m = within_811_buffer_m
+    proposal_id: str = ""
+    intersects_floodway: Any = None
+    section_408: Any = None
+    slope_ratio: Any = None
+    bishop_fos: Any = None
+    within_811_buffer_m: Any = None
 
+@dataclass
 class GateResult:
-    def __init__(self, name="", passed=False, detail=""):
-        self.name = name
-        self.passed = passed
-        self.detail = detail
+    name: str = ""
+    passed: bool = False
+    detail: str = ""
 
 def healthz():
     try:
@@ -56,13 +55,18 @@ def constants():
     return get_sovereign_constants()
 
 def evaluate_gates(proposal: DesignProposal):
-    fos = proposal.bishop_fos if proposal.bishop_fos is not None else 99.0
+    # Screening only. Missing evidence is never a passing condition.
+    def finite_at_least(value, threshold):
+        try:
+            return type(value) in (int, float) and math.isfinite(value) and value >= threshold
+        except OverflowError:
+            return False
     return [
-        GateResult("44_CFR_65_10_floodway", not proposal.intersects_floodway, "floodway"),
-        GateResult("Bishop_FoS", fos >= MIN_BISHOP_FOS, f"FoS={fos}"),
-        GateResult("slope_3_to_1", proposal.slope_ratio >= 3.0, f"slope={proposal.slope_ratio}"),
-        GateResult("811_buffer", not proposal.within_811_buffer_m, "811"),
-        GateResult("BFE_context", True, f"BFE={BFE_FT} CRS={HORIZONTAL_CRS_CANONICAL}"),
+        GateResult("44_CFR_65_10_floodway", proposal.intersects_floodway is False, "screening only"),
+        GateResult("Bishop_FoS", finite_at_least(proposal.bishop_fos, MIN_BISHOP_FOS), "screening only"),
+        GateResult("slope_3_to_1", finite_at_least(proposal.slope_ratio, 3.0), "screening only"),
+        GateResult("811_buffer", proposal.within_811_buffer_m is False, "screening only"),
+        GateResult("BFE_context", False, "Project-specific source evidence and human review required"),
     ]
 
 if HAS_FASTAPI and router is not None:
