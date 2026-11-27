@@ -69,3 +69,46 @@ export async function verifyGovernmentArchiveBytes(
   if (sha256 !== expectedSha256) throw Error('GOV_ARCHIVE_SHA256_MISMATCH');
   return { bytesVerified: true, sha256, byteLength };
 }
+
+/** Probe transport and the PMTiles v3 magic/version, not archive integrity. */
+export async function probeGovernmentArchiveRange(
+  url: string, options: Pick<ArchiveDigestOptions, 'signal' | 'fetcher'> = {},
+): Promise<{ archiveByteLength: number }> {
+  const response = await (options.fetcher ?? fetch)(url, {
+    signal: options.signal, redirect: 'error', cache: 'no-store',
+    headers: { Range: 'bytes=0-7' },
+  });
+  if (response.status !== 206 || !response.body) {
+    await response.body?.cancel();
+    throw Error('GOV_ARCHIVE_RANGE_UNAVAILABLE');
+  }
+  const range = /^bytes 0-7\/(\d+)$/.exec(response.headers.get('content-range') ?? '');
+  const archiveByteLength = range ? Number(range[1]) : NaN;
+  if (!Number.isSafeInteger(archiveByteLength) || archiveByteLength < 127) {
+    await response.body.cancel();
+    throw Error('GOV_ARCHIVE_CONTENT_RANGE_INVALID');
+  }
+  const prefix = new Uint8Array(8);
+  const stream = response.body.getReader();
+  let offset = 0;
+  try {
+    for (;;) {
+      const { done, value } = await stream.read();
+      if (done) break;
+      if (!value) continue;
+      if (offset + value.byteLength > prefix.length) {
+        await stream.cancel();
+        throw Error('GOV_ARCHIVE_RANGE_PAYLOAD_INVALID');
+      }
+      prefix.set(value, offset);
+      offset += value.byteLength;
+    }
+  } finally {
+    stream.releaseLock();
+  }
+  const expected = [80, 77, 84, 105, 108, 101, 115, 3]; // PMTiles v3
+  if (offset !== prefix.length || !expected.every((byte, i) => prefix[i] === byte)) {
+    throw Error('GOV_ARCHIVE_RANGE_PAYLOAD_INVALID');
+  }
+  return { archiveByteLength };
+}

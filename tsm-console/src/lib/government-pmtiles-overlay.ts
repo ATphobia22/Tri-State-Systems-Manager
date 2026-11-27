@@ -1,7 +1,7 @@
 import type {Map as MapLibreMap} from 'maplibre-gl';
 import {ensureProtocolRegistered} from './pmtiles-overlay';
 import {toPmtilesSourceUrl} from './pmtiles-fabric';
-import {verifyGovernmentArchiveBytes} from './government-snapshot-byte-verifier';
+import {MAX_GOVERNMENT_ARCHIVE_VERIFY_BYTES, probeGovernmentArchiveRange, verifyGovernmentArchiveBytes} from './government-snapshot-byte-verifier';
 import {registerGovernmentVectorLayer, type GovernmentTileManifest} from '../../../packages/government/src/layers/maplibreGovernmentLayers';
 import {
   isVerifiedHistoricalSnapshot, parseGovDate, parseTrustedMerkleRoots,
@@ -107,14 +107,6 @@ function statusDetail(
   };
 }
 
-async function archiveReachable(url:string,signal:AbortSignal):Promise<boolean>{
-  // Byte-range probe avoids downloading an entire PMTiles archive at startup.
-  // CORS/HTTP failures are isolated to this optional source, not the map.
-  const res=await fetch(url,{signal,redirect:'error',headers:{Range:'bytes=0-0'}});
-  if(res.body)await res.body.cancel();
-  return (res.status===206||res.status===200)&&res.ok;
-}
-
 export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
   const metadata=import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_MANIFEST?.trim();
   const archive=import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_URL?.trim();
@@ -150,24 +142,21 @@ export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
           ?source:{...source,capturedAt:snapshotTime,agency:manifest.attribution,sourceRecordUrl:manifestUrl,historical:stale};
         if(historical && !isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))
           throw Error('GOVERNMENT_HISTORICAL_RELEASE_PROOF_NOT_VERIFIED');
-        // Verify the actual archive bytes on ordinary-size artifacts. A large
-        // government snapshot can still render through a separately CI-verified,
-        // build-pinned Merkle release receipt, but must be labelled NOT
-        // byte-verified at runtime. A digest mismatch never promotes the data.
-        let archiveBytesVerified = false;
-        try {
-          await verifyGovernmentArchiveBytes(archiveUrl, manifest.tilesSha256, {
-            signal: controller.signal,
+        // Verify transport before registering the archive. Large assets may
+        // stream only with a build-pinned, consistent release receipt; runtime
+        // byte verification remains false. A range-ignoring host cannot stream.
+        const probe=await probeGovernmentArchiveRange(archiveUrl,{signal:controller.signal});
+        let archiveBytesVerified=false;
+        if(probe.archiveByteLength>MAX_GOVERNMENT_ARCHIVE_VERIFY_BYTES){
+          if(!isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))
+            throw Error('GOVERNMENT_LARGE_ARCHIVE_RELEASE_PROOF_NOT_VERIFIED');
+        }else{
+          const digest=await verifyGovernmentArchiveBytes(archiveUrl,manifest.tilesSha256,{
+            signal:controller.signal,
           });
-          archiveBytesVerified = true;
-        } catch(error) {
-          const overBudget = error instanceof Error &&
-            error.message === 'GOV_ARCHIVE_EXCEEDS_VERIFICATION_BUDGET';
-          if (!overBudget || (historical && !isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))) {
-            throw error;
-          }
-          if(!(await archiveReachable(archiveUrl,controller.signal)))
-            throw Error('GOVERNMENT_ARCHIVE_NOT_REACHABLE');
+          if(digest.byteLength!==probe.archiveByteLength)
+            throw Error('GOVERNMENT_ARCHIVE_SIZE_CHANGED');
+          archiveBytesVerified=true;
         }
 
         if(controller.signal.aborted)return;
