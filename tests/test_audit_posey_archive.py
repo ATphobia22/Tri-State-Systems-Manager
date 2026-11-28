@@ -1,5 +1,6 @@
 """Security and provenance regression fixtures for the independent offline audit."""
 import io
+import subprocess
 import json
 import struct
 import tarfile
@@ -75,6 +76,16 @@ class AuditPoseyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             a,b=fixture(Path(tmp),unsafe_link=True)
             with self.assertRaises(AuditError): audit(a,b)
+
+    def test_cli_refuses_partial_coverage_and_keeps_audit_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp)
+            a,b=fixture(d, ids=(1,2,3), tiles=(1,2))
+            output=d / "audit.json"
+            script=Path(__file__).resolve().parents[1] / "scripts" / "geospatial" / "audit_posey_archive.py"
+            result=subprocess.run([sys.executable,str(script),"--source-zip",str(a),"--tiles-tar",str(b),"--output",str(output)],capture_output=True,text=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(json.loads(output.read_text())["identity"]["missing_source_ids"],1)
 
     def test_rejects_tar_path_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
