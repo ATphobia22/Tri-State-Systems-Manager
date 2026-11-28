@@ -224,6 +224,8 @@ def main():
     print(json.dumps({'archive_entries': result['asset_integrity']['archive_entries'],
                       'missing_source_ids': result['identity']['missing_source_ids'],
                       'classification': result['classification']}))
+    if not result['identity']['complete']:
+        raise SystemExit(2)
 
 if __name__ == '__main__':
     main()
