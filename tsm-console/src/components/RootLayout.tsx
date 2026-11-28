@@ -30,6 +30,8 @@ const navGroups = [
   { title: 'Community & Platform', routes: ['/memorial', '/experiences', '/workspaces', '/needs', '/benefit', '/platform'] },
 ] as const;
 
+const primaryRoutes = new Set(['/atlas', '/river-watch', '/flood-sim', '/ledger', '/memorial']);
+
 const SHELL_CSS = `
 .tsm-skip-link {
   position: absolute; left: -9999px; top: 0; z-index: 200;
@@ -118,19 +120,32 @@ export default function RootLayout() {
         {navOpen && <button type="button" className="tsm-backdrop" aria-label="Close navigation menu" onClick={closeMenu} />}
         <aside id="tsm-sidebar" inert={!navOpen} className={`tsm-sidebar${navOpen ? ' open' : ' collapsed'}`} style={{ width: 280, background: '#ffffff', borderRight: '1px solid #dce8e6', padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {navGroups.map((group) => <details key={group.title} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
-              <summary style={{ cursor: 'pointer', padding: '0.75rem 0.5rem', minHeight: 44, fontSize: '0.82rem', fontWeight: 700, color: '#17324d' }}>{group.title}</summary>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {nav.filter((item) => (group.routes as readonly string[]).includes(item.to)).map((item) =>
-                  <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({
-                    display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem',
-                    borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600,
-                    textDecoration: 'none', color: isActive ? '#205a63' : '#526879',
-                    background: isActive ? '#dcefeb' : 'transparent',
-                    border: isActive ? '1px solid #9accbf' : '1px solid transparent',
-                  })}>{item.label}</NavLink>)}
-              </div>
-            </details>)}
+            <div aria-label="Main destinations" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {nav.filter((item) => primaryRoutes.has(item.to)).map((item) =>
+                <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({
+                  display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem',
+                  borderRadius: t.radius.sm, fontSize: '0.85rem', fontWeight: 700,
+                  textDecoration: 'none', color: isActive ? '#205a63' : '#526879',
+                  background: isActive ? '#dcefeb' : 'transparent',
+                  border: isActive ? '1px solid #9accbf' : '1px solid transparent',
+                })}>{item.label}</NavLink>)}
+            </div>
+            <details className="tsm-more-tools" style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
+              <summary style={{ cursor: 'pointer', padding: '0.75rem 0.5rem', minHeight: 44, fontSize: '0.82rem', fontWeight: 700 }}>More viewers and tools</summary>
+              {navGroups.map((group) => <details key={group.title} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: 6 }}>
+                <summary style={{ cursor: 'pointer', padding: '0.75rem 0.5rem', minHeight: 44, fontSize: '0.82rem', fontWeight: 600, color: '#17324d' }}>{group.title}</summary>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {nav.filter((item) => (group.routes as readonly string[]).includes(item.to) && !primaryRoutes.has(item.to)).map((item) =>
+                    <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({
+                      display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem',
+                      borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600,
+                      textDecoration: 'none', color: isActive ? '#205a63' : '#526879',
+                      background: isActive ? '#dcefeb' : 'transparent',
+                      border: isActive ? '1px solid #9accbf' : '1px solid transparent',
+                    })}>{item.label}</NavLink>)}
+                </div>
+              </details>)}
+            </details>
           </nav>
           <details style={{ marginTop: 4 }}><summary style={{ cursor: 'pointer', padding: '0.75rem', minHeight: 44, fontWeight: 600 }}>Engineering settings</summary><EngineeringSimSettings /></details>
           <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: '1px solid #dce8e6' }}>
