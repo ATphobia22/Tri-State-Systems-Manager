@@ -1,0 +1,39 @@
+name: Posey Historical Archive Structural Audit
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/audit_posey_archive.py'
+      - 'tests/test_audit_posey_archive.py'
+      - '.github/workflows/posey-historical-archive-audit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_posey_archive.py'
+      - 'tests/test_audit_posey_archive.py'
+      - '.github/workflows/posey-historical-archive-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  structural-audit-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate isolated static code and deterministic fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/geospatial/audit_posey_archive.py
+          python3 -m unittest discover -s tests -p 'test_audit_posey_archive.py' -v
+      - name: State scientific acceptance boundary
+        shell: bash
+        run: |
+          {
+            echo '### Evidence boundary'
+            echo 'These deterministic tests validate the archive auditor, not the real Posey archive.'
+            echo 'The real source ZIP and historical tar.zst must be independently supplied, hashed and reconciled.'
+            echo 'No height, facade, datum, survey or regulatory approval is inferred from this CI.'
+          } >> "$GITHUB_STEP_SUMMARY"
