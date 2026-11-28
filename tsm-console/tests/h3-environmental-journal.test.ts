@@ -19,6 +19,14 @@ describe('H3 persistent environmental journal contracts', () => {
     expect(migrated.cellHistory).toEqual([{ legacyId: 'old-4', season: 'winter', h3Cell: null, spatialStatus: 'requires-source-remap' }]);
     expect(migrateLegacySave(migrated)).toEqual(migrated);
   });
+  it('preserves opaque legacy cellHistory payloads instead of replacing them with an empty list', () => {
+    for (const legacyCellHistory of ['legacy-history-v1', { imported: true, rows: [1, 2, 3] }]) {
+      const migrated = migrateLegacySave({ schemaVersion: 1, cellHistory: legacyCellHistory, unrelated: 'kept' });
+      expect(migrated.cellHistory).toEqual(legacyCellHistory);
+      expect(migrated.unrelated).toBe('kept');
+      expect(migrated.migration).toEqual({ from: 1, to: 2, preservesLegacyPayload: true });
+    }
+  });
   it('orders due events deterministically and leaves future events queued', () => {
     const events = [{ eventId: 'b', dueAt: '2026-01-01T00:00:00Z' }, { eventId: 'a', dueAt: '2026-01-01T00:00:00Z' }, { eventId: 'later', dueAt: '2027-01-01T00:00:00Z' }];
     expect(dueEnvironmentalEvents(events, '2026-06-01T00:00:00Z').map(e => e.eventId)).toEqual(['a', 'b']);
