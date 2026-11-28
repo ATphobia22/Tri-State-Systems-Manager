@@ -1,0 +1,15 @@
+{
+  "policy_version": "2.0.0",
+  "county_fips": "18129",
+  "expected_building_count": null,
+  "inventory_count_source": "fresh_authoritative_snapshot",
+  "minimum_reconciliation_ratio": 1,
+  "require_unique_source_ids": true,
+  "require_explicit_reconstruction_status": true,
+  "require_uncertainty_metadata": true,
+  "allow_missing_measurements": true,
+  "allow_fabricated_measurements": false,
+  "allow_unaccounted_buildings": false,
+  "require_asset_sha256": true,
+  "require_human_review": true
+}

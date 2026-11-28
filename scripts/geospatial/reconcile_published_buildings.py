@@ -11,7 +11,7 @@ Examples:
     --output /tmp/posey-building-audit.json
   python scripts/geospatial/reconcile_published_buildings.py \
     --published public.geojson --authoritative acquired-igio.geojson \
-    --expected-count 23082 --require-complete --output verified-report.json
+    --require-complete --output verified-report.json
 """
 from __future__ import annotations
 
@@ -97,26 +97,30 @@ def _inventory(path: Path, *, file_bytes: bytes | None = None) -> dict[str, Any]
     }
 
 
-def reconcile(published: Path, authoritative: Path | None, expected_count: int = 23082) -> dict[str, Any]:
-    if expected_count <= 0:
+def reconcile(published: Path, authoritative: Path | None, expected_count: int | None = None) -> dict[str, Any]:
+    if expected_count is not None and (type(expected_count) is not int or expected_count <= 0):
         raise ValueError("expected_count must be a positive integer")
     pub = _inventory(published)
     src = _inventory(authoritative) if authoritative is not None else None
+    # Only an independently supplied authoritative snapshot may determine a new
+    # production count. Explicit expected_count is for retrospective audits.
+    target_count = expected_count if expected_count is not None else (src["count"] if src else None)
     if src is not None:
         missing = sorted(src["ids"] - pub["ids"])
         extras = sorted(pub["ids"] - src["ids"])
-        source_ok = (src["count"] == expected_count and src["identified_count"] == expected_count
+        source_ok = (src["count"] == target_count and src["identified_count"] == target_count
                      and not src["duplicate_ids"] and src["invalid_features"] == 0)
         identity_ok = (pub["identified_count"] == pub["count"]
                        and not pub["duplicate_ids"] and pub["invalid_features"] == 0
-                       and not missing and not extras and pub["count"] == expected_count)
+                       and not missing and not extras and pub["count"] == target_count)
         complete = bool(source_ok and identity_ok)
         status = "IDENTITY_MATCH_COUNTS_ONLY" if complete else "RECONCILIATION_INCOMPLETE"
     else:
         missing = None
         extras = None
         complete = False
-        status = ("COUNT_MATCH_SOURCE_UNVERIFIED" if pub["count"] == expected_count
+        status = ("AUTHORITATIVE_SOURCE_UNAVAILABLE" if target_count is None else
+                  "COUNT_MATCH_SOURCE_UNVERIFIED" if pub["count"] == target_count
                   else "COUNT_GAP_SOURCE_UNVERIFIED")
 
     def brief(inventory: dict[str, Any]) -> dict[str, Any]:
@@ -137,11 +141,13 @@ def reconcile(published: Path, authoritative: Path | None, expected_count: int =
         "engineeringUse": False,
         "provenanceNotice": "Counts/IDs alone do not establish height, NAVD88, LOD, source vintage, or geometry accuracy",
         "status": status,
-        "expectedAuthoritativeFeatureCount": expected_count,
+        "expectedAuthoritativeFeatureCount": target_count,
+        "freshAuthoritativeCountDerivedFromSnapshot": src["count"] if src else None,
+        "historicalExpectedCountOverride": expected_count,
         "published": brief(pub),
         "authoritative": brief(src) if src else None,
-        "publishedCoveragePercentAgainstExpected": round(100 * pub["count"] / expected_count, 4),
-        "countGapAgainstExpected": expected_count - pub["count"],
+        "publishedCoveragePercentAgainstExpected": round(100 * pub["count"] / target_count, 4) if target_count else None,
+        "countGapAgainstExpected": target_count - pub["count"] if target_count is not None else None,
         "missingAuthoritativeObjectIds": missing,
         "publishedObjectIdsAbsentFromAuthoritative": extras,
         "missingIdsAreUnknownWithoutAuthoritativeFile": src is None,
@@ -154,7 +160,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--published", type=Path, required=True)
     parser.add_argument("--authoritative", type=Path)
-    parser.add_argument("--expected-count", type=int, default=23082)
+    parser.add_argument("--expected-count", type=int, default=None,
+                        help="historical retrospective override only; fresh count comes from --authoritative")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--require-complete", action="store_true",
                         help="fail if exact authoritative IDs are not present or do not reconcile")

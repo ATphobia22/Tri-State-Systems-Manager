@@ -113,5 +113,47 @@ class BuildingIdentityAuditTests(unittest.TestCase):
                 reconcile(pub, None, expected_count=0)
 
 
+    def test_fresh_source_count_is_derived_not_hardcoded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = write_fc(root / "official.json", [9, 11, 42, 81, 111])
+            pub = write_fc(root / "accounted.json", [81, 9, 111, 11, 42])
+            result = reconcile(pub, src)
+            self.assertTrue(result["identityAndCountReconciled"])
+            self.assertEqual(result["expectedAuthoritativeFeatureCount"], 5)
+            self.assertEqual(result["freshAuthoritativeCountDerivedFromSnapshot"], 5)
+            self.assertIsNone(result["historicalExpectedCountOverride"])
+            self.assertEqual(result["publishedCoveragePercentAgainstExpected"], 100.0)
+
+    def test_unknown_source_does_not_infer_a_count_or_100_percent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pub = write_fc(Path(tmp) / "unverified.json", [1, 2, 3])
+            result = reconcile(pub, None)
+            self.assertEqual(result["status"], "AUTHORITATIVE_SOURCE_UNAVAILABLE")
+            self.assertIsNone(result["expectedAuthoritativeFeatureCount"])
+            self.assertIsNone(result["publishedCoveragePercentAgainstExpected"])
+            self.assertIsNone(result["countGapAgainstExpected"])
+            self.assertFalse(result["identityAndCountReconciled"])
+
+    def test_equal_counts_cannot_hide_source_id_substitution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = write_fc(root / "official.json", [5, 6, 7])
+            pub = write_fc(root / "substituted.json", [5, 6, 8])
+            result = reconcile(pub, src)
+            self.assertFalse(result["identityAndCountReconciled"])
+            self.assertEqual(result["missingAuthoritativeObjectIds"], [7])
+            self.assertEqual(result["publishedObjectIdsAbsentFromAuthoritative"], [8])
+
+    def test_duplicate_source_ids_prevent_acceptance_without_count_override(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = write_fc(root / "official.json", [5, 5, 6])
+            pub = write_fc(root / "accounted.json", [5, 6])
+            result = reconcile(pub, src)
+            self.assertFalse(result["identityAndCountReconciled"])
+            self.assertEqual(result["authoritative"]["duplicateSourceObjectIds"], [5])
+
+
 if __name__ == "__main__":
     unittest.main()

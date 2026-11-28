@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=${1:?output root}; GEOJSON=${2:-/tmp/tsm-igio/posey-buildings-igio-enriched.geojson}
-EXPECTED=${EXPECTED_BUILDINGS:-23082}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}
+EXPECTED=${EXPECTED_BUILDINGS:?Pass source-derived footprint count from sealed IGIO inventory}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}
 # Audit 2026-10-07: BUILDING_EXTRUSION_FT fixed default REMOVED. Height must come
 # from per-feature LiDAR-derived values (lidarHeightFt). Only pass --extrusion-ft
 # deliberately for screening runs via BUILDING_EXTRUSION_FT_OVERRIDE.
