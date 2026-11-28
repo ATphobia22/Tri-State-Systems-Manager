@@ -10,7 +10,12 @@ describe('TSM light map-first navigation and controls', () => {
     cy.get('button[aria-controls="tsm-sidebar"]').should('have.attr', 'aria-expanded', 'false').click();
     cy.get('button[aria-controls="tsm-sidebar"]').should('have.attr', 'aria-expanded', 'true');
     cy.get('#tsm-sidebar').should('not.have.attr', 'inert');
-    cy.contains('#tsm-sidebar summary', 'Explore the River Valley').click();
+    // Specialized destinations remain usable, but are deliberately grouped
+    // behind one compact secondary navigation disclosure.
+    cy.get('#tsm-sidebar details.tsm-more-tools').should('not.have.attr', 'open');
+    cy.get('#tsm-sidebar details.tsm-more-tools > summary').click();
+    cy.get('#tsm-sidebar details.tsm-more-tools').should('have.attr', 'open');
+    cy.contains('#tsm-sidebar details.tsm-more-tools summary', 'Explore the River Valley').click();
     cy.contains('#tsm-sidebar a', 'Hydraulic Map').click();
     cy.location('pathname').should('include', '/map');
     cy.get('button[aria-controls="tsm-sidebar"]').should('have.attr', 'aria-expanded', 'false');
