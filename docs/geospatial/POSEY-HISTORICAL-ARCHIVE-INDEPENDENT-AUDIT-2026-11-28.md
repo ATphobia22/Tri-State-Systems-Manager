@@ -81,3 +81,19 @@ original bytes and is not checked into the repository.
   independent scientific, engineering and regulatory reviews.
 
 No main-branch or publishing changes are authorized by this audit alone.
+
+
+## Separate historical SQLite snapshot (quarantined)
+
+Read-only inspection of the original historical archive
+TSM-building-database-HISTORICAL-UNVERIFIED-2026-11-25.zip
+(SHA-256: 65caf8f3a94eaf804e5d1965bd7e302c20843d9b4bb10566fe4d8970f77bf5c9)
+returned SQLite integrity_check=ok and foreign_key_check=[].
+The database contains 23,082 building rows and 23,082 non-null elevation
+rows, but **all elevation height methods are non-observed placeholders**:
+12,155 DEFAULT_RURAL_MEDIAN and 10,927 OVERTURE_NEAREST_20M.
+All 23,082 datum labels explicitly say "NAVD88 claimed by input; unverified".
+There are 12 invalid footprint flags, one geometry mismatch and **zero**
+asset, job or human-review rows. A non-null value is not an observed or
+verified height. This archive must not close any measured-height,
+photorealistic tile, datum or regulatory release gate.
