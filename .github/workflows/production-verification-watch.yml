@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/production-verification-watch.yml'
+      - 'scripts/release/test_production_watch_workflow.py'
 permissions:
   contents: read
   actions: read
@@ -15,7 +16,28 @@ concurrency:
   group: tsm-production-verification-watch-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
   cancel-in-progress: false
 jobs:
+  validate-candidate:
+    # A PR validates its own source; it cannot repair an already deployed main.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Validate candidate monitoring contract (not deployment evidence)
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check --no-input 'PyYAML==6.0.3'
+          python scripts/release/test_production_watch_workflow.py -v
   verify:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -51,7 +73,7 @@ jobs:
             jq -s '[.[][] | {number,head_sha:.head.sha,base_sha:.base.sha,draft,html_url}]' > "$out/open-prs.json"
           jq -n --arg sha "$MAIN_SHA" --arg time "$(date -u +%FT%TZ)" '{mainSha:$sha,checkedAtUtc:$time}' > "$out/snapshot.json"
           {
-            echo "### Current main: `$MAIN_SHA`"
+            printf '### Current main: `%s`\n' "$MAIN_SHA"
             echo "Exact-main workflow results (PR checks are not deployment proof):"
             echo '| Workflow | State | Conclusion |'
             echo '|---|---|---|'
@@ -141,6 +163,11 @@ jobs:
           test -s "$out/publication-status.txt"
           failed="$(jq 'any(.[]; .conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "action_required")' "$out/main-workflows.json")"
           if [[ "$failed" == true ]] || grep -q HTTP_PROBE_FAILED "$out/public-probe.txt" || grep -q PUBLICATION_VERIFICATION_FAILED "$out/publication-status.txt"; then
+            {
+              echo '### Confirmed CI or publication failures'
+              jq -r '.[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "action_required") | [.name,.conclusion,.html_url] | @tsv' "$out/main-workflows.json"
+              cat "$out/public-probe.txt" "$out/publication-status.txt"
+            } | tee -a "$GITHUB_STEP_SUMMARY" >&2
             echo 'Confirmed CI or publication failure; inspect preserved receipts.' >&2
             exit 1
           fi

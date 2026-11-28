@@ -1,18 +1,21 @@
 # Auto-3D City Builder — 3DCityDB v5 + Web Map Client
-# Usage: set SRID to city canonical EPSG, then: docker compose up -d
+# Private development only. Supply CITYDB_PASSWORD and CITYDB_SRID.
+# New volume: migrate existing databases separately; never reuse an incompatible PG volume.
+# DB digest: https://github.com/3dcitydb/3dcitydb/pkgs/container/3dcitydb-pg
+# Legacy webmap is optional and not a production publication service.
 
 services:
   citydb:
-    image: 3dcitydb/3dcitydb-pg:latest
+    image: ghcr.io/3dcitydb/3dcitydb-pg:15-3.5-5.1.4@sha256:5af9e4f71772d31904b7d6d3495fe2f0526e9d7517a3b2447c9540139003da26
     container_name: citydb
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
-      POSTGRES_PASSWORD: ${CITYDB_PASSWORD:-changeMe}
+      POSTGRES_PASSWORD: ${CITYDB_PASSWORD:?Set a private database password}
       SRID: ${CITYDB_SRID:-26916}
-      PROJ_NETWORK: "ON"
+      PROJ_NETWORK: "OFF"
     volumes:
-      - citydb_data:/var/lib/postgresql/data
+      - citydb_v514_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -20,13 +23,14 @@ services:
       retries: 10
 
   webmap:
-    image: tumgis/3dcitydb-web-map:alpine-latest
+    image: tumgis/3dcitydb-web-map:alpine-v2.0.0
+    profiles: [legacy-webmap]
     container_name: citydb-webmap
     ports:
-      - "8080:8000"
+      - "127.0.0.1:8080:8000"
     depends_on:
       citydb:
         condition: service_healthy
 
 volumes:
-  citydb_data:
+  citydb_v514_data:
