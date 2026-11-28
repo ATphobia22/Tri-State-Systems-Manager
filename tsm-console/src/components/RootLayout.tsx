@@ -1,7 +1,7 @@
 /** Root Layout — community trust-fabric status + live telemetry + operator settings. */
 
 import { useEffect, useState } from 'react';
-import { Outlet, NavLink, useRouteLoaderData } from 'react-router';
+import { Outlet, NavLink, useLocation, useNavigate, useRouteLoaderData } from 'react-router';
 import type { RootLoaderData } from '../types/loaders';
 import { t } from '../lib/design-tokens';
 import { StageAuthorityBanner } from './StageAuthorityBanner';
@@ -23,11 +23,25 @@ const nav = [
   { to: '/globe', label: 'Globe (MapLibre)' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/platform', label: 'Platform Capabilities' },
 ];
 
+const viewerModes = [
+  { to: '/atlas', label: '4D Atlas (recommended)' },
+  { to: '/map', label: 'Hydraulic Map' },
+  { to: '/globe', label: 'MapLibre Globe' },
+  { to: '/terrain-3d', label: '3DEP Terrain' },
+  { to: '/cesium', label: 'Cesium Buildings' },
+  { to: '/twin', label: 'Twin Canvas' },
+  { to: '/digital-twin-v2', label: '3D Twin' },
+  { to: '/cinematic', label: '3D Cinema' },
+  { to: '/cinematic-engineering', label: 'Cinematic Engineering' },
+] as const;
+
+// Specialized rendering engines remain available without dominating primary navigation.
 const navGroups = [
-  { title: 'Explore the River Valley', routes: ['/atlas', '/map', '/globe', '/terrain-3d', '/twin', '/digital-twin-v2'] },
-  { title: 'Engineering & Simulation', routes: ['/engineering-section', '/flood-sim', '/cinematic', '/cesium', '/cinematic-engineering', '/river-watch', '/eoc'] },
+  { title: 'Explore the River Valley', routes: ['/atlas', '/map'] },
+  { title: 'Engineering & Simulation', routes: ['/engineering-section', '/flood-sim', '/river-watch', '/eoc'] },
   { title: 'Data & Evidence', routes: ['/data-fabric', '/lineage', '/ledger', '/architecture'] },
   { title: 'Community & Platform', routes: ['/memorial', '/experiences', '/workspaces', '/needs', '/benefit', '/platform'] },
+  { title: 'Advanced viewers & engines', routes: ['/globe', '/terrain-3d', '/twin', '/digital-twin-v2', '/cinematic', '/cesium', '/cinematic-engineering'] },
 ] as const;
 
 const SHELL_CSS = `
@@ -76,6 +90,9 @@ export default function RootLayout() {
   const stageDisclaimer = stage?.source === 'UNAVAILABLE'
     ? 'No river observation is preloaded in the global status context. Use the River Watch or map gauge controls to request official USGS snapshots; readings may be provisional or unavailable. No continuous telemetry or NAVD88 conversion is inferred.'
     : `${sourceLabel} observed stage is ${provisional ? 'PROVISIONAL' : 'current'}; raw stage remains GAGE_DATUM. Human authority remains final.`;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentViewer = viewerModes.find((mode) => location.pathname === mode.to || location.pathname.startsWith(mode.to + '/'))?.to ?? '';
   const [navOpen, setNavOpen] = useState(false);
   const closeMenu = (): void => setNavOpen(false);
   useEffect(() => {
@@ -110,6 +127,18 @@ export default function RootLayout() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace' }}>
             {community && <div><span style={{ color: '#526879' }}>Scope </span><span style={{ color: '#205a63', fontWeight: 600 }}>{community.township}</span></div>}
             <div><span style={{ color: '#526879' }}>Access </span><span style={{ color: '#205a63' }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#526879', fontWeight: 600 }}>
+              View
+              <select
+                aria-label="Choose visualization"
+                value={currentViewer}
+                onChange={(event) => { if (event.currentTarget.value) navigate(event.currentTarget.value); }}
+                style={{ minHeight: 44, maxWidth: 210, borderRadius: 8, padding: '0.35rem', border: '1px solid #9accbf', background: '#fff', color: '#17324d' }}
+              >
+                <option value="">Choose a view</option>
+                {viewerModes.map((mode) => <option key={mode.to} value={mode.to}>{mode.label}</option>)}
+              </select>
+            </label>
           </div>
         </div>
       </header>
