@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { Link } from 'react-router';
 import TriStateDigitalTwinMap, { defaultMapPlaneVisibility } from '../components/TriStateDigitalTwinMap';
+import CesiumRegionalTwinView from './CesiumRegionalTwinView';
 import RiverGaugeBoard from '../components/RiverGaugeBoard';
 import PagesUSGSGaugeReader from '../components/PagesUSGSGaugeReader';
 import CommunityGrantMatrix from '../components/CommunityGrantMatrix';
@@ -66,6 +67,9 @@ export default function TriStateAtlasView(): JSX.Element {
   const [light, setLight] = useState<Light>('golden');
   const [visualFx, setVisualFx] = useState<VisualFx>('clear');
   const [cinematicTour, setCinematicTour] = useState(false);
+  // One Atlas viewport: mount MapLibre OR Cesium, never both at once.
+  const [renderer, setRenderer] = useState<'maplibre' | 'cesium'>(() =>
+    new URLSearchParams(window.location.search).get('renderer') === 'cesium' ? 'cesium' : 'maplibre');
   const [showPartialBuildingMeshes, setShowPartialBuildingMeshes] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
   const [sceneHour, setSceneHour] = useState(17);
@@ -315,9 +319,21 @@ export default function TriStateAtlasView(): JSX.Element {
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
+            <div role="group" aria-label="Choose Atlas rendering engine" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button type="button" data-testid="atlas-renderer-maplibre" className="tsm-atlas-tour"
+                aria-pressed={renderer === 'maplibre'} onClick={() => { setCinematicTour(false); setRenderer('maplibre'); }}>
+                2D map & layers
+              </button>
+              <button type="button" data-testid="atlas-renderer-cesium" className="tsm-atlas-tour"
+                aria-pressed={renderer === 'cesium'} disabled={Boolean(drawMode || waypoints.length)}
+                onClick={() => { setCinematicTour(false); setRenderer('cesium'); }}>
+                3D terrain & buildings
+              </button>
+            </div>
+            {renderer === 'cesium' && <p role="status" className="tsm-atlas-note">Cesium 3D uses its own geographic layer controls. The Atlas 2D region, proposal drawing and layer checkboxes remain saved for switching back. No estimated roof height is an observed measurement.</p>}
             <div aria-live="polite"><strong data-testid="atlas-region-title">{region.label} · 4D regional twin</strong><small>MapLibre presentation EPSG:3857 · stored geospatial references WGS84 · source authority remains separate</small></div>
             <label className="tsm-atlas-mesh-toggle tsm-atlas-mesh-visible">
-              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)}
+              <input type="checkbox" checked={showPartialBuildingMeshes} disabled={renderer === 'cesium'} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)}
                 aria-label="Show source-linked partial Posey 3D building preview" />
               <span>Posey 3D buildings <small>Partial 12,450-tile LoD1 preview · not a complete height-verified census</small></span>
             </label>
@@ -355,15 +371,17 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>}
           <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
             <div className="tsm-civic-fx-overlay" aria-hidden="true" />
-            <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
+            {renderer === 'cesium'
+              ? <CesiumRegionalTwinView autoFlyover={cinematicTour} onFlyoverChange={setCinematicTour} />
+              : <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
               cinematicTour={cinematicTour} onTourReducedMotion={stopTourForReducedMotion}
               regionalBuildingMeshes={showPartialBuildingMeshes}
               proposalDrawMode={drawMode} onProposalPoint={addProposalPoint} proposalOverlay={proposalOverlay}
-              showIndianaImagery={region.imagery && Boolean(visibleForRegion['indiana-imagery'])} lightPreset={light} onStatusChange={onMapStatus} />
+              showIndianaImagery={region.imagery && Boolean(visibleForRegion['indiana-imagery'])} lightPreset={light} onStatusChange={onMapStatus} />}
           </div>
           <div className="tsm-atlas-map-status" role="status" aria-live="polite">
-            <strong>Map adapter:</strong> {mapStatus}
+            <strong>Map adapter:</strong> {renderer === 'cesium' ? 'Cesium 3D terrain and buildings — inspect the viewport for source loading and availability.' : mapStatus}
             <span className="tsm-atlas-runtime-note"> Map appearance never certifies data coverage, positional accuracy, or model validity.</span>
           </div>
           <p className="tsm-atlas-note">Source map features are observational, contextual, planning, regulatory, or derived depending on their registry authority. Visible does not mean validated; 3D roof estimates and flood screening must not be interpreted as engineering measurements.</p>
