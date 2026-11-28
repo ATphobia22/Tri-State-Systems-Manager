@@ -44,16 +44,19 @@ export function migrateLegacySave(input: unknown): Record<string, unknown> {
     throw new TypeError('Unsupported save schema version.');
   }
   if (version === ENVIRONMENTAL_SAVE_VERSION) return structuredClone(save);
-  const priorHistory = Array.isArray(save.cellHistory) ? save.cellHistory : [];
-  const migratedHistory = priorHistory.map((item) => {
+  // Only transform the legacy history when its container is the expected array.
+  // Opaque/non-array payloads may belong to an older producer; preserve them byte-for-value
+  // rather than silently replacing them with [] and falsely claiming a lossless migration.
+  const hasArrayHistory = Array.isArray(save.cellHistory);
+  const migratedHistory = hasArrayHistory ? save.cellHistory.map((item) => {
     const entry: Record<string, unknown> = item && typeof item === 'object' ? item as Record<string, unknown> : { legacyValue: item };
     const h3Cell = typeof entry.cellId === 'string' && isValidCell(entry.cellId) ? entry.cellId : null;
     return { ...entry, h3Cell, spatialStatus: h3Cell ? 'identified' : 'requires-source-remap' };
-  });
+  }) : undefined;
   return {
     ...structuredClone(save),
     schemaVersion: ENVIRONMENTAL_SAVE_VERSION,
-    cellHistory: migratedHistory,
+    ...(hasArrayHistory ? { cellHistory: migratedHistory } : {}),
     migration: { from: version, to: ENVIRONMENTAL_SAVE_VERSION, preservesLegacyPayload: true },
   };
 }
