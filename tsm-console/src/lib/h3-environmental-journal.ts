@@ -46,7 +46,7 @@ export function migrateLegacySave(input: unknown): Record<string, unknown> {
   if (version === ENVIRONMENTAL_SAVE_VERSION) return structuredClone(save);
   const priorHistory = Array.isArray(save.cellHistory) ? save.cellHistory : [];
   const migratedHistory = priorHistory.map((item) => {
-    const entry = item && typeof item === 'object' ? item as Record<string, unknown> : { legacyValue: item };
+    const entry: Record<string, unknown> = item && typeof item === 'object' ? item as Record<string, unknown> : { legacyValue: item };
     const h3Cell = typeof entry.cellId === 'string' && isValidCell(entry.cellId) ? entry.cellId : null;
     return { ...entry, h3Cell, spatialStatus: h3Cell ? 'identified' : 'requires-source-remap' };
   });
